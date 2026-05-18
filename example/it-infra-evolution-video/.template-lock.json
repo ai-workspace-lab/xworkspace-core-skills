@@ -1,0 +1,7 @@
+{
+  "name": "it-infra-evolution-video",
+  "version": "v1",
+  "status": "read-only",
+  "role": "frozen-project-template",
+  "note": "Copy this directory for v2 or experiments. Do not edit v1 in place."
+}

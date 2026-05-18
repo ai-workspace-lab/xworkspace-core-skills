@@ -1,0 +1,3 @@
+display_name: IT 基础设施视频
+short_description: 用 HyperFrames、edge-tts 和长图素材制作 IT 基础设施系列讲解视频。
+default_prompt: 使用 it-infra-evolution-video skill，根据我提供的长图素材制作一条 60-90 秒中文横屏讲解视频，包含素材 manifest、逐段口播、字幕、BGM、章节 timeline tag、HyperFrames 校验和最终 MP4。

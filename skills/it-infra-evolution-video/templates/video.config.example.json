@@ -1,0 +1,26 @@
+{
+  "duration": 82,
+  "timelineColumns": 8,
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "stylePreset": "sample-blue-white-two-column-scan",
+  "sections": [
+    {
+      "id": "intro",
+      "start": 0,
+      "duration": 12,
+      "timeLabel": "0:00",
+      "timelineLabel": "引言",
+      "title": "IT 基础设施演进史是一组能力的共同进化",
+      "subtitle": "计算、网络、存储、安全、监控、平台工程，最终汇入 AI 原生。",
+      "tags": ["资源效率", "系统弹性", "自动化", "智能化"],
+      "image": "assets/images/it-infra-evolution-road.png",
+      "imageFit": "cover",
+      "voiceover": "assets/audio/intro.mp3",
+      "caption": "IT 基础设施演进史，不只是服务器升级，而是一组能力的共同进化。"
+    }
+  ],
+  "inspectTimes": [6]
+}

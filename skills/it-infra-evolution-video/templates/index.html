@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root { --timeline-columns: 8; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f3faff;
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+        color: #07194f;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 82% 16%, rgba(73,217,255,0.26), transparent 30%),
+          radial-gradient(circle at 10% 92%, rgba(21,91,255,0.15), transparent 28%),
+          linear-gradient(135deg, #ffffff 0%, #f3faff 46%, #dceeff 100%);
+      }
+      .clip { position: absolute; overflow: hidden; }
+      .scene { inset: 0; opacity: 0; }
+      .topbar {
+        position: absolute;
+        z-index: 40;
+        top: 42px;
+        left: 72px;
+        right: 72px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 26px;
+        font-weight: 850;
+        color: rgba(7,25,79,0.82);
+      }
+      .brand-pill {
+        display: inline-flex;
+        gap: 14px;
+        align-items: center;
+        padding: 14px 24px;
+        border-radius: 999px;
+        color: #fff;
+        background: linear-gradient(135deg, #155bff, #18bfa6);
+        box-shadow: 0 16px 40px rgba(21,91,255,0.22);
+      }
+      .brand-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 24px #49d9ff;
+      }
+      .scene-content {
+        width: 100%;
+        height: 100%;
+        padding: 92px 104px 214px;
+        display: grid;
+        grid-template-columns: 0.96fr 1.04fr;
+        gap: 58px;
+        align-items: center;
+      }
+      .image-panel {
+        position: relative;
+        width: 100%;
+        height: 760px;
+        border-radius: 34px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid rgba(21,91,255,0.16);
+        box-shadow: 0 34px 90px rgba(17,60,128,0.18);
+      }
+      .image-panel img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        filter: saturate(1.06) contrast(1.03);
+      }
+      .image-panel.contain img {
+        object-fit: contain;
+        padding: 20px;
+        background: #fff;
+      }
+      .copy {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+      .kicker {
+        width: max-content;
+        max-width: 100%;
+        color: #155bff;
+        background: rgba(21,91,255,0.08);
+        border: 1px solid rgba(21,91,255,0.22);
+        border-radius: 999px;
+        padding: 12px 22px;
+        font-size: 27px;
+        font-weight: 950;
+      }
+      h1 {
+        font-size: 80px;
+        line-height: 1.05;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+      h2 {
+        font-size: 64px;
+        line-height: 1.08;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+      .lead {
+        font-size: 32px;
+        line-height: 1.55;
+        font-weight: 760;
+        color: rgba(7,25,79,0.78);
+      }
+      .tag-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .tag {
+        padding: 12px 16px;
+        border-radius: 16px;
+        color: #07194f;
+        background: rgba(255,255,255,0.76);
+        border: 1px solid rgba(73,217,255,0.34);
+        box-shadow: 0 14px 30px rgba(17,60,128,0.08);
+        font-size: 24px;
+        font-weight: 900;
+      }
+      .caption {
+        position: absolute;
+        z-index: 55;
+        left: 320px;
+        right: 320px;
+        bottom: 132px;
+        min-height: 78px;
+        display: grid;
+        place-items: center;
+        padding: 14px 32px;
+        border-radius: 26px;
+        background: rgba(7,25,79,0.88);
+        color: #fff;
+        font-size: 32px;
+        line-height: 1.34;
+        font-weight: 850;
+        text-align: center;
+        box-shadow: 0 20px 55px rgba(7,25,79,0.26);
+        opacity: 0;
+      }
+      .timeline {
+        position: absolute;
+        z-index: 52;
+        left: 70px;
+        right: 70px;
+        bottom: 28px;
+        height: 88px;
+        padding: 12px 14px 18px;
+        display: grid;
+        grid-template-columns: repeat(var(--timeline-columns), minmax(0, 1fr));
+        gap: 10px;
+        align-items: center;
+        overflow: visible;
+        border-radius: 30px;
+        background: rgba(255,255,255,0.76);
+        border: 1px solid rgba(21,91,255,0.15);
+        box-shadow: 0 20px 60px rgba(17,60,128,0.14);
+        backdrop-filter: blur(12px);
+      }
+      .timeline-fill {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        bottom: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(7,25,79,0.12);
+        overflow: hidden;
+      }
+      .timeline-progress {
+        display: block;
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #155bff, #49d9ff, #18bfa6);
+      }
+      .chapter-tag {
+        position: relative;
+        z-index: 2;
+        min-width: 0;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 10px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid rgba(21,91,255,0.18);
+        color: rgba(7,25,79,0.74);
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+        white-space: nowrap;
+        box-shadow: 0 12px 26px rgba(17,60,128,0.08);
+      }
+      .chapter-time {
+        color: #155bff;
+        font-variant-numeric: tabular-nums;
+      }
+      .chapter-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .chapter-tag.active {
+        color: #fff;
+        background: linear-gradient(135deg, #155bff, #18bfa6);
+        border-color: rgba(255,255,255,0.62);
+        box-shadow: 0 20px 42px rgba(21,91,255,0.28);
+      }
+      .chapter-tag.active .chapter-time { color: #fff; }
+      .glow-line {
+        position: absolute;
+        width: 560px;
+        height: 560px;
+        border-radius: 50%;
+        border: 2px solid rgba(73,217,255,0.34);
+        right: -160px;
+        top: -150px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sample config: 8 sections, 82 seconds, 8 timeline columns. Generators should replace these values from user input. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="82" data-width="1920" data-height="1080" style="--timeline-columns: 8">
+      <div class="glow-line" data-layout-ignore></div>
+      <div class="topbar" data-layout-ignore>
+        <div class="brand-pill"><span class="brand-dot"></span><span>IT 基础设施演进史</span></div>
+        <div>从硬件到 AI 原生生态</div>
+      </div>
+
+      <section id="scene-intro" class="clip scene" data-start="0" data-duration="12.0" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel"><img src="assets/images/it-infra-evolution-road.png" alt="IT 基础设施演进路线图" /></div>
+          <div class="copy">
+            <div class="kicker">0:00 / 引言</div>
+            <h1>IT 基础设施演进史<br />是一组能力的共同进化</h1>
+            <p class="lead">计算、网络、存储、安全、监控、平台工程，最终汇入 AI 原生。</p>
+            <div class="tag-row"><span class="tag">资源效率</span><span class="tag">系统弹性</span><span class="tag">自动化</span><span class="tag">智能化</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-mainline" class="clip scene" data-start="12.2" data-duration="8.6" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel"><img src="assets/images/it-infra-evolution-road.png" alt="IT 基础设施主线" /></div>
+          <div class="copy">
+            <div class="kicker">0:12 / 基础设施主线</div>
+            <h2>从物理硬件<br />到 AI 原生基础设施</h2>
+            <p class="lead">硬件、虚拟化、云平台、容器、编排治理、智能基础设施，是一条围绕资源效率持续推进的路线。</p>
+            <div class="tag-row"><span class="tag">硬件</span><span class="tag">云平台</span><span class="tag">容器</span><span class="tag">AI 原生</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-security" class="clip scene" data-start="21.0" data-duration="9.8" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel"><img src="assets/images/account-security.png" alt="账户与安全体系" /></div>
+          <div class="copy">
+            <div class="kicker">0:21 / 账户与安全</div>
+            <h2>安全边界<br />从网络转向身份</h2>
+            <p class="lead">谁访问、什么身份、什么权限、凭证是否可信、是否可审计，成为现代安全的中心问题。</p>
+            <div class="tag-row"><span class="tag">IAM</span><span class="tag">SSO</span><span class="tag">RBAC</span><span class="tag">Zero Trust</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-monitoring" class="clip scene" data-start="31.0" data-duration="9.2" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel"><img src="assets/images/observability-history.png" alt="监控的前生今世" /></div>
+          <div class="copy">
+            <div class="kicker">0:31 / 监控与可观测性</div>
+            <h2>从事后告警<br />走向 AI 自愈</h2>
+            <p class="lead">指标、日志、链路、事件、拓扑和上下文一起进入运维系统，让系统从“报警”走向“预测与定位”。</p>
+            <div class="tag-row"><span class="tag">Metrics</span><span class="tag">Logs</span><span class="tag">Traces</span><span class="tag">AIOps</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-network" class="clip scene" data-start="40.4" data-duration="10.0" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel"><img src="assets/images/network-protocol.png" alt="网络与协议" /></div>
+          <div class="copy">
+            <div class="kicker">0:40 / 网络与协议</div>
+            <h2>网络从连接一切<br />走向理解一切</h2>
+            <p class="lead">从 TCP/IP、HTTP、负载均衡，到服务网格和 AI 网络，网络正在承担更智能的路由与流量治理。</p>
+            <div class="tag-row"><span class="tag">TCP/IP</span><span class="tag">HTTP</span><span class="tag">Service Mesh</span><span class="tag">AI Network</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-storage" class="clip scene" data-start="50.6" data-duration="9.4" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel contain"><img src="assets/images/storage-evolution.png" alt="存储演进之路" /></div>
+          <div class="copy">
+            <div class="kicker">0:51 / 存储服务</div>
+            <h2>数据从存下来<br />走向高效流动</h2>
+            <p class="lead">硬盘、RAID、SAN、对象存储、云原生存储和 AI 数据湖，让数据成为可调度、可治理的生产资料。</p>
+            <div class="tag-row"><span class="tag">RAID / SAN</span><span class="tag">对象存储</span><span class="tag">CSI / Ceph</span><span class="tag">AI 数据湖</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-platform" class="clip scene" data-start="60.2" data-duration="9.0" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel"><img src="assets/images/platform-engineering.png" alt="从手工运维到现代平台工程" /></div>
+          <div class="copy">
+            <div class="kicker">1:00 / 平台工程</div>
+            <h2>从人肉运维<br />到平台化交付</h2>
+            <p class="lead">脚本、配置管理、基础设施即代码、CI/CD 和 GitOps，最终沉淀成可复用的平台能力。</p>
+            <div class="tag-row"><span class="tag">Shell</span><span class="tag">IaC</span><span class="tag">CI/CD</span><span class="tag">GitOps</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-ai" class="clip scene" data-start="69.4" data-duration="11.6" data-track-index="1">
+        <div class="scene-content">
+          <div class="image-panel contain"><img src="assets/images/ai-coevolution.png" alt="与 AI 共同进化" /></div>
+          <div class="copy">
+            <div class="kicker">1:09 / 与 AI 共同进化</div>
+            <h2>基础设施从工具系统<br />变成 AI 协同系统</h2>
+            <p class="lead">AI 不只是跑在基础设施之上，也会重新定义基础设施的交付、治理、优化和自治方式。</p>
+            <div class="tag-row"><span class="tag">AI Agent</span><span class="tag">MCP</span><span class="tag">OpenClaw</span><span class="tag">Autonomous Infra</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="caption clip" id="cap-intro" data-start="0.2" data-duration="11.6" data-track-index="10">IT 基础设施演进史，不只是服务器升级，而是一组能力的共同进化。</div>
+      <div class="caption clip" id="cap-1" data-start="12.3" data-duration="8.3" data-track-index="10">主线从硬件出发，经过云平台、容器和编排治理，持续提升资源效率。</div>
+      <div class="caption clip" id="cap-2" data-start="21.1" data-duration="9.5" data-track-index="10">账户与安全体系，把边界从网络迁移到身份。</div>
+      <div class="caption clip" id="cap-3" data-start="31.1" data-duration="8.9" data-track-index="10">监控从指标告警走向可观测性，再走向 AI Native 运维。</div>
+      <div class="caption clip" id="cap-4" data-start="40.5" data-duration="9.7" data-track-index="10">网络与协议，从连接一切走向理解一切。</div>
+      <div class="caption clip" id="cap-5" data-start="50.7" data-duration="9.1" data-track-index="10">存储服务从硬盘和 SAN，走向云原生存储和 AI 数据湖。</div>
+      <div class="caption clip" id="cap-6" data-start="60.3" data-duration="8.7" data-track-index="10">平台工程把运维能力沉淀成稳定、可审计、可复用的平台能力。</div>
+      <div class="caption clip" id="cap-7" data-start="69.5" data-duration="9.4" data-track-index="10">最终，基础设施从人操作系统，走向 AI 协同和自主演进。</div>
+
+      <div class="timeline" data-layout-ignore>
+        <div class="chapter-tag" id="chapter-0"><span class="chapter-time">0:00</span><span class="chapter-title">引言</span></div>
+        <div class="chapter-tag" id="chapter-1"><span class="chapter-time">0:12</span><span class="chapter-title">主线</span></div>
+        <div class="chapter-tag" id="chapter-2"><span class="chapter-time">0:21</span><span class="chapter-title">安全</span></div>
+        <div class="chapter-tag" id="chapter-3"><span class="chapter-time">0:31</span><span class="chapter-title">监控</span></div>
+        <div class="chapter-tag" id="chapter-4"><span class="chapter-time">0:40</span><span class="chapter-title">网络</span></div>
+        <div class="chapter-tag" id="chapter-5"><span class="chapter-time">0:51</span><span class="chapter-title">存储</span></div>
+        <div class="chapter-tag" id="chapter-6"><span class="chapter-time">1:00</span><span class="chapter-title">平台工程</span></div>
+        <div class="chapter-tag" id="chapter-7"><span class="chapter-time">1:09</span><span class="chapter-title">AI 共进化</span></div>
+        <div class="timeline-fill"><div class="timeline-progress"></div></div>
+      </div>
+
+      <audio id="bgm" class="clip" data-start="0" data-duration="82" data-track-index="20" data-volume="0.10" src="assets/audio/bgm.wav"></audio>
+      <audio id="vo-intro" class="clip" data-start="0" data-duration="11.856" data-track-index="5" data-volume="0.92" src="assets/audio/intro.mp3"></audio>
+      <audio id="vo-1" class="clip" data-start="12.2" data-duration="8.352" data-track-index="5" data-volume="0.92" src="assets/audio/card1.mp3"></audio>
+      <audio id="vo-2" class="clip" data-start="21.0" data-duration="9.648" data-track-index="5" data-volume="0.92" src="assets/audio/card2.mp3"></audio>
+      <audio id="vo-3" class="clip" data-start="31.0" data-duration="8.928" data-track-index="5" data-volume="0.92" src="assets/audio/card3.mp3"></audio>
+      <audio id="vo-4" class="clip" data-start="40.4" data-duration="9.840" data-track-index="5" data-volume="0.92" src="assets/audio/card4.mp3"></audio>
+      <audio id="vo-5" class="clip" data-start="50.6" data-duration="9.240" data-track-index="5" data-volume="0.92" src="assets/audio/card5.mp3"></audio>
+      <audio id="vo-6" class="clip" data-start="60.2" data-duration="8.808" data-track-index="5" data-volume="0.92" src="assets/audio/card6.mp3"></audio>
+      <audio id="vo-7" class="clip" data-start="69.4" data-duration="8.712" data-track-index="5" data-volume="0.92" src="assets/audio/card7.mp3"></audio>
+      <audio id="sfx-1" class="clip" data-start="12.12" data-duration="0.45" data-track-index="6" data-volume="0.35" src="assets/audio/sfx/whoosh.wav"></audio>
+      <audio id="sfx-2" class="clip" data-start="20.92" data-duration="0.45" data-track-index="6" data-volume="0.35" src="assets/audio/sfx/whoosh.wav"></audio>
+      <audio id="sfx-3" class="clip" data-start="30.92" data-duration="0.45" data-track-index="6" data-volume="0.35" src="assets/audio/sfx/whoosh.wav"></audio>
+      <audio id="sfx-4" class="clip" data-start="40.32" data-duration="0.45" data-track-index="6" data-volume="0.35" src="assets/audio/sfx/whoosh.wav"></audio>
+      <audio id="sfx-5" class="clip" data-start="50.52" data-duration="0.45" data-track-index="6" data-volume="0.35" src="assets/audio/sfx/whoosh.wav"></audio>
+      <audio id="sfx-6" class="clip" data-start="60.12" data-duration="0.45" data-track-index="6" data-volume="0.35" src="assets/audio/sfx/whoosh.wav"></audio>
+      <audio id="sfx-7" class="clip" data-start="69.32" data-duration="0.32" data-track-index="7" data-volume="0.32" src="assets/audio/sfx/impact.wav"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const rootDuration = Number(document.querySelector("#root").dataset.duration || 82);
+      const tl = gsap.timeline({ paused: true });
+      // Sample section config. Regenerate these arrays from user input for non-8-section or non-82-second videos.
+      const scenes = ["#scene-intro", "#scene-mainline", "#scene-security", "#scene-monitoring", "#scene-network", "#scene-storage", "#scene-platform", "#scene-ai"];
+      const starts = [0, 12.2, 21.0, 31.0, 40.4, 50.6, 60.2, 69.4];
+      const durations = [12.0, 8.6, 9.8, 9.2, 10.0, 9.4, 9.0, 11.6];
+      const captions = ["#cap-intro", "#cap-1", "#cap-2", "#cap-3", "#cap-4", "#cap-5", "#cap-6", "#cap-7"];
+      const captionStarts = [0.2, 12.3, 21.1, 31.1, 40.5, 50.7, 60.3, 69.5];
+      const captionDurations = [11.6, 8.3, 9.5, 8.9, 9.7, 9.1, 8.7, 9.4];
+      const chapters = ["#chapter-0", "#chapter-1", "#chapter-2", "#chapter-3", "#chapter-4", "#chapter-5", "#chapter-6", "#chapter-7"];
+
+      scenes.forEach((scene, index) => {
+        const start = starts[index];
+        tl.set(scene, { opacity: 1 }, start);
+        tl.to(scene, { opacity: 0, duration: 0.28, ease: "power1.in" }, start + durations[index] - 0.28);
+        tl.from(`${scene} .image-panel`, { x: -78, opacity: 0, scale: 0.96, duration: 0.72, ease: "power3.out" }, start + 0.08);
+        tl.from(`${scene} .kicker`, { y: 28, opacity: 0, duration: 0.42, ease: "power2.out" }, start + 0.18);
+        tl.from(`${scene} h1, ${scene} h2`, { y: 46, opacity: 0, duration: 0.62, ease: "power3.out" }, start + 0.3);
+        tl.from(`${scene} .lead`, { y: 36, opacity: 0, duration: 0.54, ease: "power2.out" }, start + 0.58);
+        tl.from(`${scene} .tag`, { y: 24, opacity: 0, scale: 0.94, duration: 0.42, stagger: 0.06, ease: "power2.out" }, start + 0.82);
+        tl.to(`${scene} .image-panel img`, { y: -70, scale: 1.1, duration: Math.max(6, durations[index] - 1), ease: "none" }, start + 0.4);
+      });
+
+      captions.forEach((caption, index) => {
+        const start = captionStarts[index];
+        const duration = captionDurations[index];
+        tl.to(caption, { opacity: 1, y: 0, duration: 0.16, ease: "power1.out" }, start);
+        tl.to(caption, { opacity: 0, y: 14, duration: 0.16, ease: "power1.in" }, start + duration - 0.16);
+      });
+
+      chapters.forEach((chapter, index) => {
+        const start = starts[index];
+        const duration = durations[index];
+        tl.to(chapter, { y: -8, scale: 1.04, duration: 0.18, ease: "power1.out" }, start);
+        tl.set(chapter, { className: "chapter-tag active" }, start);
+        tl.set(chapter, { className: "chapter-tag" }, start + duration - 0.1);
+        tl.to(chapter, { y: 0, scale: 1, duration: 0.18, ease: "power1.in" }, start + duration - 0.28);
+      });
+
+      tl.to(".timeline-progress", { width: "100%", duration: rootDuration, ease: "none" }, 0);
+      tl.from(".topbar", { y: -28, opacity: 0, duration: 0.5, ease: "power2.out" }, 0.1);
+      tl.to(".glow-line", { scale: 1.18, rotation: 20, duration: rootDuration, ease: "none" }, 0);
+      tl.to("#root", { opacity: 0, duration: 0.65, ease: "power2.in" }, Math.max(0, rootDuration - 0.75));
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

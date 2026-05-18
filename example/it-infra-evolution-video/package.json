@@ -1,0 +1,11 @@
+{
+  "name": "it-infra-evolution-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.6.15 preview",
+    "check": "npx --yes hyperframes@0.6.15 lint && npx --yes hyperframes@0.6.15 validate && npx --yes hyperframes@0.6.15 inspect",
+    "render": "npx --yes hyperframes@0.6.15 render",
+    "publish": "npx --yes hyperframes@0.6.15 publish"
+  }
+}

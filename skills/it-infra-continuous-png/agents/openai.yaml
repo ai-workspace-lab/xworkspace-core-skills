@@ -1,0 +1,6 @@
+name: IT Infra Continuous PNG
+description: Generate 1-N consistent blue-white IT infrastructure PNG infographics for the it-infra-evolution-video workflow.
+default_prompt: |
+  Generate a consistent 1024x1536 PNG infographic series in the IT infrastructure blue-white style.
+  Output N requested images as N separate PNG files, never as one combined collage or grid.
+  Use the user's images or descriptions as source material, create a series config, execute one prompt per image, and write an image manifest for it-infra-evolution-video.

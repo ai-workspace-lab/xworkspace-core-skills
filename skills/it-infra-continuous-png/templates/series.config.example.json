@@ -1,0 +1,38 @@
+{
+  "series": {
+    "name": "modern-it-infrastructure",
+    "stylePreset": "blue-white-ai-infra-v1",
+    "outputFormat": "png",
+    "width": 1024,
+    "height": 1536,
+    "count": 7,
+    "outputMode": "separate_png_files",
+    "onePromptPerImage": true,
+    "forbidCombinedCanvas": true,
+    "language": "zh-CN",
+    "targetConsumerSkill": "it-infra-evolution-video"
+  },
+  "images": [
+    {
+      "id": "identity-security",
+      "title": "账户与安全体系",
+      "subtitle": "从 IAM、SSO、RBAC、Zero Trust 到现代身份体系",
+      "topic": "identity and security architecture",
+      "mainVisual": "large glowing blue shield, floating lock, identity graph, AI city background",
+      "layoutStructure": "hero title + central shield + six identity nodes + checklist band + bottom summary",
+      "nodes": [
+        "用户身份",
+        "工作负载身份",
+        "云资源身份",
+        "CI/CD 身份",
+        "密钥管理",
+        "供应链安全"
+      ],
+      "summary": "安全边界正在从网络边界进入身份边界。",
+      "output": "assets/images/identity-security.png",
+      "videoUsage": "账户与安全章节",
+      "scanMode": "cover",
+      "safeFocus": "center shield and upper-left title"
+    }
+  ]
+}

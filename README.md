@@ -14,9 +14,17 @@
 | Skill | 说明 | 路径 |
 |---|---|---|
 | AI 信息差快报 | 新闻检索、素材匹配、口播字幕、视频渲染 | `skills/ai-tech-news-video/SKILL.md` |
+| IT 基础设施连续 PNG | 根据描述或参考图生成 1-N 张连续风格竖版 PNG 素材 | `skills/it-infra-continuous-png/SKILL.md` |
+| IT 基础设施长图讲解视频 | 基于长图素材生成 HyperFrames 讲解视频、口播、字幕和 timeline | `skills/it-infra-evolution-video/SKILL.md` |
 | 产品介绍视频 | 官网信息提炼、叙事结构、成片节奏 | `skills/product-intro-video/SKILL.md` |
 | 视频音效工作流 | 音效搜索、下载与合成、时间线接入 | `skills/sound-fx-for-video/SKILL.md` |
 | 简笔画动画视频 | 线稿风动画、动作叙事、抽检闭环 | `skills/sketch-animation-video/SKILL.md` |
+
+## Examples
+
+| Example | 说明 | 路径 |
+|---|---|---|
+| IT 基础设施演进视频模板 v1 | 轻量 HyperFrames 工程模板，只包含 HTML、配置、脚本与占位说明，不包含图片、音频、快照或渲染产物 | `example/it-infra-evolution-video/` |
 
 ## 预览
 
