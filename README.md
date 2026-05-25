@@ -18,7 +18,8 @@
 | IT 基础设施长图讲解视频 | 基于长图素材生成 HyperFrames 讲解视频、口播、字幕和 timeline | `skills/it-infra-evolution-video/SKILL.md` |
 | 产品介绍视频 | 官网信息提炼、叙事结构、成片节奏 | `skills/product-intro-video/SKILL.md` |
 | 视频音效工作流 | 音效搜索、下载与合成、时间线接入 | `skills/sound-fx-for-video/SKILL.md` |
-| 简笔画动画视频 | 线稿风动画、动作叙事、抽检闭环 | `skills/sketch-animation-video/SKILL.md` |
+| 简笔画动画视频 | 线稿风 + 短画面字；**主动网络搜参考图临摹**；逼真非抽象；GSAP 主时间线 + 可选 Anime.js；抽检闭环 | `skills/sketch-animation-video/SKILL.md` |
+| Anime.js（HyperFrames） | seek 驱动适配、`window.__hfAnime` 注册、与 GSAP 分工 | `skills/animejs/SKILL.md` |
 
 ## Examples
 
@@ -39,6 +40,9 @@
 
 ### sketch-animation-video
 ![sketch-animation-video preview](docs/assets/preview-sketch-animation-video.gif)
+
+### animejs
+暂无预览（配套 `sketch-animation-video` 与 HyperFrames 动效接入）
 
 ## 使用方式
 
