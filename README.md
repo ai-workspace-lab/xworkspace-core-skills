@@ -57,17 +57,21 @@
 
 1. `it-infra-continuous-png` 先输出 `assets/images/*.png` 和 `assets/images/manifest.md`
 2. `it-infra-evolution-video-v2` 读取 manifest，并调用 `scripts/build_it_infra_video.py`
-3. 任务目录中必须留下 `video.config.json`、`index.html`、`renders/*.mp4`、`ffprobe.json`
+3. 任务目录必须是 XWorkmate/OpenClaw 准备好的 `tasks/<session>/<run>` artifact scope
+4. 任务目录中必须留下 `video.config.json`、`index.html`、`renders/*.mp4`、`ffprobe.json`、`DELIVERY.md`
 
 示例：
 
 ```bash
-python3 scripts/build_it_infra_video.py \
-  --project-dir /path/to/task/service-mesh-video \
+python3 "${AI_VIDEO_SKILLS_HOME:-/home/ubuntu/ai-video-skills}/scripts/build_it_infra_video.py" \
+  --project-dir /home/ubuntu/.openclaw/workspace/tasks/draft_1779524982823421-3/turn-1779685283403237342 \
   --title "云原生 Service Mesh 网络科普视频" \
   --audio-mode edge-tts \
   --run-acceptance \
-  --output-name service-mesh-video.mp4
+  --output-name service-mesh-video.mp4 \
+  --require-task-scope \
+  --session-key "draft:1779524982823421-3" \
+  --run-id "turn-1779685283403237342"
 ```
 
 ## 账号信息

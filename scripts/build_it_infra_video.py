@@ -33,6 +33,7 @@ REQUIRED_MANIFEST_COLUMNS = [
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 HYPERFRAMES_VERSION = "0.6.15"
+TASK_SCOPE_ROOT = "tasks"
 
 
 class BuildError(RuntimeError):
@@ -89,6 +90,55 @@ def slugify(value: str, fallback: str) -> str:
     value = re.sub(r"[^a-z0-9_-]+", "-", value)
     value = re.sub(r"-{2,}", "-", value).strip("-")
     return value or fallback
+
+
+def safe_scope_segment(value: str) -> str:
+    value = value.strip()
+    value = re.sub(r"[\\/]+", "_", value)
+    value = re.sub(r"[^A-Za-z0-9._-]+", "_", value)
+    value = re.sub(r"^[._-]+|[._-]+$", "", value)
+    return value[:96] or "scope"
+
+
+def expected_task_scope(session_key: str, run_id: str) -> str:
+    return f"{TASK_SCOPE_ROOT}/{safe_scope_segment(session_key)}/{safe_scope_segment(run_id)}"
+
+
+def project_dir_from_env() -> Path:
+    for name in ["XWORKMATE_TASK_ARTIFACT_DIR", "XWORKMATE_ARTIFACT_DIRECTORY"]:
+        value = os.environ.get(name, "").strip()
+        if value:
+            return Path(value)
+    return Path.cwd()
+
+
+def validate_task_scope_project_dir(
+    project_dir: Path,
+    *,
+    require_task_scope: bool,
+    artifact_scope: str,
+    session_key: str,
+    run_id: str,
+) -> str:
+    expected_scope = artifact_scope.strip().strip("/")
+    if not expected_scope and session_key.strip() and run_id.strip():
+        expected_scope = expected_task_scope(session_key, run_id)
+    if not expected_scope:
+        expected_scope = str(Path(TASK_SCOPE_ROOT) / "*" / "*")
+
+    normalized_parts = project_dir.resolve().parts
+    is_task_scope_path = len(normalized_parts) >= 3 and normalized_parts[-3] == TASK_SCOPE_ROOT
+    if expected_scope and "*" not in expected_scope:
+        expected_parts = tuple(expected_scope.split("/"))
+        is_task_scope_path = tuple(normalized_parts[-len(expected_parts) :]) == expected_parts
+
+    if require_task_scope and not is_task_scope_path:
+        fail(
+            "Project directory must be the prepared XWorkmate task artifact scope. "
+            f"Expected {expected_scope}, got {project_dir.resolve()}. "
+            "Run this script from tasks/<session>/<run> or pass --project-dir to that directory."
+        )
+    return expected_scope
 
 
 def parse_markdown_table(path: Path) -> list[dict[str, str]]:
@@ -625,19 +675,63 @@ def run_acceptance(project_dir: Path, config: dict, output_name: str) -> None:
     (project_dir / "ffprobe.json").write_text(json.dumps(probe_json, indent=2) + "\n", encoding="utf-8")
 
 
+def write_delivery_report(project_dir: Path, title: str, output_name: str, expected_scope: str, rendered: bool) -> None:
+    lines = [
+        f"# {title}",
+        "",
+        "## XWorkmate Artifacts",
+        "",
+        f"- Artifact scope: `{expected_scope}`",
+        "- `index.html`",
+        "- `video.config.json`",
+        "- `assets/images/manifest.md`",
+        "- `assets/audio/`",
+    ]
+    if rendered:
+        lines.extend(
+            [
+                f"- `renders/{output_name}`",
+                "- `ffprobe.json`",
+            ]
+        )
+    else:
+        lines.append("- Render not executed; run again with `--run-acceptance` before reporting completion.")
+    (project_dir / "DELIVERY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project-dir", type=Path, default=Path.cwd(), help="HyperFrames project directory")
+    parser.add_argument(
+        "--project-dir",
+        type=Path,
+        default=None,
+        help="HyperFrames project directory. Defaults to XWORKMATE_TASK_ARTIFACT_DIR, XWORKMATE_ARTIFACT_DIRECTORY, or cwd.",
+    )
     parser.add_argument("--manifest", type=Path, default=None, help="PNG manifest path")
     parser.add_argument("--title", default="IT 基础设施长图讲解视频", help="Video title")
     parser.add_argument("--section-duration", type=float, default=8.0, help="Seconds per manifest row")
     parser.add_argument("--audio-mode", choices=["edge-tts", "tone", "none"], default="edge-tts")
     parser.add_argument("--run-acceptance", action="store_true", help="Run lint/inspect/snapshot/render/ffprobe")
     parser.add_argument("--output-name", default="it-infra-evolution.mp4", help="Rendered MP4 file name")
+    parser.add_argument(
+        "--require-task-scope",
+        action="store_true",
+        help="Fail unless project-dir is the prepared tasks/<session>/<run> artifact scope.",
+    )
+    parser.add_argument("--artifact-scope", default=os.environ.get("XWORKMATE_ARTIFACT_SCOPE", ""), help="Expected artifact scope")
+    parser.add_argument("--session-key", default=os.environ.get("XWORKMATE_SESSION_KEY", ""), help="Expected XWorkmate session key")
+    parser.add_argument("--run-id", default=os.environ.get("XWORKMATE_RUN_ID", ""), help="Expected XWorkmate/OpenClaw run id")
     args = parser.parse_args(argv)
 
     try:
-        project_dir = args.project_dir.resolve()
+        project_dir = (args.project_dir or project_dir_from_env()).resolve()
+        expected_scope = validate_task_scope_project_dir(
+            project_dir,
+            require_task_scope=args.require_task_scope,
+            artifact_scope=args.artifact_scope,
+            session_key=args.session_key,
+            run_id=args.run_id,
+        )
         manifest = (args.manifest or project_dir / "assets/images/manifest.md").resolve()
         ensure_project_scaffold(project_dir)
         doctor(args.audio_mode, args.run_acceptance)
@@ -653,6 +747,7 @@ def main(argv: list[str] | None = None) -> int:
         write_html(project_dir, args.title, config)
         if args.run_acceptance:
             run_acceptance(project_dir, config, args.output_name)
+        write_delivery_report(project_dir, args.title, args.output_name, expected_scope, args.run_acceptance)
         print("Build complete. Required task artifacts: index.html, video.config.json, assets/images/manifest.md, assets/audio/, renders/ or run with --run-acceptance.")
         return 0
     except (BuildError, subprocess.CalledProcessError, json.JSONDecodeError) as exc:

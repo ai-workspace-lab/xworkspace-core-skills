@@ -88,13 +88,21 @@ description: "生成 IT 基础设施系列连续风格 PNG 图片。适用于一
 3. 将下一步命令写给视频 skill：
 
 ```bash
-python3 /path/to/ai-video-skills/scripts/build_it_infra_video.py \
+python3 "${AI_VIDEO_SKILLS_HOME:-/home/ubuntu/ai-video-skills}/scripts/build_it_infra_video.py" \
   --project-dir . \
   --title "<用户主题>" \
   --audio-mode edge-tts \
   --run-acceptance \
-  --output-name "<topic-slug>.mp4"
+  --output-name "<topic-slug>.mp4" \
+  --require-task-scope \
+  --session-key "$XWORKMATE_SESSION_KEY" \
+  --run-id "$XWORKMATE_RUN_ID"
 ```
+
+交接目录必须是 XWorkmate/OpenClaw 当前任务的
+`tasks/<safe-session-key>/<safe-run-id>` artifact scope。不要把 manifest
+和 PNG 留在 `owners/.../threads/<session>` 后再渲染；否则 Bridge 的当前 run
+artifact 面板可能无法稳定收敛到同一 scope。
 
 不要在本 skill 中生成 `index.html`、`video.config.json` 或 MP4；这些是视频 skill 的职责。
 

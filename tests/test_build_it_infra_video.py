@@ -95,6 +95,61 @@ class BuildItInfraVideoTest(unittest.TestCase):
             self.assertEqual(html.count('id="scene-service-mesh-control-plane"'), 1)
             self.assertEqual(html.count('data-track-index="1"'), 3)
             self.assertEqual(html.count('data-track-index="5"'), 3)
+            self.assertIn(
+                "Render not executed",
+                (project / "DELIVERY.md").read_text(encoding="utf-8"),
+            )
+
+    def test_requires_prepared_task_scope_when_requested(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            project = copy_fixture(tmp_path)
+
+            code = runner.main(
+                [
+                    "--project-dir",
+                    str(project),
+                    "--title",
+                    "Service Mesh fixture",
+                    "--audio-mode",
+                    "tone",
+                    "--require-task-scope",
+                    "--session-key",
+                    "draft:1779524982823421-3",
+                    "--run-id",
+                    "turn-1779685283403237342",
+                ]
+            )
+
+            self.assertEqual(code, 1)
+
+            scoped_project = (
+                tmp_path
+                / "workspace"
+                / "tasks"
+                / "draft_1779524982823421-3"
+                / "turn-1779685283403237342"
+            )
+            shutil.copytree(project, scoped_project)
+            code = runner.main(
+                [
+                    "--project-dir",
+                    str(scoped_project),
+                    "--title",
+                    "Service Mesh fixture",
+                    "--audio-mode",
+                    "tone",
+                    "--require-task-scope",
+                    "--session-key",
+                    "draft:1779524982823421-3",
+                    "--run-id",
+                    "turn-1779685283403237342",
+                ]
+            )
+
+            self.assertEqual(code, 0)
+            delivery = (scoped_project / "DELIVERY.md").read_text(encoding="utf-8")
+            self.assertIn("tasks/draft_1779524982823421-3/turn-1779685283403237342", delivery)
 
     def test_rejects_manifest_image_that_is_not_real_png(self):
         with tempfile.TemporaryDirectory() as tmp:
