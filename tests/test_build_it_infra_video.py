@@ -2,6 +2,7 @@ import importlib.util
 import json
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -95,6 +96,14 @@ class BuildItInfraVideoTest(unittest.TestCase):
             self.assertEqual(html.count('id="scene-service-mesh-control-plane"'), 1)
             self.assertEqual(html.count('data-track-index="1"'), 3)
             self.assertEqual(html.count('data-track-index="5"'), 3)
+            fallback_script = (project / "build_ffmpeg_video.sh").read_text(encoding="utf-8")
+            subprocess.run(["bash", "-n", str(project / "build_ffmpeg_video.sh")], check=True)
+            self.assertIn("0\\:00  控制平面", fallback_script)
+            self.assertIn("0\\:01  数据平面", fallback_script)
+            self.assertIn("(t+1.2)/3.6*1736", fallback_script)
+            self.assertNotIn("25*${i}", fallback_script)
+            self.assertEqual(runner.truncate_display("虚拟化把服务器切成逻辑资源", 8), "虚拟化把服务器切")
+            self.assertEqual(runner.truncate_display("Hypervisor 是新的资源仲裁者", 8), "Hypervisor 是新")
             self.assertIn(
                 "Render not executed",
                 (project / "DELIVERY.md").read_text(encoding="utf-8"),

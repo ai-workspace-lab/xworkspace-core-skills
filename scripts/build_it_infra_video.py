@@ -13,6 +13,7 @@ import html
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -208,7 +209,7 @@ def build_sections(rows: list[ManifestRow], section_duration: float) -> list[Sec
                 start=start,
                 duration=section_duration,
                 time_label=format_time(start),
-                timeline_label=title[:8] or f"Chapter {index + 1}",
+                timeline_label=title or f"Chapter {index + 1}",
                 title=title,
                 subtitle=subtitle,
                 tags=tags,
@@ -498,6 +499,150 @@ def js_array(values: list[str | float]) -> str:
     return json.dumps(values, ensure_ascii=False)
 
 
+def ffmpeg_drawtext_text(value: str) -> str:
+    return value.replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+
+
+def display_units(value: str) -> float:
+    units = 0.0
+    for char in value:
+        if char.isspace():
+            units += 0.35
+        elif ord(char) < 128:
+            units += 0.55
+        else:
+            units += 1.0
+    return units
+
+
+def truncate_display(value: str, max_units: float) -> str:
+    output: list[str] = []
+    used = 0.0
+    for char in value:
+        char_units = display_units(char)
+        if output and used + char_units > max_units:
+            break
+        output.append(char)
+        used += char_units
+    return "".join(output).strip()
+
+
+def ffmpeg_timeline_label(section: dict, max_units: float) -> str:
+    title = str(section.get("timelineLabel") or section.get("title") or "").strip()
+    return truncate_display(title, max_units) or "章节"
+
+
+def ffmpeg_visual_filter(config: dict, active_index: int) -> str:
+    sections = config["sections"]
+    duration = float(config["duration"])
+    count = max(1, len(sections))
+    slot = 1736 / count
+    active = sections[active_index]
+    active_start = float(active["start"])
+    active_x = round(92 + active_index * slot, 2)
+    active_w = max(140, round(slot - 12, 2))
+    font_size = 23 if count <= 6 else max(15, int(23 - (count - 6) * 1.2))
+    label_units = max(4.0, (slot - 82) / font_size)
+    label_y = 1012
+    progress_y = 1060
+    font_file = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+
+    filters = [
+        "[0:v]split=2[vb][vf]",
+        "[vb]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=18:1,eq=brightness=-0.02:saturation=0.9[bg]",
+        "[vf]scale=1760:810:force_original_aspect_ratio=decrease,pad=1760:810:(ow-iw)/2:(oh-ih)/2:white,setsar=1[fg]",
+        "[bg][fg]overlay=(W-w)/2:88",
+        "drawbox=x=0:y=0:w=1920:h=84:color=0xf8fbffff:t=fill",
+        "drawbox=x=0:y=970:w=1920:h=110:color=0x061a3acc:t=fill",
+        f"drawbox=x={active_x}:y=1002:w={active_w}:h=42:color=0x11b5d6cc:t=fill",
+    ]
+
+    for index, section in enumerate(sections):
+        label_x = round(112 + index * slot, 2)
+        text = ffmpeg_drawtext_text(f"{section['timeLabel']}  {ffmpeg_timeline_label(section, label_units)}")
+        filters.append(
+            "drawtext="
+            f"fontfile='{font_file}':"
+            f"text='{text}':"
+            f"x={label_x}:y={label_y}:fontsize={font_size}:fontcolor=white:"
+            "borderw=1:bordercolor=0x06205fcc"
+        )
+
+    progress_expr = (
+        f"min(1736\\,max(0\\,(t+{active_start})/{duration}*1736))"
+        if duration > 0
+        else "0"
+    )
+    filters.extend(
+        [
+            f"drawbox=x=92:y={progress_y}:w=1736:h=8:color=0xffffff33:t=fill",
+            f"drawbox=x=92:y={progress_y}:w='{progress_expr}':h=8:color=0x11b5d6ee:t=fill",
+        ]
+    )
+    return ",".join(filters)
+
+
+def write_ffmpeg_fallback_script(project_dir: Path, config: dict, output_name: str) -> None:
+    sections = config["sections"]
+    duration = float(config["duration"])
+    segment_dir = "build_segments"
+    output_path = f"renders/{output_name}"
+    script_lines = [
+        "#!/usr/bin/env bash",
+        "set -euo pipefail",
+        f"mkdir -p {segment_dir} renders",
+    ]
+    concat_lines = []
+    for index, section in enumerate(sections):
+        image = shlex.quote(str(section["image"]))
+        segment_path = f"{segment_dir}/seg_{index:02d}.mp4"
+        section_duration = float(section["duration"])
+        visual_filter = ffmpeg_visual_filter(config, index)
+        script_lines.extend(
+            [
+                f"ffmpeg -y -hide_banner -loop 1 -i {image} -t {section_duration:g} \\",
+                f"  -filter_complex {shlex.quote(visual_filter)} \\",
+                f"  -r 30 -c:v libx264 -preset veryfast -crf 21 -pix_fmt yuv420p {shlex.quote(segment_path)}",
+            ]
+        )
+        concat_lines.append(f"file '{project_dir / segment_path}'")
+
+    script_lines.extend(
+        [
+            f"cat > {segment_dir}/concat.txt <<'EOF'",
+            *concat_lines,
+            "EOF",
+            f"ffmpeg -y -hide_banner -f concat -safe 0 -i {segment_dir}/concat.txt -c copy {segment_dir}/video_silent.mp4",
+        ]
+    )
+
+    audio_inputs = ["-stream_loop -1 -i assets/audio/bgm.wav"]
+    audio_filters = [f"[1:a]volume=0.08,atrim=0:{duration:g}[bgm]"]
+    mix_inputs = ["[bgm]"]
+    for index, section in enumerate(sections):
+        input_index = index + 2
+        voiceover = shlex.quote(str(section["voiceover"]))
+        audio_inputs.append(f"-i {voiceover}")
+        delay_ms = max(0, int(round((float(section["start"]) + 0.2) * 1000)))
+        audio_filters.append(f"[{input_index}:a]adelay={delay_ms}|{delay_ms},volume=1.8[a{index}]")
+        mix_inputs.append(f"[a{index}]")
+
+    audio_filter = ";".join(audio_filters + [f"{''.join(mix_inputs)}amix=inputs={len(mix_inputs)}:duration=first:normalize=0[a]"])
+    script_lines.extend(
+        [
+            "ffmpeg -y -hide_banner -i build_segments/video_silent.mp4 \\",
+            *[f"  {line} \\" for line in audio_inputs],
+            f"  -filter_complex {shlex.quote(audio_filter)} \\",
+            f"  -map 0:v -map '[a]' -t {duration:g} -c:v copy -c:a aac -b:a 160k -movflags +faststart {shlex.quote(output_path)}",
+            f"ffprobe -v quiet -show_entries format=duration,size:stream=codec_type,width,height,r_frame_rate -of json {shlex.quote(output_path)} > ffprobe.json",
+        ]
+    )
+
+    script_path = project_dir / "build_ffmpeg_video.sh"
+    script_path.write_text("\n".join(script_lines) + "\n", encoding="utf-8")
+    script_path.chmod(0o755)
+
+
 def write_html(project_dir: Path, title: str, config: dict) -> None:
     sections = config["sections"]
     duration = config["duration"]
@@ -745,6 +890,7 @@ def main(argv: list[str] | None = None) -> int:
         elif not (project_dir / "assets/audio/bgm.wav").exists():
             fail("--audio-mode none requires existing assets/audio/bgm.wav")
         write_html(project_dir, args.title, config)
+        write_ffmpeg_fallback_script(project_dir, config, args.output_name)
         if args.run_acceptance:
             run_acceptance(project_dir, config, args.output_name)
         write_delivery_report(project_dir, args.title, args.output_name, expected_scope, args.run_acceptance)

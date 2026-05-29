@@ -34,6 +34,37 @@ description: "生成 IT 基础设施系列连续风格 PNG 图片。适用于一
   - `prompts/image-prompts.md`
   - 每张图的主题、标题、副标题、结构块、关键词、生成提示词。
 
+## XWorkmate/OpenClaw 交付目录
+
+通过 OpenClaw 调用 Codex CLI/codecli 执行时，最终文件必须写入当前 run
+的 prepared artifact scope。Bridge 会在本轮系统上下文中提供
+`artifactDirectory` / `artifactScope`，并在可用时等价映射为环境变量。
+目录解析优先级：
+
+1. `$XWORKMATE_TASK_ARTIFACT_DIR`
+2. `$XWORKMATE_ARTIFACT_DIRECTORY`
+3. 本轮系统上下文里的 `artifactDirectory: ...`
+4. 当前工作目录本身已经是形如 `.../tasks/<session>/<run>` 的目录
+
+如果以上四项都不存在，必须先说明“缺少 XWorkmate prepared artifact
+scope”，不要声称已经完成文件交付。
+
+执行要求：
+
+- 先确认目标目录是当前 run 的 `tasks/<session>/<run>` scope；不要使用
+  `/owners/.../threads/<session>` 作为最终交付目录。
+- `cd` 到选定目录，或所有写入都使用选定目录的绝对路径。
+- 在选定目录下直接创建 `assets/images/` 和 `prompts/`。
+- 禁止在选定目录内再创建 `task_artifacts/<session>/...`、`tasks/.../tasks/...`
+  或其他二次嵌套导出目录。
+- Codex 产图如果先落在 `~/.codex/generated_images/...`，必须复制到
+  `assets/images/*.png`，不能只引用缓存路径。
+- `assets/images/manifest.md`、`prompts/image-prompts.md` 和
+  `series.config.json` 必须与 PNG 留在同一个 artifact scope。
+- 完成前必须确认每个 PNG 都是非空文件，manifest 的文件数量与 PNG 数量一致。
+- 最终回复列出 artifact scope 内的相对路径。不要把正文中的文件清单当作
+  XWorkmate artifact 面板交付。
+
 ## 工作流
 
 1. 读取用户输入：参考图、文件路径、主题清单、文字描述、目标数量和用途。
@@ -41,8 +72,9 @@ description: "生成 IT 基础设施系列连续风格 PNG 图片。适用于一
 3. 生成系列配置，字段见 `templates/series.config.example.json`。
 4. 为每张图生成独立 prompt，保证同一系列的布局、字体、色彩、底部总结条和视觉元素连续。
 5. 逐张生成或编辑 PNG 图片。每次生成请求只描述一张目标图，避免模型把多张图拼进同一个画布。
-6. 保存输出到用户指定目录；未指定时放在当前项目的 `assets/images/`。
-7. 写 `assets/images/manifest.md`，供 `it-infra-evolution-video` 作为真实素材清单使用。
+6. 保存输出到选定 artifact scope 的 `assets/images/`；用户指定额外目录时，也复制一份到 artifact scope。
+7. 写 artifact scope 下的 `assets/images/manifest.md`，供 `it-infra-evolution-video` 作为真实素材清单使用。
+8. 写 artifact scope 下的 `prompts/image-prompts.md` 和 `series.config.json`。
 
 ## 多图输出规则
 
@@ -52,6 +84,8 @@ description: "生成 IT 基础设施系列连续风格 PNG 图片。适用于一
 - 每张 PNG 内部可以有多个信息卡片，但只能围绕一个主题/章节。
 - 批量生成时，先生成 `series.config.json`，再按 `images[]` 逐项生成。
 - manifest 必须逐文件记录，行数应等于输出 PNG 数量。
+- manifest 中的 `file` 必须是 artifact scope 内的相对路径，例如
+  `assets/images/001-local-permission.png`。
 
 ## 风格硬约束
 
