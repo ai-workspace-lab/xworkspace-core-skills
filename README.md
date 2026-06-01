@@ -72,6 +72,12 @@
 2. 按文档准备素材、音频与脚本
 3. 在项目中执行渲染与抽检流程
 
+## Artifact Sync
+
+任务 artifact scope 支持使用 `artifact-ignore.md` 描述无需同步的中间产物，
+定义见 `skills/artifact-ignore.md`。它只适合排除 scratch/build/cache/log 等
+运行过程文件，不能用于隐藏最终交付物、manifest 或失败状态。
+
 ### IT 基础设施 PNG -> 视频闭环
 
 当一个任务同时需要 `it-infra-continuous-png` 和 `it-infra-evolution-video` 时，优先使用 v2 链路：
