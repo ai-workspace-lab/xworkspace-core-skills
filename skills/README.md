@@ -9,6 +9,7 @@
 | `image-production/` | 连续风格 PNG / 信息图素材 |
 | `audio-production/` | SFX、BGM、音频素材工作流 |
 | `animation/` | HyperFrames 动效、简笔画动画、Anime.js 适配 |
+| `workflows/` | 跨技能编排工作流、阶段验收、交付合同 |
 | `workspace-core/` | OpenClaw/Codex runtime core skills |
 
 Source-owned 内容生产技能和 runtime 同步技能使用目录边界隔离，不再使用并列顶层 `workspace-core-skills/`。
