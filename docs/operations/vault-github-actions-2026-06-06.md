@@ -65,6 +65,30 @@
   - `SSH_KNOWN_HOSTS`
 - 保留原有 `workflow_dispatch` 的手动 token 覆盖路径
 - `prepare-ssh.sh` 已改为优先解码 `SINGLE_NODE_VPS_SSH_PRIVATE_KEY_B64`，再回退到原始私钥
+- 补充了 deploy 前置校验：`BRIDGE_AUTH_TOKEN` 必须由 `workflow_dispatch` 输入或 Vault `INTERNAL_SERVICE_TOKEN` 注入，为空时在 GitHub Actions 中提前失败并输出非敏感错误说明
+- 已修复 `Validate OpenClaw session contract` 的 smoke 行为：当 OpenClaw session 已启动但 `xworkmate.tasks.get` 返回 `no_native_task_record` 时，按“会话启动合同通过、无 native task record 可轮询”处理，避免 deploy 后置验证无意义等待到超时
+
+#### xworkmate-bridge 补充验收记录
+
+- 失败 run：`https://github.com/ai-workspace-lab/xworkmate-bridge/actions/runs/27060129810`
+  - 失败点：Ansible `Assert xworkmate-bridge auth token is provided`
+  - 原因：GitHub Actions deploy job 中 `BRIDGE_AUTH_TOKEN` / `INTERNAL_SERVICE_TOKEN` 为空
+- 修复提交：
+  - `6db48ee fix(ci): require bridge auth token before deploy`
+  - `919addf fix(ci): accept OpenClaw session without native task record`
+- 验收 run：`https://github.com/ai-workspace-lab/xworkmate-bridge/actions/runs/27060962558`
+  - `Production State`: success
+  - `Prep`: success
+  - `Build`: success
+  - `Deploy`: success
+  - `Validate`: success
+  - `Publish GitHub Release`: success
+- 验收要点：
+  - `Load Vault secrets` 成功读取仓库专用 KV 路径
+  - `Validate deploy secrets` 成功确认 `BRIDGE_AUTH_TOKEN` 已注入
+  - `Prepare runner SSH access` 成功验证 SSH deploy key
+  - `Run Ansible deploy playbook` 成功通过原失败的 auth token assert
+  - `Validate OpenClaw session contract` 成功通过，不再因 `no_native_task_record` 超时
 
 ### xworkmate-app
 

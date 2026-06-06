@@ -67,9 +67,11 @@ ssh-keygen -y -f ~/.ssh/id_rsa >/dev/null
 
 1. 触发 deploy workflow。
 2. 确认 `Load Vault secrets` 成功。
-3. 确认 `Verify SSH connectivity` 成功。
-4. 确认远端安装步骤成功。
-5. 如果需要验证安装版本，优先读取安装目录中的 `package.json.version`，不要直接解析 `npm ls -g` 的整行输出。
+3. 对需要应用层 auth token 的仓库，确认 workflow 有非敏感的必填校验步骤，例如 `Validate deploy secrets`。
+4. 确认 `Verify SSH connectivity` 或 `Prepare runner SSH access` 成功。
+5. 确认远端安装步骤成功。
+6. 确认 Ansible 或部署脚本的业务必填项 assert 通过。
+7. 如果需要验证安装版本，优先读取安装目录中的 `package.json.version`，不要直接解析 `npm ls -g` 的整行输出。
 
 ## 故障处理
 
@@ -77,8 +79,11 @@ ssh-keygen -y -f ~/.ssh/id_rsa >/dev/null
 - `Permission denied (publickey)`：本地用同一把私钥先执行 SSH 验证，再更新 Vault。
 - `vault-action` 报 `valid path and key`：检查 `secrets` 每一行之间是否用 `;` 分隔。
 - git/source 安装后版本校验误判：读取 package manifest 的 `version` 字段。
+- Ansible 报业务 token assert 失败：检查 workflow 是否把 Vault 字段写入实际部署变量，例如 `INTERNAL_SERVICE_TOKEN` -> `BRIDGE_AUTH_TOKEN`。
+- OpenClaw session smoke 超时：先区分会话启动失败和轮询无 native task record。若 `session.start` 已返回 OpenClaw run handle，而 `xworkmate.tasks.get` 返回 `no_native_task_record`，可按“session 启动合同通过、无 native task record 可轮询”处理，不应让 deploy 验收等待到超时。
 
 ## 已验证记录
 
 - `openclaw-multi-session-plugins` deploy run 已通过。
-- `xworkmate-bridge` 已补齐 workflow 与 Vault 字段，后续 deploy run 应按同一模式验收。
+- `xworkmate-bridge` 已补齐 workflow 与 Vault 字段，并通过 apply deploy run 验收：
+  - `https://github.com/ai-workspace-lab/xworkmate-bridge/actions/runs/27060962558`
