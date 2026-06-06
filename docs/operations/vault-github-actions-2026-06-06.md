@@ -26,8 +26,8 @@
 
 每个 role 仅绑定本仓库对应的 GitHub OIDC 身份：
 
-- `repository = x-evor/<repo>`
-- `sub = repo:x-evor/<repo>:*`
+- `repository = ai-workspace-lab/<repo>`
+- `sub = repo:ai-workspace-lab/<repo>:*`
 - `bound_audiences = ["vault"]`
 
 每个 policy 仅允许读取自己的 KV 路径。
@@ -49,7 +49,10 @@
 
 - `publish.yml` 改为通过 Vault 读取 `NPM_TOKEN`
 - `deploy.yml` 改为通过 Vault 读取 SSH 相关密钥
+- `deploy.yml` 已补充 SSH 私钥 `*_B64` 优先读取与多行私钥回退
+- git/source 安装后的版本校验改为读取全局安装目录的 `package.json.version`
 - 仍保留原有发布和安装逻辑
+- 已通过 deploy workflow 验收
 
 ### xworkmate-bridge
 
@@ -58,8 +61,10 @@
   - `GHCR_TOKEN`
   - `WORKSPACE_REPO_TOKEN`
   - `SINGLE_NODE_VPS_SSH_PRIVATE_KEY`
+  - `SINGLE_NODE_VPS_SSH_PRIVATE_KEY_B64`
   - `SSH_KNOWN_HOSTS`
 - 保留原有 `workflow_dispatch` 的手动 token 覆盖路径
+- `prepare-ssh.sh` 已改为优先解码 `SINGLE_NODE_VPS_SSH_PRIVATE_KEY_B64`，再回退到原始私钥
 
 ### xworkmate-app
 
@@ -76,6 +81,7 @@
 ## 备注
 
 - 本次未在文档中记录任何敏感值
+- SSH deploy key 统一采用 `*_B64` 优先、原始多行 key 回退的模式，详见 `vault-github-actions-ssh-deploy-runbook.md`
 - 若后续新增仓库，只需补：
   - 一条 policy
   - 一条 role
