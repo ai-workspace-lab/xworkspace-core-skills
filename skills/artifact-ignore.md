@@ -5,15 +5,29 @@ working but should not be synced as user-visible artifacts.
 
 ## File Location
 
-Place `artifact-ignore.md` at the root of the current XWorkmate/OpenClaw artifact
+Global rules are declared at the root of the current XWorkmate/OpenClaw artifact
 scope:
 
 ```text
 tasks/<session>/<run>/artifact-ignore.md
 ```
 
-Rules are evaluated relative to that artifact scope. They do not apply to files
-outside the current run directory.
+Skill-specific rules are declared under the selected skill key:
+
+```text
+tasks/<session>/<run>/skills/<skill-key>/artifact-ignore.md
+```
+
+Examples:
+
+```text
+tasks/<session>/<run>/skills/video-production/it-infra-evolution-video-v2/artifact-ignore.md
+tasks/<session>/<run>/skills/workflows/content-pdf-with-images/artifact-ignore.md
+```
+
+The app loads the global file first, then the `artifact-ignore.md` files for the
+skills selected on the current task. Rules are evaluated relative to the current
+artifact scope. They do not apply to files outside the current run directory.
 
 ## Contract
 
@@ -52,6 +66,34 @@ Rule syntax:
 
 Keep the rule set small and explicit. Prefer listing known intermediate
 directories over broad patterns such as `**/*`.
+
+## Content Reject Rules
+
+Use a fenced `artifact-reject` block when a generated artifact is known to be a
+placeholder or guard file that must not appear as a user-visible final
+deliverable. The app loads these rules from the current artifact scope and
+applies them during artifact sync/export.
+
+```artifact-reject
+path=exports/final.pdf
+contentType=application/pdf
+contains=XWorkmate Task Artifact
+contains=Required extensions: pdf
+contains=TaskThread workspace context:
+contains=Workspace isolation rules:
+```
+
+Supported fields:
+
+| Field | Meaning |
+|---|---|
+| `path` | Optional relative path or extension glob, for example `exports/final.pdf`, `*.pdf`, or `**/*.pdf` |
+| `contentType` | Optional substring match against the artifact content type |
+| `contains` | Required. Repeat for every text fragment that must be present in the artifact body |
+
+Rules match only when every supplied field matches. Keep reject rules narrow:
+they are for explicit placeholder/guard signatures, not for broad file-type
+blocking. A real requested deliverable must not be rejected by policy.
 
 ## Recommended Intermediate Rules
 
