@@ -1,0 +1,12 @@
+```artifact-ignore
+build_segments/
+snapshots/
+assets/audio/raw/
+assets/audio/tmp/
+assets/images/tmp/
+assets/images/raw/
+prompts/tmp/
+renders/tmp/
+*.wav.tmp
+*.mp3.tmp
+```
