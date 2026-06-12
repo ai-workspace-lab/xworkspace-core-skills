@@ -49,7 +49,17 @@ OpenClaw 任务中如果同时选择了 `it-infra-continuous-png` 和 `it-infra-
 
 1. 先用 `it-infra-continuous-png` 生成多张 PNG 和 manifest。
 2. 再用本 skill 的 runner 读取 manifest。
-3. 最后把 `renders/service-mesh-video.mp4`、`video.config.json`、`assets/images/manifest.md`、`ffprobe.json`、`DELIVERY.md` 留在当前 `tasks/<session>/<run>` workspace。
+3. 最后只把最终 MP4 作为 XWorkmate 制品输出。`video.config.json`、`assets/images/manifest.md`、`ffprobe.json`、`DELIVERY.md`、音频、snapshot、HTML 等中间/验收文件可以留在当前 `tasks/<session>/<run>` workspace 内供调试，但不得作为最终制品同步或报告。
+
+## XWorkmate 制品输出约定
+
+本 skill 的 XWorkmate 最终制品只允许包含一个 MP4：
+
+- 最终 MP4 必须写入 `renders/<output-name>.mp4`，推荐默认 `renders/service-mesh-video.mp4`。
+- 完成回复只报告这个 MP4 的相对路径和简短说明，不要列出 `video.config.json`、`ffprobe.json`、`index.html`、音频、snapshot、manifest、`DELIVERY.md` 或其他中间文件作为制品。
+- 不要为了同步中间产物而把它们复制到 `deliverables/`、`reports/`、`artifacts/` 或任务 scope 根目录。
+- 如果运行环境提供制品过滤、manifest 或导出列表，只把 `renders/<output-name>.mp4` 标记为 final/exportable；其他文件标记为 intermediate/debug 或完全不列入导出列表。
+- 如果最终 MP4 不存在或 `ffprobe` 不通过，任务必须失败，不要用中间产物替代交付。
 
 ## Runner 合同
 
@@ -68,7 +78,7 @@ runner 负责：
 
 ## 验收标准
 
-只有以下文件都存在，才能在 XWorkmate/OpenClaw 中报告完成：
+只有以下文件都存在，才能在 XWorkmate/OpenClaw 中报告完成；但除最终 MP4 外，这些文件只是验收证据，不是最终制品：
 
 - `index.html`
 - `video.config.json`
@@ -87,6 +97,8 @@ runner 负责：
 - 时长接近 `video.config.json` 的 `duration`
 
 如果 HyperFrames 或 ffprobe 任一阶段失败，只输出失败阶段和原因，不输出“完成”。
+
+完成时的制品同步范围必须仍然只包含 `renders/<output-name>.mp4`。
 
 ## FFmpeg fallback timeline text
 
