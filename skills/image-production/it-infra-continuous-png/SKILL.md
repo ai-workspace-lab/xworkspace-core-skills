@@ -34,15 +34,7 @@ description: "生成 IT 基础设施系列连续风格 PNG 图片。适用于一
   - `prompts/image-prompts.md`
   - 每张图的主题、标题、副标题、结构块、关键词、生成提示词。
 
-安全演进主题的固定 7 图序列为：
-
-1. 单机权限
-2. 网络边界
-3. Web安全
-4. 云身份
-5. Zero Trust
-6. AI Agent 身份
-7. AI模型与知识保护
+主题或章节序列由用户动态输入指定。不要强加固定的章节数或主题（如固定的 7 阶段安全演进），应完全根据用户的实际需求或上下文输入进行推演和拆分。
 
 ## XWorkmate/OpenClaw 交付目录
 
@@ -88,8 +80,7 @@ scope”，不要声称已经完成文件交付。
 
 ## 多图输出规则
 
-- `count=N` 表示输出 `N` 个独立文件：`001-*.png`、`002-*.png` ... `N-*.png`。
-- 用户要求上述安全演进主线时，默认 `count=7`，每个阶段一张独立 PNG。
+- `count=N` 表示输出 `N` 个独立文件：`001-*.png`、`002-*.png` ... `N-*.png`。如果用户提供了明确的演进主线，则应按各个阶段分别输出。
 - 严禁把多个章节合成到一张 1024x1536 画布里。
 - 严禁输出 collage、contact sheet、grid、storyboard sheet、overview board、multi-panel batch preview。
 - 每张 PNG 内部可以有多个信息卡片，但只能围绕一个主题/章节。

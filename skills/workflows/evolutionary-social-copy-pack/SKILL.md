@@ -1,13 +1,11 @@
 ---
-name: security-evolution-social-copy-pack
-description: "围绕单机权限到 AI 模型与知识保护的安全演进主线，输出公众号、小红书、X、头条号等 Markdown 软文矩阵。"
+name: evolutionary-social-copy-pack
+description: "根据用户指定的任意演进主线，输出公众号、小红书、X、头条号等 Markdown 软文矩阵。"
 ---
 
 # Security Evolution Social Copy Pack Workflow
 
-Use this workflow for content-pack requests around:
-
-`从单机权限 → 网络边界 → Web安全 → 云身份 → Zero Trust → AI Agent 身份 → AI模型与知识保护`
+Use this workflow for content-pack requests around user-provided evolutionary paths or thematic series.
 
 ## Output Contract
 
@@ -24,8 +22,8 @@ Do not combine the five outputs into one Markdown file. Each platform gets one s
 
 ## Writing Rules
 
-- Keep the same core thesis across all files: security boundaries keep moving closer to identity, agents, models, and knowledge.
-- Weave in soft keywords naturally: `Zero Trust`, `AI Agent 身份`, `模型保护`, `知识资产保护`, `云身份`, `Web安全`.
+- Keep the same core thesis across all files based on the user-provided theme or sequence.
+- Weave in relevant soft keywords naturally depending on the theme context.
 - For Xiaohongshu, start with a strong hook and include 3-5 topic tags.
 - For X, write in English and keep every post under 144 characters.
 - Avoid fake citations and avoid claiming current news unless sources were collected in the same run.

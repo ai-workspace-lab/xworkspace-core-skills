@@ -23,15 +23,7 @@ Final deliverables must stay inside the current XWorkmate/OpenClaw task artifact
 - `exports/final.pdf`
 - `DELIVERY.md`
 
-For the security evolution scenario, preserve this seven-chapter sequence exactly:
-
-1. 单机权限
-2. 网络边界
-3. Web安全
-4. 云身份
-5. Zero Trust
-6. AI Agent 身份
-7. AI模型与知识保护
+If the user specifies a particular content sequence or evolutionary path, ensure the exact sequence is preserved. Do not hardcode a fixed number of chapters unless requested.
 
 ## Phase 1: Plan
 
@@ -69,7 +61,6 @@ the required image artifacts are missing.
 Required checks before continuing:
 
 - PNG count equals chapter count.
-- For the security evolution scenario, PNG count must be exactly 7.
 - Every `assets/images/*.png` is a real non-empty PNG.
 - Every chapter image is a generated or user-provided bitmap image, not a text
   placeholder, blank rectangle, SVG prompt card, or decorative filler.
