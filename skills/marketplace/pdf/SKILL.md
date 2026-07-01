@@ -9,6 +9,8 @@ description: Use this skill whenever the user wants to do anything with PDF file
 
 This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see REFERENCE.md. If you need to fill out a PDF form, read FORMS.md and follow its instructions.
 
+When rebuilding scanned PDFs, page screenshots, flattened pages, or image-only documents while preserving their appearance, read [editable-reconstruction.md](editable-reconstruction.md). Use one text-free full-page background image plus native PDF text objects; if the requested final format is PPTX, follow the PPTX two-layer contract instead.
+
 ## Quick Start
 
 ```python
