@@ -72,12 +72,12 @@ Use when the main artifact is a Microsoft PowerPoint presentation or `.pptx` dec
 - Image sizing, font substitution, and placeholder mismatch are common reasons a deck looks good in code and bad on screen.
 - Notes, comments, linked media, and merged decks can stay broken even when the visible slide looks fine.
 
-### 7. Keep generated imagery text-free and slide text editable
+### 7. Select the image generator without constraining normal illustrations
 
 - Before creating or repainting an illustration, read [../../../marketplace/pptx/editable-reconstruction.md](../../../marketplace/pptx/editable-reconstruction.md).
 - Follow its simple image-generation order: Codex GPT image2, then Gemini CLI Google Banana 2, then the default method.
-- Generate visual assets without words, letters, numbers, labels, pseudo-text, signatures, or watermarks. Add all required text as editable PowerPoint text boxes.
-- When rebuilding screenshots, images, PDFs, or flattened slides, enforce the complete single text-free background image plus editable text layer contract and its QA checks.
+- For normal slide illustrations, generate the strongest complete visual for the requested composition. Do not force a text-free background or separate editable text layer.
+- Only when the user explicitly requests editable reconstruction of screenshots, images, PDFs, or flattened slides, enforce the single text-free background image plus editable text layer contract and its QA checks.
 
 ## Common Traps
 

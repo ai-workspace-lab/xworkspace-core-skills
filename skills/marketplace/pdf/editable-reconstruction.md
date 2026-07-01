@@ -2,6 +2,8 @@
 
 Use this workflow to rebuild scanned PDFs, PDF page screenshots, flattened documents, or image-only pages while preserving their appearance and restoring a real text layer.
 
+Use this reconstruction structure only when the user explicitly requests editable reconstruction, text removal, or restoration of a native text layer. Do not apply it to ordinary generated illustrations or normal image placement in PDFs.
+
 Read [../pptx/editable-reconstruction.md](../pptx/editable-reconstruction.md) first and reuse its image provider selection, masking, generative inpainting, prohibited cleanup methods, and residue QA rules.
 
 ## Provider Priority

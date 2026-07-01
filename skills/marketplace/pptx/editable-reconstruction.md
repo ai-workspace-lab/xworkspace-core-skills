@@ -2,7 +2,9 @@
 
 Use this workflow to reconstruct PPT screenshots, PNG/JPEG images, PDF pages, or flattened/original slides as editable PPTX files while preserving the source appearance.
 
-Other image-producing skills may reference this file as the canonical image-generation policy. For non-PPT outputs, apply **Image Provider Selection**, text-free image generation, and residue QA; keep titles, captions, labels, and numbers in the output format's native text/animation layer instead of baking them into generated images.
+Use the two-layer reconstruction rules only when the user explicitly requests editable reconstruction, text removal, or separation of a flattened source into background and editable text. Do not apply the text-free background requirement to normal PPT illustrations, newly generated slide artwork, or ordinary image generation.
+
+Other image-producing skills may reference **Image Provider Selection** without inheriting the reconstruction structure.
 
 ## Required Slide Structure
 
@@ -21,7 +23,7 @@ The original page is reference material only. Keep it outside the visible slide 
 2. **Otherwise, if Gemini CLI is available:** use Google Banana 2 for generative image creation or editing.
 3. **Otherwise:** use the default image generation or editing method.
 
-For newly generated illustrations without a source page, use the same provider order. Ask the model to generate the complete visual without words, letters, numbers, labels, pseudo-text, signatures, or watermarks; add required text later in the native editable layer.
+For newly generated illustrations without a source page, use the same provider order and follow the user's requested visual composition. Do not force a text-free image or separate editable text layer unless the user asks for editable reconstruction.
 
 Use a provider prompt equivalent to:
 
