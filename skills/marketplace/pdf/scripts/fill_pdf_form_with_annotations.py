@@ -5,6 +5,19 @@ from pypdf import PdfReader, PdfWriter
 from pypdf.annotations import FreeText
 
 
+def _contains_cjk(text):
+    return any(
+        "\u3400" <= char <= "\u4dbf"
+        or "\u4e00" <= char <= "\u9fff"
+        or "\uf900" <= char <= "\ufaff"
+        for char in text
+    )
+
+
+def _default_font_for_text(text):
+    if _contains_cjk(text):
+        return "Songti SC"
+    return "Arial"
 
 
 def transform_from_image_coords(bbox, image_width, image_height, pdf_width, pdf_height):
@@ -72,8 +85,8 @@ def fill_pdf_form(input_pdf_path, fields_json_path, output_pdf_path):
         text = entry_text["text"]
         if not text:
             continue
-        
-        font_name = entry_text.get("font", "Arial")
+
+        font_name = entry_text.get("font") or _default_font_for_text(text)
         font_size = str(entry_text.get("font_size", 14)) + "pt"
         font_color = entry_text.get("font_color", "000000")
 
