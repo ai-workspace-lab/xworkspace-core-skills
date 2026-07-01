@@ -6,13 +6,9 @@ Read [../pptx/editable-reconstruction.md](../pptx/editable-reconstruction.md) fi
 
 ## Provider Priority
 
-Use the first image editor that is genuinely callable, not merely installed:
-
-1. Use Codex GPT image2 or the currently exposed GPT image editing model.
-2. Otherwise use Gemini CLI with Google Banana 2 or its current image editing equivalent.
-3. Otherwise use the best available default content-aware or generative inpainting workflow.
-
-If one provider fails because of authentication, model access, input format, or execution, record the failure and continue to the next provider.
+1. If Codex is available, use GPT image2 for generative image creation or editing.
+2. Otherwise, if Gemini CLI is available, use Google Banana 2 for generative image creation or editing.
+3. Otherwise, use the default image generation or editing method.
 
 ## Required Page Structure
 

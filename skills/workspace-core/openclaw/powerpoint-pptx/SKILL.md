@@ -75,7 +75,7 @@ Use when the main artifact is a Microsoft PowerPoint presentation or `.pptx` dec
 ### 7. Keep generated imagery text-free and slide text editable
 
 - Before creating or repainting an illustration, read [../../../marketplace/pptx/editable-reconstruction.md](../../../marketplace/pptx/editable-reconstruction.md).
-- Follow its Codex GPT image2 -> Gemini CLI Banana 2 -> default fallback order based on actual runtime availability.
+- Follow its simple image-generation order: Codex GPT image2, then Gemini CLI Google Banana 2, then the default method.
 - Generate visual assets without words, letters, numbers, labels, pseudo-text, signatures, or watermarks. Add all required text as editable PowerPoint text boxes.
 - When rebuilding screenshots, images, PDFs, or flattened slides, enforce the complete single text-free background image plus editable text layer contract and its QA checks.
 

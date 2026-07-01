@@ -17,13 +17,9 @@ The original page is reference material only. Keep it outside the visible slide 
 
 ## Image Provider Selection
 
-Select the first provider that is genuinely callable in the current runtime. A CLI executable existing on disk does not by itself prove that its image-editing model is usable.
-
-1. **Codex available:** use the Codex image generation/editing capability with GPT image2 or the currently exposed GPT image editing model. Perform generative erase/inpainting from the source page plus a text-region mask.
-2. **Otherwise, Gemini CLI available:** use Gemini CLI with Google Banana 2 or its current image editing equivalent. Perform generative erase/inpainting from the source page plus a text-region mask.
-3. **Otherwise:** use the best available default content-aware or generative inpainting path. Manually reconstruct affected background details where necessary.
-
-If a preferred provider is present but authentication, model access, input format, or execution fails, record the failure briefly and continue to the next provider. Never stop merely because the preferred provider is unavailable.
+1. **If Codex is available:** use GPT image2 for generative image creation or editing.
+2. **Otherwise, if Gemini CLI is available:** use Google Banana 2 for generative image creation or editing.
+3. **Otherwise:** use the default image generation or editing method.
 
 For newly generated illustrations without a source page, use the same provider order. Ask the model to generate the complete visual without words, letters, numbers, labels, pseudo-text, signatures, or watermarks; add required text later in the native editable layer.
 

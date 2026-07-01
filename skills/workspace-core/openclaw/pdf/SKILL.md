@@ -10,7 +10,7 @@ license: Proprietary. LICENSE.txt has complete terms
 
 This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see reference.md. If you need to fill out a PDF form, read forms.md and follow its instructions.
 
-When rebuilding scanned PDFs, page screenshots, flattened pages, or image-only documents while preserving their appearance, read [../../../marketplace/pdf/editable-reconstruction.md](../../../marketplace/pdf/editable-reconstruction.md). Use Codex GPT image2 first, Gemini CLI Banana 2 second, and the default inpainting fallback last based on actual runtime availability. Each page must use one text-free full-page image plus native selectable PDF text; use editable PowerPoint text boxes instead when the requested output is PPTX.
+When rebuilding scanned PDFs, page screenshots, flattened pages, or image-only documents while preserving their appearance, read [../../../marketplace/pdf/editable-reconstruction.md](../../../marketplace/pdf/editable-reconstruction.md). Use Codex GPT image2 first, Gemini CLI Google Banana 2 second, and the default method last. Each page must use one text-free full-page image plus native selectable PDF text; use editable PowerPoint text boxes instead when the requested output is PPTX.
 
 ## Quick Start
 
