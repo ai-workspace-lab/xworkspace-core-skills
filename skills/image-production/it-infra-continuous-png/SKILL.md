@@ -6,6 +6,12 @@ description: "生成 IT 基础设施系列连续风格 PNG 图片。适用于一
 
 # IT 基础设施连续风格 PNG Skill
 
+## 图片生成统一规则
+
+生成、扩图、修复或重绘任何静态 PNG 前，必须先读 [../../marketplace/pptx/editable-reconstruction.md](../../marketplace/pptx/editable-reconstruction.md)，复用其中的图片模型优先级、无字生成和残影验收规则。
+
+采用两阶段生产：先让图片模型生成无字、无数字、无标签、无伪文字的完整视觉底图，再用 HTML/SVG 等确定性可编辑排版层添加标题、副标题、编号、标签和总结文字并渲染为最终 PNG。保留无字底图和排版源文件；不得直接接受模型生成的中文、乱码、假字或文字残影。
+
 为 `it-infra-evolution-video` 提供输入素材：根据用户给定的参考图片、主题规划或详细描述，生成 `1-N` 张风格连续的竖版 PNG 长图。`N` 张图必须输出为 `N` 个独立 PNG 文件，不能合并成一张总览图、拼图、宫格、联系表或多页预览。
 
 ## 适用场景
@@ -73,10 +79,11 @@ scope”，不要声称已经完成文件交付。
 2. 抽取或套用统一风格规范，见 `references/style-spec.md`。
 3. 生成系列配置，字段见 `templates/series.config.example.json`。
 4. 为每张图生成独立 prompt，保证同一系列的布局、字体、色彩、底部总结条和视觉元素连续。
-5. 逐张生成或编辑 PNG 图片。每次生成请求只描述一张目标图，避免模型把多张图拼进同一个画布。
-6. 保存输出到选定 artifact scope 的 `assets/images/`；用户指定额外目录时，也复制一份到 artifact scope。
-7. 写 artifact scope 下的 `assets/images/manifest.md`，供 `it-infra-evolution-video` 作为真实素材清单使用。
-8. 写 artifact scope 下的 `prompts/image-prompts.md` 和 `series.config.json`。
+5. 逐张生成或编辑无字底图。每次生成请求只描述一张目标图，避免模型把多张图拼进同一个画布。
+6. 在确定性可编辑排版层中叠加全部文字并渲染最终 PNG；保存无字底图、排版源文件和最终 PNG。
+7. 保存输出到选定 artifact scope 的 `assets/images/`；用户指定额外目录时，也复制一份到 artifact scope。
+8. 写 artifact scope 下的 `assets/images/manifest.md`，供 `it-infra-evolution-video` 作为真实素材清单使用。
+9. 写 artifact scope 下的 `prompts/image-prompts.md` 和 `series.config.json`。
 
 ## 多图输出规则
 

@@ -7,6 +7,8 @@ description: "文章转图片系列工作流：将文章、提纲或主题序列
 
 This workflow turns text structure into a validated image series. It is intentionally staged so the agent plans image count and prompts before generating assets.
 
+Before generating, extending, repairing, or repainting any image, read [../../marketplace/pptx/editable-reconstruction.md](../../marketplace/pptx/editable-reconstruction.md) and apply its provider order, text-free generation, and residue QA rules. Image models must not render titles, labels, numbers, signatures, watermarks, or pseudo-text. Keep chapter titles and captions outside the generated bitmap; if final cards require embedded typography, typeset it in an editable HTML/SVG source and render the composed PNG deterministically.
+
 ## Output Contract
 
 Final deliverables must stay inside the current task artifact scope:
@@ -56,6 +58,8 @@ Prompts must keep a consistent family style while preserving per-chapter meaning
 ## Phase 4: Generate Images
 
 Generate or edit images one by one. Save each final PNG under `assets/images/`.
+
+Generate the visual plate without text. If the output format requires text inside the final card, add it only through the deterministic editable layout source after the text-free plate passes inspection.
 
 If an image tool writes to a cache directory, copy the final image into the artifact scope. Do not leave final outputs in `Downloads`, model cache, `/tmp`, or global media folders.
 
