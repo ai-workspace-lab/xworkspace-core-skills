@@ -8,9 +8,11 @@ Read [../pptx/editable-reconstruction.md](../pptx/editable-reconstruction.md) fi
 
 ## Provider Priority
 
-1. If Codex is available, use GPT image2 for generative image creation or editing.
-2. Otherwise, if Gemini CLI is available, use Google Banana 2 for generative image creation or editing.
-3. Otherwise, use the default image generation or editing method.
+1. If Codex CLI is available, invoke the `codex` CLI and use GPT image2 to generate or edit the image.
+2. Otherwise, if Gemini CLI is available, invoke the `gemini` CLI and use Google Banana 2 to generate or edit the image.
+3. Otherwise, fall back to the skill's default image output method.
+
+Treat a CLI as available only when its command can actually start. Execute the selected CLI image-generation path and use its resulting image artifact.
 
 ## Required Page Structure
 
