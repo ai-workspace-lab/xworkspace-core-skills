@@ -14,6 +14,11 @@
 
 Source-owned 内容生产技能和 runtime 同步技能使用目录边界隔离，不再使用并列顶层 `workspace-core-skills/`。
 
+另有两个外部标准来源 Skill 以整仓 vendored 形式直接放在本目录下（来源与同步 commit 见仓库根 README「外部标准来源 Skills」）：
+
+- `image-svg-pptx-pro-skill/` — 图片 -> SVG -> 可编辑 PPTX（来源：kongzhecn/image-svg-pptx-pro-skill）
+- `xiaobei-skill-image-to-vba/` — 图片 -> VBA Office Shapes 重建（来源：xiao24bei/xiaobei-skill-image-to-vba）
+
 ## Artifact Sync
 
 - [`artifact-ignore.md`](artifact-ignore.md) 定义当前任务 artifact scope 中哪些中间产物可以不进入同步/导出结果。

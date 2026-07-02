@@ -37,6 +37,8 @@
 | 文章转图片系列 | 将文章、提纲或主题序列转成 manifest-backed 多图系列 | `skills/workflows/article-to-image-series/SKILL.md` |
 | 图片系列转视频 | 从 PNG manifest 生成讲解视频并执行验收 | `skills/workflows/image-series-to-video/SKILL.md` |
 | 研究到幻灯片 | 将研究资料、来源和主题 brief 转成可验证 slide deck | `skills/workflows/research-to-slide-deck/SKILL.md` |
+| 图片转可编辑 PPTX（SVG 中间层） | 截图/学术图/UI 稿 -> 语义布局 -> 高保真 SVG -> 可编辑 PPTX 重建与 QA | `skills/image-svg-pptx-pro-skill/SKILL.md` |
+| 小北 Image to VBA | 学术图/示意图/截图 -> VBA Office Shapes 1:1 可编辑重建 | `skills/xiaobei-skill-image-to-vba/skills/xiaobei-skill-image-to-vba/SKILL.md` |
 
 ## Workspace Core Skills
 
@@ -47,6 +49,15 @@
 - `/home/ubuntu/.agents/skills` 不纳入本仓库；它是更宽泛的用户/市场技能库，不属于 workspace core surface。
 
 刷新时保留 `skills/workspace-core/openclaw/` 和 `skills/workspace-core/codex-system/` 两个来源边界。
+
+## 外部标准来源 Skills
+
+以下 Skill 从外部开源仓库 vendored 进本仓库（去除嵌套 `.git`，按普通文件纳管）。刷新时以来源仓库为准，整目录覆盖后记录同步的 commit。
+
+| 本地路径 | 来源仓库 | 同步 commit |
+|---|---|---|
+| `skills/image-svg-pptx-pro-skill/` | <https://github.com/kongzhecn/image-svg-pptx-pro-skill> | `3da4862` |
+| `skills/xiaobei-skill-image-to-vba/` | <https://github.com/xiao24bei/xiaobei-skill-image-to-vba> | `480b4ff` |
 
 ## Examples
 
