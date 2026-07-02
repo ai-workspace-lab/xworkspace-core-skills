@@ -1,0 +1,92 @@
+{
+  "version": "1.0",
+  "canvas": {
+    "width": 1280,
+    "height": 720,
+    "aspect": "16:9",
+    "background": "#F7F8FA"
+  },
+  "quality_mode": "balanced",
+  "assets": [
+    {
+      "id": "asset_chart_01",
+      "type": "crop",
+      "source": "normalized.png",
+      "crop": {"x": 750, "y": 180, "w": 390, "h": 300},
+      "file": "asset_chart_01.png",
+      "reason": "dense chart fidelity"
+    }
+  ],
+  "elements": [
+    {
+      "id": "header_bar",
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 86,
+      "fill": "#111827",
+      "stroke": "none",
+      "z": 1,
+      "editability": "editable"
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "项目简介",
+      "x": 72,
+      "y": 23,
+      "w": 520,
+      "h": 54,
+      "font_family": "Microsoft YaHei",
+      "font_size": 36,
+      "font_weight": 700,
+      "color": "#FFFFFF",
+      "align": "left",
+      "z": 3,
+      "editability": "editable"
+    },
+    {
+      "id": "card_left",
+      "type": "rect",
+      "x": 72,
+      "y": 140,
+      "w": 560,
+      "h": 420,
+      "rx": 22,
+      "fill": "#FFFFFF",
+      "stroke": "#E5E7EB",
+      "stroke_width": 2,
+      "z": 5,
+      "editability": "editable"
+    },
+    {
+      "id": "body",
+      "type": "text",
+      "text": "核心内容区域\n支持文字、卡片、线条转为可编辑元素。",
+      "x": 112,
+      "y": 185,
+      "w": 490,
+      "h": 180,
+      "font_family": "Microsoft YaHei",
+      "font_size": 26,
+      "font_weight": 400,
+      "color": "#111827",
+      "align": "left",
+      "line_spacing": 1.2,
+      "z": 7,
+      "editability": "editable"
+    },
+    {
+      "id": "chart_asset",
+      "type": "image",
+      "asset_id": "asset_chart_01",
+      "x": 750,
+      "y": 180,
+      "w": 390,
+      "h": 300,
+      "z": 8,
+      "editability": "asset"
+    }
+  ]
+}
