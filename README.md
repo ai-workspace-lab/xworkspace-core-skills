@@ -1,3 +1,5 @@
+![XWorkspace Core Skills promotional poster](./assets/product.png)
+
 # XWorkspace Core Skills
 
 一套面向 XWorkmate / OpenClaw / Codex workspace 的核心 Skill 集合。
