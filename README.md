@@ -1,5 +1,7 @@
 ![XWorkspace Core Skills promotional poster](./assets/product.png)
 
+[![License](https://img.shields.io/badge/license-MIT-2ea44f.svg)](./LICENSE) [![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/) [![HyperFrames](https://img.shields.io/badge/animation-HyperFrames-2563EB.svg)](./skills/animation) [![Agent Workflows](https://img.shields.io/badge/focus-Agent%20Workflows-7c3aed.svg)](./skills/workflows)
+
 # XWorkspace Core Skills
 
 一套面向 XWorkmate / OpenClaw / Codex workspace 的核心 Skill 集合。
