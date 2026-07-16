@@ -13,6 +13,7 @@ license: Proprietary. LICENSE.txt has complete terms
 | Read/analyze content | `python -m markitdown presentation.pptx` |
 | Edit or create from template | Read [editing.md](editing.md) |
 | Create from scratch | Read [pptxgenjs.md](pptxgenjs.md) |
+| Rebuild screenshots/PDF/PPT as editable slides | Read [editable-reconstruction.md](editable-reconstruction.md) |
 
 ---
 
@@ -45,6 +46,19 @@ python scripts/office/unpack.py presentation.pptx unpacked/
 **Read [pptxgenjs.md](pptxgenjs.md) for full details.**
 
 Use when no template or reference presentation is available.
+
+---
+
+## Editable Visual Reconstruction
+
+**Read [editable-reconstruction.md](editable-reconstruction.md) whenever the user asks to rebuild PPT screenshots, PNG/JPEG images, PDF pages, or flattened/original slides into an editable PPTX.**
+
+For this workflow, enforce exactly two visible content classes per slide:
+
+1. One full-slide, text-free reconstructed PNG containing every non-text visual.
+2. Editable PowerPoint text boxes containing every word, number, label, and symbol that functions as text.
+
+Do not use the original page image as the final visible background. Do not split cards, charts, buttons, illustrations, decorations, or other non-text visuals into separate PowerPoint objects.
 
 ---
 

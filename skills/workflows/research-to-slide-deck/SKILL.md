@@ -59,6 +59,8 @@ Create the deck from the outline:
 
 Use charts, tables, diagrams, or screenshots only when they support the message. Avoid decorative filler.
 
+When creating or repainting slide illustrations, read [../../marketplace/pptx/editable-reconstruction.md](../../marketplace/pptx/editable-reconstruction.md) only for its image provider order. Generate the illustration that best fits the slide; do not force a text-free background or separate editable text layer for normal artwork. Apply the complete one-background-image-plus-editable-text workflow only when the user explicitly requests editable reconstruction of flattened source pages.
+
 ## Phase 4: Verification
 
 Before final response:
