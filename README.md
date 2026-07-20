@@ -63,6 +63,15 @@
 | `skills/image-svg-pptx-pro-skill/` | <https://github.com/kongzhecn/image-svg-pptx-pro-skill> | `3da4862` |
 | `skills/xiaobei-skill-image-to-vba/` | <https://github.com/xiao24bei/xiaobei-skill-image-to-vba> | `480b4ff` |
 
+## 工程规范 Skills（通用模板）
+
+以下 Skill 不属于内容生产链路，是给 Agent 用的仓库工程规范模板——分支/PR/发布/密钥事故处理、多环境（SIT/UAT/Prod）交付路由。两者均已泛化为通用模板，落地到具体仓库时需要按该仓库实际的分支前缀、CI gate 名称、workflow 文件名和 Vault role 命名替换占位内容，不能直接照搬。
+
+| Skill | 说明 | 路径 |
+|---|---|---|
+| 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/project-development-standard/SKILL.md` |
+| 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/multi-environment-delivery-and-release/SKILL.md` |
+
 ## Examples
 
 | Example | 说明 | 路径 |
