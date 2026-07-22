@@ -9,7 +9,7 @@ A reusable operational digest for teams running trunk-based development (`main`)
 `release/*` maintenance lines. Treat this as a template: keep the golden rules and direction
 matrix, but replace the CI gate names and any repo-specific paths with the target repo's own.
 
-Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) before creating a branch. `artifacts`, `gitops`, `iac_modules`, `observability.svc.plus`, and `platform-ops-toolkit` are separate repositories; `docs` is a non-Git documentation tree. Never report one repository's check or PR as verification for another.
+Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) before creating a branch. `artifacts`, `gitops`, `playbooks`, `iac_modules`, `observability.svc.plus`, and `platform-ops-toolkit` are separate repositories; `docs` is a non-Git documentation tree. Never report one repository's check or PR as verification for another.
 
 ## Golden rules
 
