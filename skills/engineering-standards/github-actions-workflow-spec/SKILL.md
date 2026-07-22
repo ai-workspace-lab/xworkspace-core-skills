@@ -1,6 +1,6 @@
 ---
 name: github-actions-workflow-spec
-description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, and non-interactive Terraform/Ansible steps. Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
+description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, non-interactive Terraform/Ansible steps, and no-op/false-green deploy guards (a step that deployed nothing must fail red, not report success). Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
 ---
 
 # GitHub Actions Workflow Specification
@@ -98,6 +98,24 @@ A multi-cloud IaC repo typically splits responsibilities across these five patte
 | PR quality gate | `validate-pr.yaml` | `pull_request` + `checkout` `fetch-depth: 0` + secret scan (e.g. `gitleaks`) |
 | Readiness checker | `check-ready.yaml` | `workflow_dispatch`; inspects prior run status via the Actions API |
 
-## 8. Before opening a PR
+## 8. Deploys must fail on no-op (no false green)
+
+A green check must mean the remote state actually changed. The most dangerous CI defect is the **false green**: a "deploy" step exits `0` having done nothing, so a broken environment ships behind a wall of ✓s. Design every mutating step so that *doing nothing is an error*.
+
+- **Ansible matches zero hosts → exit 0.** Both `ansible` (ad-hoc) and `ansible-playbook --limit` print `No hosts matched` / `provided hosts list is empty` and still succeed. A wrong inventory path or a mistyped host name then makes the whole deploy a silent no-op. Assert reachability *before* the mutating calls, via a shared guard:
+  ```bash
+  # common_assert_ansible_host.sh <inventory> <host> — fails red on missing
+  # inventory file, no host match, or unreachable host.
+  ping_out="$(ansible -i "${inventory}" "${host}" -m ping 2>&1 || true)"
+  echo "${ping_out}"
+  grep -q 'SUCCESS' <<<"${ping_out}" \
+    || { echo "::error::'${host}' matched no reachable host in ${inventory}"; exit 1; }
+  ```
+- **Artifact paths are relative to the repo root, but the step's cwd may not be.** `download-artifact` with `path: cmdb` lands at `<repo-root>/cmdb`; a step with `working-directory: playbooks` must reach it as `../cmdb/inventory.ini`, not `cmdb/inventory.ini`. Pick one convention per job and apply it to *every* script the job calls — a single stale path silently degrades to the no-op above. When cwd is ambiguous, prefer `${GITHUB_WORKSPACE}/…` absolute paths.
+- **`set -e` is not enough.** Use `set -euo pipefail` so unset secrets and broken pipes also fail. `set -e` will not catch a tool that itself exits 0 on an empty target — that is exactly what the reachability guard is for.
+- **Verify the effect, not just the exit code.** A step that claims to change remote state should confirm it did — host matched, container `Up`, file present, migration row written — rather than trusting a `0`. Prefer `ansible-playbook` (task-level `changed`/`failed` accounting) over ad-hoc `ansible -m command` for anything non-trivial.
+- **Guard the matrix, then guard inside.** `[]`/`0` matrix defaults (§4) stop a job from *running* on an empty fleet; the reachability assert stops a job that *did* run from *lying* when its target resolved to nothing. You need both.
+
+## 9. Before opening a PR
 
 Run `bash -n .github/scripts/*.sh` and confirm `gitleaks` passes. Branch names and PR targets follow `project-development-standard`.
