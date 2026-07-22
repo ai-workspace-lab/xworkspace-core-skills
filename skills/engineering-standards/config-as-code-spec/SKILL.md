@@ -49,13 +49,14 @@ ansible -i inventory/terraform_cmdb.py <hostname> -m ping
 
 - Terraform 负责云主机、网络、安全组、负载均衡、DNS 基础资源及状态输出。
 - Ansible 负责操作系统配置、软件安装、服务部署、运行时配置和应用级验证。
-- IaC 与 Playbooks 间的敏感状态 MUST 经 Vault 传递；禁止通过 Git、产物文件、环境快照或临时文件交接。
+- 跨 IaC、CI 与 Playbooks 的业务敏感状态，其权威来源和交接媒介 MUST 为 Vault；不得由 GitHub Secret、artifact、临时文件或手工环境变量替代。
 
 ## 3. Credentials and Vault
 
 - 禁止将密码、Token、私钥、数据库连接串或 Vault password file 提交仓库、写入 GitHub Secret、落入日志或生成到临时文件。
 - CI/CD MUST 使用 GitHub OIDC 向 Vault 换取环境专属短期凭证；Vault role 按环境隔离，例如 `github-actions-<repo>-sit`、`-uat`、`-prod`。
-- 变量优先级为：运行时环境变量 → Vault 查询 → 非敏感默认值。凭证、目标主机、环境路径和生产域名等必填值缺失时 MUST 通过 `assert` 或 `fail` 明确失败，不得提供危险 fallback。
+- 环境专属 Vault 路径 MUST 由单一运行时变量（如 `VAULT_ENV_PATH`）派生；不得在 playbook、role 或 workflow 中分散硬编码 `sit`、`uat`、`prod` 路径。
+- 运行时环境变量仅可承载 OIDC 登录参数或本次 Job 从 Vault 读取后的短期值。变量优先级为：运行时环境变量 → Vault 查询 → 非敏感默认值；凭证、目标主机、环境路径和生产域名等必填值缺失时 MUST 通过 `assert` 或 `fail` 明确失败，不得提供危险 fallback。
 - 涉及敏感变量的任务使用 `no_log: true`，但不得因此隐藏安全的控制流诊断；应暴露状态码、服务状态和失败前置条件，并遮蔽秘密值。
 - 发现泄露时 MUST 先吊销并轮换，再用 `git filter-repo` 清理历史并记录影响范围；只删除文件不算完成处置。
 
