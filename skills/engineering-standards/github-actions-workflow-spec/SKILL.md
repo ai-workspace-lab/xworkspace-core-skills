@@ -1,11 +1,11 @@
 ---
 name: github-actions-workflow-spec
-description: Standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, and non-interactive Terraform/Ansible steps. Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts.
+description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, and non-interactive Terraform/Ansible steps. Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
 ---
 
 # GitHub Actions Workflow Specification
 
-GitHub-Actions-specific rules for clean, secure, reproducible workflows. For policy that spans tools, defer to the sibling standards rather than restating them here:
+GitHub-Actions-specific rules for clean, secure, reproducible workflows. **This is a generic template**: keep the rules, but treat every file, script, job, and role name below as an example to rename for the target repo. For policy that spans tools, defer to the sibling standards rather than restating them here:
 
 - Environment routing (SIT/UAT/Prod) & Vault OIDC role names → `multi-environment-delivery-and-release`
 - No-inline-scripts / code purity for HCL & playbooks → `infrastructure-as-code-spec`, `config-as-code-spec`
@@ -17,7 +17,7 @@ Keep every `run:` block to a single call. Put any non-trivial shell/Python in an
 
 ```yaml
 - name: Install dependencies
-  run: ${{ github.workspace }}/.github/scripts/platform-ops_provision_install-render-deps.sh
+  run: ${{ github.workspace }}/.github/scripts/<workflow>_<step>_install-deps.sh
 ```
 
 Pass Vault secrets and other values into scripts as step `env:`, never inline in the command.
@@ -86,17 +86,17 @@ CI steps must never block on a prompt:
 
 Upload `cmdb.json` and `inventory.ini` via `upload-artifact@v4` for audit trails.
 
-## 7. Workflow roles (reference architecture)
+## 7. Workflow roles
 
-`platform-ops-toolkit/.github/workflows` splits responsibilities into five patterns:
+A multi-cloud IaC repo typically splits responsibilities across these five patterns. The file names are examples — rename to match your repo:
 
-| Pattern | Example | Role |
+| Pattern | Example file | Role |
 |---|---|---|
-| Orchestrator | `iac-pipeline-multi-cloud-master.yaml` | Calls child workflows via `workflow_call` + `secrets: inherit` |
-| Multi-stage delivery | `platform-ops.yaml` | Job graph (`provision → deploy_* → data_migration → switch_dns`); state passed via artifacts |
+| Orchestrator | `pipeline-master.yaml` | Calls child workflows via `workflow_call` + `secrets: inherit` |
+| Multi-stage delivery | `deploy.yaml` | Job graph (`provision → deploy_* → migrate → switch_dns`); state passed via artifacts |
 | Component matrix | `resources-matrix.yaml` | `strategy.matrix` over `fromJSON(inputs.components_json)` |
-| PR quality gate | `validate-release-pr.yml` | `pull_request` + `checkout` `fetch-depth: 0` + `gitleaks` |
-| Readiness checker | `check-iaas-ready.yaml` | `workflow_dispatch`; inspects prior run status via the Actions API |
+| PR quality gate | `validate-pr.yaml` | `pull_request` + `checkout` `fetch-depth: 0` + secret scan (e.g. `gitleaks`) |
+| Readiness checker | `check-ready.yaml` | `workflow_dispatch`; inspects prior run status via the Actions API |
 
 ## 8. Before opening a PR
 
