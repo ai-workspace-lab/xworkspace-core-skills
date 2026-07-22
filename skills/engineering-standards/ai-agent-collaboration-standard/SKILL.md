@@ -1,11 +1,13 @@
 ---
 name: ai-agent-collaboration-standard
-description: 核心人机协作约束与 AI 代理团队执行纪律。定义了 AI 智能体的权限边界、容错应急响应与工作流基准。本规范在涉及代码合入、多环境部署或发生越权操作时拥有最高优先级，必须强制遵守。
+description: AI Workspace Infra 人机协作与安全执行纪律。用于维护 artifacts、docs、gitops、iac_modules、observability.svc.plus、platform-ops-toolkit 时的仓库发现、权限边界、脏工作树、PR、部署和破坏性操作决策；涉及代码合入、多环境部署或越权风险时必须遵守。
 ---
 
 # AI Agent Collaboration Standard
 
 本规范定义了 AI 代理团队（Agents）在研发过程中的绝对行为边界与协作规则。所有参与开发的 Agent 必须将其作为最高行为准则。
+
+先阅读 [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md)。该工作区是多个独立仓库；不得把目录相邻误判为同一个提交、CI 或发布单元。
 
 ## 1. 角色边界与权限规则
 
@@ -25,6 +27,8 @@ description: 核心人机协作约束与 AI 代理团队执行纪律。定义了
    - `代码合并入 main / release/* (Merged PR)` -> UAT 环境
    - `Tag v*` -> Prod 环境
 4. **禁止硬编码凭证**：任何环境的敏感凭证必须通过 CI/CD 平台（如 Vault 配合 OIDC）动态获取，严禁落盘入库。
+5. **保留用户现场**：先运行 `git status --short --branch`。未追踪或无关修改默认归用户所有；不得为切换分支、清理测试或方便提交而 reset、checkout、stage、删除它们。
+6. **先验证作用域再破坏**：删除 VPS、快照、DNS、Terraform state、Vault metadata 或发布制品前，先只读列出精确目标、影响和回滚点；获得明确授权后才执行。授权删除实例不自动等于授权删除快照、DNS 或 state。
 
 ## 3. 标准开发工作流 (SOP)
 
@@ -32,7 +36,9 @@ description: 核心人机协作约束与 AI 代理团队执行纪律。定义了
 1. **隔离开发**：在基于最新主干拉取的 `feature/*` 分支上工作。
 2. **状态提交**：每个逻辑变更必须独立提交 (Commit)，严禁将多个无关任务混合提交。
 3. **准入拦截**：完成后必须通过创建 PR (Pull Request) 来触发 CI，严禁直推保护分支。
-4. **人工验收**：只有在 CI 绿灯通过后，才由人类执行 Review 与 Merge。
+4. **验收与合并**：只有在 required review 与 CI 绿灯通过后，才合并；除非用户明确授权或仓库启用已审查的自动合并，Agent 不得自行决定合并时机。
+
+跨仓修改时，为每个仓建立独立分支、提交、PR 和验证记录。不要把 `gitops` 声明、`iac_modules` 模块、`platform-ops-toolkit` 编排或 `artifacts` 制品混在同一个 PR 中，除非变更是不可分割的兼容性迁移，并在每个 PR 说明另一端依赖。
 
 ## 4. 故障与越权应急响应预案
 
