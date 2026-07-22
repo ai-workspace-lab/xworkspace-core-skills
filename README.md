@@ -74,7 +74,7 @@
 |---|---|---|
 | 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/engineering-standards/project-development-standard/SKILL.md` |
 | 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/engineering-standards/multi-environment-delivery-and-release/SKILL.md` |
-| IaC 规约（iac_modules） | 拓扑/规格 YAML 驱动、Backend State 按环境隔离、HCL 保持纯声明、经 Vault/CMDB 与配置层解耦 | `skills/engineering-standards/IAC-Spec/SKILL.md` |
+| IaC 规约（iac_modules） | 拓扑/规格 YAML 驱动、Backend State 按环境隔离、HCL 保持纯声明、经 Vault/CMDB 与配置层解耦 | `skills/engineering-standards/infrastructure-as-code-spec/SKILL.md` |
 | Config-as-Code 规约（playbooks） | Ansible 剧本：Vault-first 凭证零落盘、剧本纯净度与可复用抽象、消费上游 IaC 输出（CMDB/Vault） | `skills/engineering-standards/config-as-code-Spec/SKILL.md` |
 | AI 代理协作标准 | 人机协作约束与 AI 代理团队执行纪律：权限边界、容错应急响应、工作流基准 | `skills/engineering-standards/ai-agent-collaboration-standard/SKILL.md` |
 
