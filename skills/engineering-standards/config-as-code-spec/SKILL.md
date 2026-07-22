@@ -18,7 +18,7 @@ description: |
 
 ## 1. Repository organization and style
 
-- 根目录入口剧本可以保留既有 `deploy_*`、`setup_*`、`infra-*`、`migration/backup/restore` 命名；不得为“统一风格”进行仓库级重命名。
+- 新增或修改入口剧本 MUST 遵循其所属仓库和领域的既有命名约定。不得仅为统一风格进行跨目录或仓库级重命名；如确需迁移命名，必须作为独立兼容性变更，提供引用更新、验证与回滚方案。
 - 入口剧本只负责编排：选择目标、声明角色、少量输入校验和标签。业务实现放入 `roles/`。
 - 角色按需使用 `defaults/`、`tasks/`、`handlers/`、`templates/`、`files/`、`vars/`、`meta/`、`README.md`。默认变量放 `defaults/main.yml`；不可被调用方覆盖的内部常量才放 `vars/main.yml`。
 - 新增或实质修改的角色 MUST 有 README，说明用途、输入变量、依赖、目标组、执行示例和回滚方式。
