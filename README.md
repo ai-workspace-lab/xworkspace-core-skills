@@ -14,6 +14,7 @@
 - `skills/audio-production/`：视频音效、BGM 和音频素材工作流。
 - `skills/animation/`：HyperFrames 动效、简笔画动画和 Anime.js 适配。
 - `skills/workflows/`：跨技能编排工作流，定义阶段、下游产物、验收门和交付合同。
+- `skills/engineering-standards/`：工程与交付规范/规约——分支与发布治理、多环境交付、Agent 协作标准、IaC 与 Config-as-Code 规约。
 - `skills/workspace-core/`：从 OpenClaw/Codex runtime 同步回来的 workspace core skills。
 
 其中 source-owned 内容生产技能基于 `HyperFrames` 工作流，目标是把“想法 -> 脚本 -> 画面 -> 音频 -> 成片”的流程沉淀成可复用方法。Workspace core skills 只作为 runtime 辅助技能归档，不与内容生产技能混放。
@@ -41,6 +42,8 @@
 | 文章转图片系列 | 将文章、提纲或主题序列转成 manifest-backed 多图系列 | `skills/workflows/article-to-image-series/SKILL.md` |
 | 图片系列转视频 | 从 PNG manifest 生成讲解视频并执行验收 | `skills/workflows/image-series-to-video/SKILL.md` |
 | 研究到幻灯片 | 将研究资料、来源和主题 brief 转成可验证 slide deck | `skills/workflows/research-to-slide-deck/SKILL.md` |
+| AI 资讯 Markdown 快报 | 采集最新 AI / Agent 资讯并输出 Markdown 制品 | `skills/workflows/ai-news-md-digest/SKILL.md` |
+| 演进主线软文矩阵 | 依指定演进主线输出公众号 / 小红书 / X / 头条号 Markdown 软文矩阵 | `skills/workflows/evolutionary-social-copy-pack/SKILL.md` |
 | 图片转可编辑 PPTX（SVG 中间层） | 截图/学术图/UI 稿 -> 语义布局 -> 高保真 SVG -> 可编辑 PPTX 重建与 QA | `skills/image-svg-pptx-pro-skill/SKILL.md` |
 | 小北 Image to VBA | 学术图/示意图/截图 -> VBA Office Shapes 1:1 可编辑重建 | `skills/xiaobei-skill-image-to-vba/skills/xiaobei-skill-image-to-vba/SKILL.md` |
 
@@ -63,14 +66,17 @@
 | `skills/image-svg-pptx-pro-skill/` | <https://github.com/kongzhecn/image-svg-pptx-pro-skill> | `3da4862` |
 | `skills/xiaobei-skill-image-to-vba/` | <https://github.com/xiao24bei/xiaobei-skill-image-to-vba> | `480b4ff` |
 
-## 工程规范 Skills（通用模板）
+## 工程规范 Skills（`skills/engineering-standards/`）
 
-以下 Skill 不属于内容生产链路，是给 Agent 用的仓库工程规范模板——分支/PR/发布/密钥事故处理、多环境（SIT/UAT/Prod）交付路由。两者均已泛化为通用模板，落地到具体仓库时需要按该仓库实际的分支前缀、CI gate 名称、workflow 文件名和 Vault role 命名替换占位内容，不能直接照搬。
+以下 Skill 不属于内容生产链路，是给 Agent 用的工程与交付规范/规约，统一收在 `skills/engineering-standards/` 域下。其中前两条是**通用模板**，落地到具体仓库时需按该仓库实际的分支前缀、CI gate 名称、workflow 文件名和 Vault role 命名替换占位内容，不能直接照搬；后三条是**面向特定仓库/介质的规约**（`iac_modules` / `playbooks` / Agent 团队协作），使用时以对应目标仓库的实际约定为准。
 
 | Skill | 说明 | 路径 |
 |---|---|---|
-| 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/project-development-standard/SKILL.md` |
-| 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/multi-environment-delivery-and-release/SKILL.md` |
+| 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/engineering-standards/project-development-standard/SKILL.md` |
+| 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/engineering-standards/multi-environment-delivery-and-release/SKILL.md` |
+| IaC 规约（iac_modules） | 拓扑/规格 YAML 驱动、Backend State 按环境隔离、HCL 保持纯声明、经 Vault/CMDB 与配置层解耦 | `skills/engineering-standards/IAC-Spec/SKILL.md` |
+| Config-as-Code 规约（playbooks） | Ansible 剧本：Vault-first 凭证零落盘、剧本纯净度与可复用抽象、消费上游 IaC 输出（CMDB/Vault） | `skills/engineering-standards/config-as-code-Spec/SKILL.md` |
+| AI 代理协作标准 | 人机协作约束与 AI 代理团队执行纪律：权限边界、容错应急响应、工作流基准 | `skills/engineering-standards/ai-agent-collaboration-standard/SKILL.md` |
 
 ## Examples
 
