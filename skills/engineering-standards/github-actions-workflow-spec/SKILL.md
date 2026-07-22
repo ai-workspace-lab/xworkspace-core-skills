@@ -1,6 +1,6 @@
 ---
 name: github-actions-workflow-spec
-description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, iac_modules, or observability.svc.plus. Covers target-repository discovery, external-script modularization, action pinning, concurrency, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
+description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, non-interactive Terraform/Ansible steps, no-op/false-green deploy guards (a step that deployed nothing must fail red, not report success), generalizing scripts by invocation shape rather than one file per step, and a ban on hardcoded environment-varying values (divergent per-file fallbacks are worse than none). Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
 ---
 
 # GitHub Actions Workflow Specification

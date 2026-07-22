@@ -2,6 +2,9 @@
 name: infrastructure-as-code-spec
 description: |
   AI Workspace Infra Terraform, topology, rendering, state and CMDB standards. Use when changing iac_modules, GitOps topology declarations, Terraform-backed workflows, provider modules, resource resizing, or IaC-to-Ansible handoffs. Covers YAML/Jinja rendering, state identity, environment isolation, transition-safe topology ownership, and provider preflight checks.
+  Infrastructure-as-Code YAML Rendering Pattern and Coding Standards for iac_modules.
+  Dictates how AI should read/write infrastructure templates, isolate states by environment, and interoperate with configuration layers.
+  Covers resource identity vs state space (a name composed from a per-trigger variable over a shared state makes Terraform destroy and recreate the host on every alternation), banning fallback defaults in declarations (a missing topology variable must fail the render, not silently produce a valid-looking production domain), and when topology declarations can be split out of the module repo.
 ---
 
 # Infrastructure-as-Code (IAC) 规范指南
