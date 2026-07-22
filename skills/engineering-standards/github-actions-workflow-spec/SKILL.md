@@ -1,11 +1,13 @@
 ---
 name: github-actions-workflow-spec
-description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, non-interactive Terraform/Ansible steps, no-op/false-green deploy guards (a step that deployed nothing must fail red, not report success), generalizing scripts by invocation shape rather than one file per step, and a ban on hardcoded environment-varying values (divergent per-file fallbacks are worse than none). Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
+description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, iac_modules, or observability.svc.plus. Covers target-repository discovery, external-script modularization, action pinning, concurrency, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
 ---
 
 # GitHub Actions Workflow Specification
 
 GitHub-Actions-specific rules for clean, secure, reproducible workflows. **This is a generic template**: keep the rules, but treat every file, script, job, and role name below as an example to rename for the target repo. For policy that spans tools, defer to the sibling standards rather than restating them here:
+
+Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) first. Apply the target repository's current workflow conventions; do not copy a legacy workflow's inline scripts, secrets, or broad trigger scope into a new delivery path.
 
 - Environment routing (SIT/UAT/Prod) & Vault OIDC role names → `multi-environment-delivery-and-release`
 - No-inline-scripts / code purity for HCL & playbooks → `infrastructure-as-code-spec`, `config-as-code-spec`
@@ -24,15 +26,18 @@ Pass Vault secrets and other values into scripts as step `env:`, never inline in
 
 ## 2. Pin action versions
 
-Use official, verified major tags — never invented or unverified ones:
+Reuse the target repository's already-approved action version unless the task is an
+explicit action-upgrade. Verify the exact tag or SHA against the action publisher;
+never invent a version. New security-sensitive workflows should prefer immutable
+full-SHA pins where that repository already uses them.
 
 | Action | Tag |
 |---|---|
-| `actions/checkout` | `@v4` |
-| `actions/setup-python` | `@v5` |
-| `actions/upload-artifact` / `download-artifact` | `@v4` |
-| `hashicorp/vault-action` | `@v4` |
-| `hashicorp/setup-terraform` | `@v3` |
+| `actions/checkout` | target-repository approved version/SHA |
+| `actions/setup-python` | target-repository approved version/SHA |
+| `actions/upload-artifact` / `download-artifact` | target-repository approved version/SHA |
+| `hashicorp/vault-action` | target-repository approved version/SHA |
+| `hashicorp/setup-terraform` | target-repository approved version/SHA |
 
 ## 3. Shared scripts
 
@@ -175,3 +180,24 @@ Triggers decide what a workflow costs and what it can damage. Both are easy to g
 ## 11. Before opening a PR
 
 Run `bash -n .github/scripts/*.sh` and confirm `gitleaks` passes. Branch names and PR targets follow `project-development-standard`.
+
+## 12. AI Workspace Infra workflow rules
+
+- In `platform-ops-toolkit`, keep non-trivial logic in executable
+  `.github/scripts/` files. Workflow `run:` entries invoke scripts; pass values
+  via `env:`. Validate only the touched scripts with `bash -n`, parse touched YAML,
+  and run the workflow's existing PR gate.
+- Keep the domain-delivery sequence intact: render topology → Terraform → generate
+  CMDB/inventory → upload/download CMDB artifact → Ansible. A replacement instance
+  must be adopted into the original Terraform state before inventory generation.
+- A normal `terraform apply` must reject a provider-incompatible plan change such
+  as a Vultr in-place downgrade, then route the operator to an explicitly
+  confirmed replacement workflow. Never hide provider errors with retries.
+- New OIDC/Vault workflow files are a two-part change: workflow code plus the
+  exact managed `job_workflow_ref` allowlist update. Verify both before dispatch.
+- Scope concurrency by the actual mutable resource (environment and instance for
+  resize; environment/domain for delivery). Do not cancel an in-progress stateful
+  migration merely because a new run was requested.
+- In `artifacts`, many existing image/chart workflows predate this layout. Make
+  focused compatibility changes and audit `paths` filters against Dockerfiles,
+  chart dependencies, and scripts actually consumed by the job.

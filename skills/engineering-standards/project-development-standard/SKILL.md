@@ -1,6 +1,6 @@
 ---
 name: project-development-standard
-description: Generic branching, PR, release, tagging, and secret-incident standard for a repo that ships from `main` plus `release/*` maintenance lines. Use whenever creating a branch, opening or reviewing a pull request, choosing a PR target (main vs release/*), backporting or cherry-picking a fix, cutting a release, creating a version tag, or responding to a committed secret. Adapt the branch-name prefixes and CI gate names to the target repo's actual conventions before applying.
+description: AI Workspace Infra branching, PR, release, tagging and incident standard. Use whenever changing one of its independent repositories, creating or reviewing a PR, choosing a target branch, handling dirty worktrees, coordinating a cross-repo change, cutting a release, or responding to a committed secret.
 ---
 
 # Project Development Standard
@@ -9,12 +9,15 @@ A reusable operational digest for teams running trunk-based development (`main`)
 `release/*` maintenance lines. Treat this as a template: keep the golden rules and direction
 matrix, but replace the CI gate names and any repo-specific paths with the target repo's own.
 
+Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) before creating a branch. `artifacts`, `gitops`, `iac_modules`, `observability.svc.plus`, and `platform-ops-toolkit` are separate repositories; `docs` is a non-Git documentation tree. Never report one repository's check or PR as verification for another.
+
 ## Golden rules
 
 1. Never push directly to `main` or any `release/*` branch — every change lands through a PR, including docs-only changes and locally stranded commits.
 2. Branch kind determines the PR target. Never mix directions.
 3. Published tags are immutable. Never force-update, delete, or reuse one.
 4. If a secret was committed: revoke it FIRST, rewrite history second (see below).
+5. Preserve unrelated local changes. Inspect `git status --short --branch` before switching branches or staging; only stage named target paths.
 
 ## Branch kinds and PR targets
 
@@ -38,6 +41,11 @@ Every PR body must include:
 - links to the issue / task / original PR when one exists;
 - the verification performed — name the exact test commands and results, and call out any intentionally unrun checks with the reason;
 - migration, configuration, security, or rollback notes when the change can affect existing users or deployments.
+
+For a cross-repository change, open a focused PR in each affected repository. Link
+the companion PRs and state the merge/order dependency, the compatibility window,
+and the rollback owner. Do not merge a consumer before the module/declaration it
+requires is available on the declared ref.
 
 Additionally for maintenance PRs:
 

@@ -1,20 +1,21 @@
 ---
 name: infrastructure-as-code-spec
 description: |
-  Infrastructure-as-Code YAML Rendering Pattern and Coding Standards for iac_modules.
-  Dictates how AI should read/write infrastructure templates, isolate states by environment, and interoperate with configuration layers.
-  Covers resource identity vs state space (a name composed from a per-trigger variable over a shared state makes Terraform destroy and recreate the host on every alternation), banning fallback defaults in declarations (a missing topology variable must fail the render, not silently produce a valid-looking production domain), and when topology declarations can be split out of the module repo.
+  AI Workspace Infra Terraform, topology, rendering, state and CMDB standards. Use when changing iac_modules, GitOps topology declarations, Terraform-backed workflows, provider modules, resource resizing, or IaC-to-Ansible handoffs. Covers YAML/Jinja rendering, state identity, environment isolation, transition-safe topology ownership, and provider preflight checks.
 ---
 
 # Infrastructure-as-Code (IAC) 规范指南
 
 本规范专门用于指导在 `iac_modules` 仓库中进行自动化与基础设施代码（IaC）建设的最佳实践与红线原则。当 AI 进行任何云原生资源的修改与新增时，必须严格遵守以下守则。
 
+先阅读 [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md)。进入 `iac_modules/terraform-hcl-standard/**` 前必须读取其 binding `AGENTS.md`，它的细则优先于本通用规范。
+
 ## 1. 声明式 YAML 驱动与渲染隔离
 **原则**: 基础设施的拓扑变量、机器规格与具体参数，绝对禁止硬编码于 HCL (Terraform) 文件中。
 - **配置分离**: 强调多环境（`sit` / `uat` / `prod`）的具体拓扑必须在对应的 `config/resources/[env]/*.yaml` 中清晰定义。
 - **状态隔离**: Backend State 的 key 或者 namespace，强制要求按照环境级目录存放（例如：`uat/databases.tfstate`），绝不可跨环境复用状态空间。
 - **构建机制 (IaC + Python Jinja2)**: 目前架构使用 Python 脚本 (`scripts/generate.py render`) 结合 Jinja2 模板解析 YAML 并自动输出 `.tf.json` 形式的配置文件。所有针对具体环境的逻辑修改，应优先考量在 YAML 拓扑或渲染逻辑中完成，而非直接修改基础模块。
+- **拓扑权威要先确认**: `gitops` 规划承载 `resources/<project>/<env>/<provider>/`，但当前 `platform-ops` 的 Vultr 工作流仍从 `iac_modules/.../config/resources/<env>/*.yaml` 渲染。以执行中的 workflow/renderer 为准；未在同一迁移中更新消费者前，不得复制、移动或双写拓扑。
 
 ## 2. HCL 代码纯净度与限制
 **原则**: Terraform HCL 代码仅仅作为最底层的资源“声明书”，应保持极致的简洁和纯粹。
@@ -40,3 +41,10 @@ description: |
 - **禁止在声明里写 fallback**。`{{ env.get('TARGET_DOMAIN_BASE', 'svc.plus') }}` 这类写法会在变量缺失时静默产出一个合法但错误的域名；当各文件的 fallback 还互相矛盾（同一环境的不同文件、甚至同一台主机的两个服务域名指向不同基准）时，错误会以"部分正确"的形态存在，极难发现。一律改为 `{{ env['TARGET_DOMAIN_BASE'] }}`。
 - **注意 Jinja 默认的 `Undefined` 不抛错**，缺键会渲染成空串，`console-nat.{{ ... }}` 变成 `console-nat.` —— 同样是"看起来已渲染"。因此需要在渲染器入口对必需变量做显式断言，并在报错信息里指名是哪个变量。用具名必需列表即可，不必把整个 Environment 切成 `StrictUndefined`（那会改变模板里所有可选变量的行为）。
 - **渲染器的默认参数同样是隐患**。`--resources` / `--workdir` 之类若带默认值，一旦默认指向的文件被移动或删除，命令行少传一个参数就会走向意料之外的目标。拓扑输入应当是必填参数。
+
+## 6. Provider preflight 与替换式变更
+
+- Terraform 的 `plan` 不是所有云变更都能执行的证明。对计划变配、快照恢复、Reserved IP、DNS 和 state import，先读取 provider 的当前事实与目标能力。
+- Vultr 原地变配只适用于 provider 允许的升级方向；降配必须走 replacement。目标盘小于源盘时，块级快照不能恢复，必须在创建快照前失败并指向逻辑迁移。
+- replacement 成功后，先验证新实例 ID/IP 与健康检查，再精确从原 workspace 删除源地址并 import replacement；随后重新生成 CMDB/inventory。不得让 deploy 继续消费旧 state 或旧 IP。
+- 每次 `state rm`、`import`、`destroy` 前列出精确 address/ID，保存受保护后端已有的回滚版本或安全恢复点，并验证 state 中最终 ID。

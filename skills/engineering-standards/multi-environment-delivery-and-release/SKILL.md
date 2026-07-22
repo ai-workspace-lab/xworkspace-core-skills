@@ -1,6 +1,6 @@
 ---
 name: multi-environment-delivery-and-release
-description: Generic guidelines and routing rules for multi-environment (SIT/UAT/Prod) delivery, branching strategies, Vault OIDC isolation, and emergency secret handling for repos that deploy through GitHub Actions + Vault. Covers hardening JWT role bound_claims (repository alone is not isolation — pin job_workflow_ref/environment, prefer string over glob, short batch tokens); the three-tier Vault KV path layout (common services shared read-only, base credentials per-env read-only, environment secrets per-env read-write with prod denied delete) with its classification test and CI-enforceable invariants; and banning workflow_dispatch Vault-token escape hatches. Adapt the workflow file names and Vault role names to the target repo before applying.
+description: AI Workspace Infra multi-environment delivery, Vault OIDC, release and secret-isolation rules. Use when changing GitHub Actions environment routing, Vault roles/policies, CI secret reads, workflow_dispatch inputs, release tags, or deployment paths in platform-ops-toolkit and related delivery repositories. Covers exact workflow allowlists, KV tiers, transition-safe routing, and no token escape hatches.
 ---
 
 # Multi-Environment Delivery and Release Standard
@@ -9,12 +9,18 @@ A reusable template for repos that route deployments through GitHub Actions and 
 to Vault via OIDC. Replace the placeholder workflow/role names below with the target repo's
 actual ones; keep the routing shape and secret-handling rules.
 
+For AI Workspace Infra, read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) first. Treat the checked-in workflow plus its external scripts as execution truth; reconcile conflicting README prose rather than routing a deployment from documentation alone.
+
 ## 1. Environment Routing Rules
 
 A single delivery workflow (e.g. `<delivery-workflow>.yaml`) should route traffic to specific environments based on Git events. Never hardcode environments outside of these bounds:
 - **`pull_request`** -> routes to **`sit`** environment.
 - **`main` or `release/*` push** -> routes to **`uat`** environment.
 - **`vMAJOR.MINOR.PATCH` tag** -> routes to **`prod`** environment.
+
+For `platform-ops-toolkit/platform-ops.yaml`, preserve the mapped resource file,
+workspace, backend key, domain base, and Vault role as one atomic profile. Changing
+only one of them can make Terraform manage one host while Ansible deploys another.
 
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
@@ -87,6 +93,8 @@ Split the KV tree by whether a secret has an *environment dimension* at all:
 
 - **Never accept a Vault token as a `workflow_dispatch` input.** Dispatch inputs are stored unmasked in run metadata and bypass every binding above. A "fallback for when JWT breaks" is a standing credential-injection path — fix the JWT instead.
 - **Verify the role the workflow requests actually exists and its binding matches the triggering ref.** A workflow that maps tag pushes to a role bound to `refs/heads/*` fails auth at best, and silently routes to the wrong environment at worst. Keep the routing table (§1), the `VAULT_ROLE` expression, and the role definitions reviewed together — they drift independently.
+- **Allowlist new Vault workflows deliberately.** `platform-ops-toolkit` manages roles through `docs/tasks/vault_auth_split.sh`. Adding a workflow that calls Vault requires adding that exact workflow filename to `job_workflow_ref`, merging the configuration change, and having an authorized operator apply it. Do not widen the claim to an unrestricted wildcard.
+- **Do not make an optional secret mandatory.** A DNS token belongs in a DNS-cutover-only Vault read. A resize or health-check path that does not switch DNS must not fail because Cloudflare credentials are absent.
 
 ## 3. Branching Lifecycle
 - Always use Pull Requests. **Do not push directly to `main` or `release/*`**.
