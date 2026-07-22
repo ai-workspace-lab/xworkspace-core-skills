@@ -1,5 +1,5 @@
 ---
-name: IAC-Spec
+name: infrastructure-as-code-spec
 description: |
   Infrastructure-as-Code YAML Rendering Pattern and Coding Standards for iac_modules. 
   Dictates how AI should read/write infrastructure templates, isolate states by environment, and interoperate with configuration layers.
