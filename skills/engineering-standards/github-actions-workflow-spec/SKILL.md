@@ -1,6 +1,6 @@
 ---
 name: github-actions-workflow-spec
-description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, non-interactive Terraform/Ansible steps, and no-op/false-green deploy guards (a step that deployed nothing must fail red, not report success). Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
+description: Generic standards for GitHub Actions CI/CD workflows — external-script modularization (.github/scripts/), pinned action versions, concurrency/matrix safety, least-privilege permissions, Vault OIDC wiring, non-interactive Terraform/Ansible steps, no-op/false-green deploy guards (a step that deployed nothing must fail red, not report success), generalizing scripts by invocation shape rather than one file per step, and a ban on hardcoded environment-varying values (divergent per-file fallbacks are worse than none). Use when creating, refactoring, or auditing GitHub Actions workflows and their shell scripts. Treat the example workflow, script, job, and role names as a template to rename for the target repo.
 ---
 
 # GitHub Actions Workflow Specification
@@ -44,6 +44,35 @@ set -e
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec "${DIR}/common_terraform_init_backend.sh"
 ```
+
+### 3.1 Generalize by shape, not by step
+
+One script per workflow step is the default drift, and it scales badly: a directory named `<workflow>_<job>_<step>.sh` reads as organised while being N copies of the same three commands. Group by *invocation shape* instead, and let the caller supply what differs.
+
+Most CI scripts collapse into a handful of shapes — an `ansible-playbook` run, a `terraform` subcommand, an `ssh` action against a host resolved from the CMDB, a render/validate step. Audit by shape before adding another file:
+
+```bash
+for f in .github/scripts/*.sh; do
+  grep -q 'ansible-playbook' "$f" && echo "playbook  $f" && continue
+  grep -q 'terraform '       "$f" && echo "terraform $f" && continue
+  grep -q 'ssh_opts='        "$f" && echo "ssh       $f"
+done | sort | uniq -c
+```
+
+If a shape has more than two or three members, it wants one parameterised entry point. A set of playbook wrappers usually differs only in the playbook filename, how the target host is passed, and an optional extra-vars file — everything else, including the inventory path, is identical and should live in one place.
+
+**The cost of not doing this is measured in repeated fixes.** When the same defect has to be patched in three sibling scripts, and a wrong inventory path in four, the duplication is not stylistic — each copy is a place the next guard will be forgotten. A shared entry point means the reachability assert (§8) and the required-variable check are written once and inherited by every caller.
+
+**Standardise how the target is selected.** Passing the host as `-e "<role>_hosts=${HOST}"` and passing it as `--limit "${HOST}"` are not interchangeable: they fail differently when the value is empty. An empty `-e` var against a playbook whose `hosts:` reads from it aborts with "Keyword 'hosts' cannot have empty values", while an empty `--limit` against a playbook with a static `hosts:` line does not narrow anything. Pick one mechanism per repository so the empty case has one known behaviour, and assert the variable regardless (§8).
+
+### 3.2 No hardcoded values in scripts
+
+Anything that varies by environment, target, or release is a parameter. Domains, hostnames, IPs, zone names, registry namespaces and image tags belong in the caller's `env:` block or a single named constant — never inline in a script, and never as a per-file fallback.
+
+- **A default that differs between files is worse than no default.** Divergent fallbacks produce output that is valid, plausible, and wrong in some files only, which is far harder to spot than a uniform failure. If several files each carry their own `X or 'some-domain'`, they will drift, and at least one will end up pointing at production.
+- **Reject the "sensible default" for anything that selects a target.** A default target is a silent choice made on the operator's behalf at the exact moment they forgot to make one. Require it and fail (§8).
+- **A literal that appears once is still a parameter if it varies by environment.** Judge by whether the value *could* differ per environment, not by how many times it currently appears.
+- Values that genuinely never vary — a fixed image tag the pipeline itself builds, a path the pipeline itself creates — are implementation detail and may stay inline. Parameterising them adds indirection for no reuse.
 
 ## 4. Concurrency & matrix safety
 
