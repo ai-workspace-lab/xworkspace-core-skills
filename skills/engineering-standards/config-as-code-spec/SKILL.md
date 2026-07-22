@@ -1,36 +1,110 @@
 ---
 name: config-as-code-spec
 description: |
-  AI Workspace Infra Config-as-Code and Ansible standards. Use when changing playbooks, roles, inventories, migration/restore logic, or observability deployment configuration in platform-ops-toolkit, observability.svc.plus, or related delivery repositories. Covers Vault-first secrets, CMDB-driven inventory, idempotency, and IaC handoff.
+  AI Workspace Infra Config-as-Code and Ansible standards. Use when changing
+  playbooks, roles, inventories, variables, templates, scripts, migration/
+  restore logic, or CI/CD delivery of Ansible configuration in playbooks,
+  platform-ops-toolkit, or observability.svc.plus. Covers CMDB-first delivery,
+  Vault/OIDC secrets, idempotency, safe cutovers, and IaC handoff.
 ---
 
-# Config-as-Code (Playbooks) 规范指南
+# Config-as-Code (Playbooks) Specification
 
-本规范专门用于指导在 `playbooks` 仓库中进行配置即代码（Ansible）建设的最佳实践与红线原则。当 AI 帮助建立、修改应用的自动化部署逻辑时，必须严格遵守以下守则，并以“清晰、复用、可维护”作为设计基础原则。
+本规范适用于 `playbooks/` 下的 Ansible 剧本、角色、inventory、变量、模板、脚本及其 CI/CD 调用方式，也适用于调用这些能力的 `platform-ops-toolkit` 与 `observability.svc.plus`。目标是让配置交付可追溯、可复用、幂等安全、与 IaC 一致并且密钥零落盘。
 
-先阅读 [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md)，并确认当前目标是 `platform-ops-toolkit` 的编排层、`observability.svc.plus` 的角色/入口剧本，还是独立 playbooks 仓。不要把主机软件配置塞进 Terraform、GitOps 声明或 artifacts 制品仓。
+“MUST/必须”为强制要求；“SHOULD/应当”为默认要求。偏离 MUST 或 SHOULD 时，必须在 PR 中说明原因、风险和补偿措施。
 
-## 1. 凭证无落盘设计 (Vault + OIDC JWT)
-**原则**: 彻底告别包含密码、Key 或 Token 的本地明文临时文件，所有环境强要求使用零信任数据流。
-- **环境隔离**: 每个环境在 Vault 中都有严格的隔离树（如 `kv/data/sit/*` 与 `kv/data/prod/*`）。在配置变量时，必须支持通过前缀变量 `VAULT_ENV_PATH` 提取正确的环境路径。
-- **动态 OIDC JWT**: 部署流水线只允许通过 GitHub OIDC 颁发的针对该环境（如 `github-actions-platform-ops-toolkit-[env]`）专属的短期 JWT 前往 Vault 动态授权取密。
-- **缺失即失败**: 凭证、目标主机、环境路径和域名不是可安全回退的变量。优先从运行时环境或 Vault 获取；若必需值不存在，使用明确断言失败。不得为密码、Token、生产域名、目标 IP 提供 fallback 默认值。
+先阅读 [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md)，再确认改动属于 playbooks 的执行层、platform-ops-toolkit 的编排层，还是 observability.svc.plus 的独立部署层。不得把主机配置塞进 Terraform、GitOps 或 artifacts 仓库。
 
-## 2. 剧本代码纯净度与内嵌脚本限制
-**原则**: Config-as-Code 应是幂等的、声明式的组合，而不是巨大的 Bash 容器。
-- **禁止内嵌复杂脚本**: **绝对禁止**在 Playbook 的 Task（如 `shell`, `command`, `script` 模块）中硬编码内嵌大段复杂的、带有复杂控制逻辑的 `bash` 或 `python` 代码！
-- **可复用抽象**: 任何超过三行的 shell 命令、涉及到业务状态判定与分支流转的逻辑，必须被抽象为单独的脚本文件并放置于 `files/`，或更优地，用 Python 编写为自定义的 Ansible Module（存放于 `library/` 下）。
+## 1. Repository organization and style
 
-## 3. 互操作性设计 (Config-as-Code ↔ IaC)
-**原则**: 明确边界，解耦职责，接受并信任上游（IaC）供给的静态配置与状态锚点。
-- **职责边界**: Ansible Playbooks 仅负责软件环境的建置（如安装 Docker，部署配置 SaaS）。绝对不允许 Ansible 去执行“创建公有云负载均衡、创建云端网络安全组”等属于 IaC 范畴的事情。
-- **握手介质 (CMDB)**: Playbooks 的 Inventory 源一律来自上游 Terraform 的输出。无论是 IP、Hostnames 还是网络区域划分，必须设计为从 `cmdb.json` （或类似清单格式）中解析获取，不能在 Ansible 的代码中再硬编码节点地址。
-- **信任锚点 (Vault State Bridge)**: 跨阶段的数据传递（如 IaC 生成的初始数据库密码，需交由 Playbooks 读取配置应用），必须且唯一地通过 Vault Secret 引擎作为中间纽带实现跨阶段解耦流转，Ansible 会从 Vault 中拉取并信任该数据事实。
+- 新增或修改入口剧本 MUST 遵循其所属仓库和领域的既有命名约定。不得仅为统一风格进行跨目录或仓库级重命名；如确需迁移命名，必须作为独立兼容性变更，提供引用更新、验证与回滚方案。
+- 入口剧本只负责编排：选择目标、声明角色、少量输入校验和标签。业务实现放入 `roles/`。
+- 角色按需使用 `defaults/`、`tasks/`、`handlers/`、`templates/`、`files/`、`vars/`、`meta/`、`README.md`。默认变量放 `defaults/main.yml`；不可被调用方覆盖的内部常量才放 `vars/main.yml`。
+- 新增或实质修改的角色 MUST 有 README，说明用途、输入变量、依赖、目标组、执行示例和回滚方式。
+- 保留相邻文件的 YAML、Jinja、Shell 和 Markdown 风格；只格式化涉及的文件，不做无关全仓重排。
 
-## 4. AI Workspace Infra 交付规则
+## 2. Inventory and IaC boundary
 
-- `platform-ops-toolkit` 必须在本次 Terraform 生成的 CMDB/inventory 上运行 Ansible；不得回退到手写 inventory、旧 artifact 或硬编码 IP。
-- VPS replacement/resize 的顺序必须是：备份或逻辑迁移 → 新主机健康检查 → Terraform state 接管 → 刷新 CMDB/inventory → Ansible 部署。DNS 切换和源机清理必须是单独确认的最后阶段。
-- 当目标磁盘小于源盘时，整机快照恢复不可行；改用经过验证的应用级备份/恢复（数据库、Vault、业务文件），不要反复创建必然失败的快照。
-- 对 `observability.svc.plus` 的公网 HTTPS 变更，先验证 A/AAAA DNS 记录与目标 IP；ACME 的 NXDOMAIN 不是可通过重试部署解决的问题。
-- 对变更过的 playbook 使用 `ansible-playbook --syntax-check`；对 mutating playbook 先确认 inventory 中目标非空且可达，再宣称部署成功。
+### 2.1 CMDB is the delivery source of truth
+
+- IaC 驱动的交付 MUST 使用 `inventory/terraform_cmdb.py`，其数据来自 Terraform 输出的 `cmdb.json`。
+- 新建、替换、扩容、缩容或迁移后的主机，MUST 先更新 Terraform 输出，再执行 Ansible。
+- Ansible 剧本、角色、模板和变量文件不得硬编码公有主机 IP、主机名、云实例 ID 或环境节点列表。loopback、监听地址、容器网段和协议默认端口等非目标身份配置可以保留，但必须语义明确。
+- 静态 inventory 只用于明确标记的 `legacy` 或 `manual` 路径，不得作为 CI/CD 或常规交付默认清单。
+
+### 2.2 Connect-time preflight
+
+新机或资源变更后的交付 MUST 在连接前执行并记录：
+
+```bash
+ansible-inventory -i inventory/terraform_cmdb.py --host <hostname>
+ansible-inventory -i inventory/terraform_cmdb.py --graph
+ansible -i inventory/terraform_cmdb.py <hostname> -m ping
+```
+
+检查 `ansible_host` 是否来自当前 Terraform 输出、业务组/环境组是否正确、`cmdb_instance_id` 是否匹配云侧实例、所需 `host_vars` 是否完整，以及目标选择器是否只包含预期主机。CMDB 缺失、为空、字段不完整或目标不存在时，动态 inventory MUST 失败退出，不得静默返回空 inventory。
+
+### 2.3 Responsibilities
+
+- Terraform 负责云主机、网络、安全组、负载均衡、DNS 基础资源及状态输出。
+- Ansible 负责操作系统配置、软件安装、服务部署、运行时配置和应用级验证。
+- 跨 IaC、CI 与 Playbooks 的业务敏感状态，其权威来源和交接媒介 MUST 为 Vault；不得由 GitHub Secret、artifact、临时文件或手工环境变量替代。
+
+## 3. Credentials and Vault
+
+- 禁止将密码、Token、私钥、数据库连接串或 Vault password file 提交仓库、写入 GitHub Secret、落入日志或生成到临时文件。
+- CI/CD MUST 使用 GitHub OIDC 向 Vault 换取环境专属短期凭证；Vault role 按环境隔离，例如 `github-actions-<repo>-sit`、`-uat`、`-prod`。
+- 环境专属 Vault 路径 MUST 由单一运行时变量（如 `VAULT_ENV_PATH`）派生；不得在 playbook、role 或 workflow 中分散硬编码 `sit`、`uat`、`prod` 路径。
+- 运行时环境变量仅可承载 OIDC 登录参数或本次 Job 从 Vault 读取后的短期值。变量优先级为：运行时环境变量 → Vault 查询 → 非敏感默认值；凭证、目标主机、环境路径和生产域名等必填值缺失时 MUST 通过 `assert` 或 `fail` 明确失败，不得提供危险 fallback。
+- 涉及敏感变量的任务使用 `no_log: true`，但不得因此隐藏安全的控制流诊断；应暴露状态码、服务状态和失败前置条件，并遮蔽秘密值。
+- 发现泄露时 MUST 先吊销并轮换，再用 `git filter-repo` 清理历史并记录影响范围；只删除文件不算完成处置。
+
+## 4. Playbook and role implementation
+
+- 优先使用幂等 Ansible 模块；超过三行、包含条件/循环/状态判断或业务逻辑的 Shell/Python MUST 放在角色 `files/` 的可执行脚本中，或实现为 Ansible module，不得内嵌在 task/workflow 中。
+- 外部脚本 MUST 有明确输入、失败退出码、可重复执行语义和最小权限。
+- 可能中断的操作 SHOULD 支持 tags，至少区分 `install`、`configure`、`validate`，必要时增加 `rollback`。
+- 服务配置变更 MUST 使用 handler 重启或 reload，禁止无条件重启；生成配置后先做语法/健康检查，再触发服务重载。
+- 对必填变量在 role 开始处使用可读的 `assert` 校验；变量名以角色或领域前缀命名，避免泛化的 `port`、`host`、`token`。
+- 模板通过变量表达环境差异；多主机配置从 `groups` 与 `hostvars` 派生，不维护第二份静态节点清单。
+- 使用 `ansible.builtin.*` 全限定模块、显式 `changed_when`/`failed_when`，并保持迁移/备份/恢复可重复和可重启。
+
+删除、清库、覆盖配置、重建集群、DNS 切换和源机清理等破坏性操作 MUST：使用显式布尔确认变量；任务名标明影响；先做范围断言和备份/快照检查；默认不可执行。
+
+## 5. Resize, migration, and recovery handoff
+
+replacement VPS 的交付顺序 MUST 为：备份或逻辑迁移 → 新主机容量与健康检查 → Terraform state 接管 → 刷新 `cmdb.json`/inventory → Ansible 部署 → 服务健康检查。DNS 切换和旧机删除是最后的独立确认阶段。
+
+当目标磁盘小于源盘时，整机快照恢复不可行；应使用经过验证的数据库、Vault 和业务文件级备份/恢复，不得反复执行必然失败的快照恢复。迁移剧本应保持 source/target 阶段边界，恢复失败时保留回滚点。
+
+## 6. CI/CD and environment routing
+
+环境只能由 Git 事件决定：
+
+| Git event | Environment |
+| --- | --- |
+| `pull_request` | `sit` |
+| push to `main` or `release/*` | `uat` |
+| `vMAJOR.MINOR.PATCH` tag | `prod` |
+
+- workflow 不得内嵌复杂 Shell/Python；逻辑放在 `.github/scripts/` 的可执行脚本中。
+- workflow MUST 显式指定 `inventory/terraform_cmdb.py`，不得依赖 runner 的默认 `ansible.cfg` 或静态生产 inventory。
+- 部署前执行 inventory 校验与 `ansible-playbook --syntax-check`；部署后执行服务健康检查。
+- 执行记录关联提交、目标环境、目标主机、CMDB instance ID 和验证结果。
+
+## 7. Quality gates and PR minimum
+
+合并前 MUST 通过：YAML 语法与 Ansible `--syntax-check`；修改角色的 README 和变量说明同步更新；新增目标选择器的 CMDB 验证；明文凭证、静态生产节点地址和 Vault password file 检查；legacy/manual inventory 回归确认。服务变更至少有一次可验证 health check；破坏性/迁移变更提供备份、回滚和演练说明。
+
+PR 描述 MUST 包含交付结果与影响范围、Issue/变更单或基础设施变更链接、目标环境与 CMDB 主机/组选择方式、验证命令和结果、回滚方式，以及任何偏离本规范的原因、风险和补偿措施。
+
+## 8. Forbidden patterns
+
+- CI/CD 默认使用 `inventory.ini` 或其他静态生产 inventory。
+- 剧本中写死云主机 IP、实例 ID 或外部节点列表。
+- Ansible 创建 Terraform 职责内的云网络、负载均衡或安全组。
+- 在 task 或 workflow 中内嵌复杂脚本。
+- 使用 `.vault_pass.txt`、长期 Vault Token 或 GitHub Secret 保存业务凭证。
+- 未经显式确认执行删除、覆盖、清库或迁移切换。
+- 为统一风格进行无业务价值的全仓重命名。
