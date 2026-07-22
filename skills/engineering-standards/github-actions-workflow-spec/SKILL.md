@@ -1,6 +1,6 @@
 ---
 name: github-actions-workflow-spec
-description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, or observability.svc.plus. Covers target-repository discovery, external-script modularization, action pinning, concurrency, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
+description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers external-script modularization, pinned actions, concurrency and matrix safety, least-privilege permissions, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, false-green prevention, invocation-shape reuse, and eliminating hardcoded environment-varying values without blindly modernizing legacy workflows.
 ---
 
 # GitHub Actions Workflow Specification
