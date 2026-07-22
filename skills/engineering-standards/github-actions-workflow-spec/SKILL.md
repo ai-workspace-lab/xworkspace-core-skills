@@ -1,6 +1,6 @@
 ---
 name: github-actions-workflow-spec
-description: Engineering specification and standards for GitHub Actions CI/CD workflows, script modularization (.github/scripts/), Vault OIDC authentication, matrix safety, Ansible/Terraform pipeline integration, and script deduplication. Use when creating, refactoring, or auditing GitHub Actions workflows and automation scripts.
+description: Engineering specification and standards for GitHub Actions CI/CD workflows, script modularization (.github/scripts/), Vault OIDC authentication, matrix safety, Ansible/Terraform pipeline integration, multi-workflow orchestration, and script deduplication. Use when creating, refactoring, or auditing GitHub Actions workflows and automation scripts.
 ---
 
 # GitHub Actions Workflow Specification & Engineering Standard
@@ -92,7 +92,31 @@ exec "${DIR}/common_terraform_init_backend.sh"
   ```
 - **Fail-Fast Configuration**: Set `fail-fast: false` on deployment matrices to allow other host deployments to complete even if one host encounters transient network issues.
 
-## 6. Least-Privilege Permissions & Logging Safety
+## 6. Multi-Workflow Architecture & Pipeline Roles
+
+Based on reference repository architecture (`platform-ops-toolkit/.github/workflows`), workflows are classified into 5 distinct operational patterns:
+
+### 1. Master Pipeline Orchestrator (`iac-pipeline-multi-cloud-master.yaml`)
+- Coordinates child pipelines sequentially or in parallel via `on: workflow_call` / `uses: ./.github/workflows/<sub-workflow>.yaml`.
+- Passes input choices (`deploy_action`, `project`, `vault_env_path`, `cloud_provider`) down to child workflows with `secrets: inherit`.
+
+### 2. Multi-Stage Site Recovery & Data Migration (`platform-ops.yaml`)
+- Multi-stage job dependency graph (`provision` -> `deploy_base` -> `deploy_web_saas` -> `deploy_infra_platform` -> `deploy_agent_proxy` -> `data_migration` -> `switch_dns`).
+- Transfers state between jobs using `upload-artifact@v4` / `download-artifact@v4`.
+
+### 3. Component Matrix Pipelines (`iac-pipeline-multi-cloud-account-matrix.yaml`, `resources-matrix.yaml`)
+- Evaluates dynamic component arrays (`components_json: '["vpc","role"]'`) via `strategy: matrix: component: ${{ fromJSON(inputs.components_json) }}`.
+- Reuses common CLI argument generators (`common_setup_matrix_terraform_cli_args.sh`).
+
+### 4. Security & PR Quality Gate (`validate-release-pr.yml`)
+- Triggered on `pull_request` (`opened, synchronize, reopened`).
+- Checks full commit history (`actions/checkout@v4` with `fetch-depth: 0`) and executes static secret detection (`gitleaks`).
+
+### 5. Infrastructure Readiness Checker (`check-iaas-ready.yaml`)
+- Lightweight status verifier triggered on `workflow_dispatch`.
+- Inspects GitHub Actions API for previous workflow run outcomes before triggering downstream deployments.
+
+## 7. Least-Privilege Permissions & Logging Safety
 
 - **Minimal Workflow Permissions**: Declare exact required permissions at top level:
   ```yaml
@@ -104,14 +128,14 @@ exec "${DIR}/common_terraform_init_backend.sh"
   - Never run `set -x` in scripts processing sensitive credentials or Vault secrets.
   - Dynamically masked secrets must use `echo "::add-mask::$SECRET"` if manually parsed from API payloads.
 
-## 7. Automated Tooling Standards (Terraform & Ansible)
+## 8. Automated Tooling Standards (Terraform & Ansible)
 
 - **Non-Interactive Execution**: Always pass non-interactive flags to infrastructure tooling:
   - Terraform: `terraform init -input=false`, `terraform apply -auto-approve -input=false`
   - Ansible: Pass `ANSIBLE_HOST_KEY_CHECKING=False` and explicit identity file `-o IdentityFile=~/.ssh/id_deploy -o StrictHostKeyChecking=no`.
 - **Artifact Auditability**: Upload generated `cmdb.json` and `inventory.ini` as workflow artifacts (`actions/upload-artifact@v4`) for operational tracing.
 
-## 8. Development & PR Security Gate Workflow
+## 9. Development & PR Security Gate Workflow
 
 1. Always create a topic branch (`fix/*`, `feature/*`, `bugfix/*`).
 2. Test script syntax locally via `bash -n .github/scripts/*.sh`.
