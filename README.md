@@ -14,6 +14,7 @@
 - `skills/audio-production/`：视频音效、BGM 和音频素材工作流。
 - `skills/animation/`：HyperFrames 动效、简笔画动画和 Anime.js 适配。
 - `skills/workflows/`：跨技能编排工作流，定义阶段、下游产物、验收门和交付合同。
+- `skills/engineering-standards/`：工程与交付规范/规约——分支与发布治理、多环境交付、Agent 协作标准、IaC 与 Config-as-Code 规约。
 - `skills/workspace-core/`：从 OpenClaw/Codex runtime 同步回来的 workspace core skills。
 
 其中 source-owned 内容生产技能基于 `HyperFrames` 工作流，目标是把“想法 -> 脚本 -> 画面 -> 音频 -> 成片”的流程沉淀成可复用方法。Workspace core skills 只作为 runtime 辅助技能归档，不与内容生产技能混放。
@@ -69,8 +70,8 @@
 
 | Skill | 说明 | 路径 |
 |---|---|---|
-| 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/project-development-standard/SKILL.md` |
-| 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/multi-environment-delivery-and-release/SKILL.md` |
+| 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/engineering-standards/project-development-standard/SKILL.md` |
+| 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/engineering-standards/multi-environment-delivery-and-release/SKILL.md` |
 
 ## Examples
 
