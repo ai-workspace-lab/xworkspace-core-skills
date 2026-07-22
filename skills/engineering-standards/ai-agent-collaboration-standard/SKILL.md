@@ -1,6 +1,6 @@
 ---
 name: ai-agent-collaboration-standard
-description: AI Workspace Infra 人机协作与安全执行纪律。用于维护 artifacts、docs、gitops、iac_modules、observability.svc.plus、platform-ops-toolkit 时的仓库发现、权限边界、脏工作树、PR、部署和破坏性操作决策；涉及代码合入、多环境部署或越权风险时必须遵守。
+description: AI Workspace Infra 人机协作与安全执行纪律。用于维护 artifacts、docs、gitops、playbooks、iac_modules、observability.svc.plus、platform-ops-toolkit 时的仓库发现、权限边界、脏工作树、PR、部署和破坏性操作决策；涉及代码合入、多环境部署或越权风险时必须遵守。
 ---
 
 # AI Agent Collaboration Standard
@@ -38,7 +38,7 @@ description: AI Workspace Infra 人机协作与安全执行纪律。用于维护
 3. **准入拦截**：完成后必须通过创建 PR (Pull Request) 来触发 CI，严禁直推保护分支。
 4. **验收与合并**：只有在 required review 与 CI 绿灯通过后，才合并；除非用户明确授权或仓库启用已审查的自动合并，Agent 不得自行决定合并时机。
 
-跨仓修改时，为每个仓建立独立分支、提交、PR 和验证记录。不要把 `gitops` 声明、`iac_modules` 模块、`platform-ops-toolkit` 编排或 `artifacts` 制品混在同一个 PR 中，除非变更是不可分割的兼容性迁移，并在每个 PR 说明另一端依赖。
+跨仓修改时，为每个仓建立独立分支、提交、PR 和验证记录。不要把 `gitops` 声明、`iac_modules` 模块、`platform-ops-toolkit` 编排、`playbooks` 主机配置或 `artifacts` 制品混在同一个 PR 中，除非变更是不可分割的兼容性迁移，并在每个 PR 说明另一端依赖。
 
 ## 4. 故障与越权应急响应预案
 
