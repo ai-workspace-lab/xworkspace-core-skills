@@ -1,5 +1,5 @@
 ---
-name: config-as-code-Spec
+name: config-as-code-spec
 description: |
   Config-as-Code and Playbooks Standards. 
   Dictates how AI should design Ansible Playbooks, enforce Vault-first secret lifecycles, maintain code purity, and interoperate with IaC outputs.
