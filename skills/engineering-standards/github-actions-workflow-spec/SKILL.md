@@ -115,7 +115,34 @@ A green check must mean the remote state actually changed. The most dangerous CI
 - **`set -e` is not enough.** Use `set -euo pipefail` so unset secrets and broken pipes also fail. `set -e` will not catch a tool that itself exits 0 on an empty target — that is exactly what the reachability guard is for.
 - **Verify the effect, not just the exit code.** A step that claims to change remote state should confirm it did — host matched, container `Up`, file present, migration row written — rather than trusting a `0`. Prefer `ansible-playbook` (task-level `changed`/`failed` accounting) over ad-hoc `ansible -m command` for anything non-trivial.
 - **Guard the matrix, then guard inside.** `[]`/`0` matrix defaults (§4) stop a job from *running* on an empty fleet; the reachability assert stops a job that *did* run from *lying* when its target resolved to nothing. You need both.
+- **An empty variable is not an error to the tool that receives it.** Variables that *select a target* or *carry a credential* fail silently when blank: an empty ansible host pattern or `--limit` matches zero hosts and exits `0`; `vault-action` with `ignoreNotFound` turns a renamed key into `""`, so `docker login` runs with an empty password and a Terraform backend gets `region=""` and dies several steps later, far from the cause. Assert them at the script's entry point rather than hoping a downstream command objects:
+  ```bash
+  require_env() {           # shared helper, sourced by every mutating script
+    local missing=() v
+    for v in "$@"; do [ -z "${!v:-}" ] && missing+=("$v"); done
+    [ ${#missing[@]} -gt 0 ] && { echo "::error::missing: ${missing[*]}" >&2; exit 1; }
+  }
+  require_env MATRIX_HOST POSTGRES_ROOT_PASSWORD
+  ```
+  List only variables used *unconditionally* — making genuinely optional ones mandatory just to satisfy an audit trades one wrong behaviour for another.
 
-## 9. Before opening a PR
+## 9. Job gating must be falsifiable
+
+A job that reports `skipped` looks identical whether it was deliberately not requested or is structurally incapable of running. That ambiguity hides broken gating indefinitely.
+
+- **`needs.<job>` for a job absent from that job's `needs:` list evaluates to empty.** `'' == 'success'` is false, so the whole `&&` chain is false and the job never runs — no error, just a permanent `skipped`. Referencing a job that no longer exists at all does the same thing. Audit that every `needs.<x>` in an `if:` is both declared in `needs:` and defined in the workflow.
+- **Distinguish "not requested" from "cannot run".** If a job is gated on an input, check the history: a job that is `skipped` on *every* run, including ones where the input was set, is not being skipped for the reason you think.
+- **Conditions that coincide with the intent are still bugs.** A gate that evaluates false for the wrong reason can match the desired behaviour on the common path and diverge on every other one — e.g. a data-migration job whose `needs.provision.outputs.*` silently resolve to empty still skips correctly on deploy runs, and never runs at all on migrate runs.
+
+## 10. Trigger scope
+
+Triggers decide what a workflow costs and what it can damage. Both are easy to get wrong in the direction of "more".
+
+- **A bare `push:` fires on every branch.** `on: push:` with no `branches`/`paths` runs for every push in the repo. When the sibling `pull_request:` block carries a `paths:` filter it is easy to misread as covering both — the filter applies only to the event it sits under.
+- **State the blast radius of `pull_request`.** If the PR route runs `terraform apply` rather than `plan`, every pull request provisions real infrastructure that nothing tears down. Gate deploy jobs on the action (`terraform_action == 'apply'`) so routing a PR to `plan` disables them without touching their conditions.
+- **Path filters must cover every input the job consumes.** A filter naming only `workflows/<x>.yaml` and `scripts/<x>_*` will silently skip the pipeline when a shared `common_*` script changes. Narrowing a deploy trigger is the same hazard class as §8: the run does not fail, it does not happen. Verify the filter against the actual set of files the job reads.
+- **`paths` combined with a tag trigger is unreliable.** Do not add one to a release path without verifying tag pushes still run.
+
+## 11. Before opening a PR
 
 Run `bash -n .github/scripts/*.sh` and confirm `gitleaks` passes. Branch names and PR targets follow `project-development-standard`.
