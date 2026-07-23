@@ -1,0 +1,4 @@
+interface:
+  display_name: "Secrets & Identity"
+  short_description: "Govern Vault access, OIDC, rotation, and audit."
+  default_prompt: "Use $secrets-identity-and-access-governance to review access and secret lifecycle controls."

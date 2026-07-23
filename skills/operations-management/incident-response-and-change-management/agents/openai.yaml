@@ -1,0 +1,4 @@
+interface:
+  display_name: "Incident Response"
+  short_description: "Handle incidents, changes, and postmortems."
+  default_prompt: "Use $incident-response-and-change-management to plan and manage an operational incident."

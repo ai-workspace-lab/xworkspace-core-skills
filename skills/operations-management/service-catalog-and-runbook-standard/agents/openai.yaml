@@ -1,0 +1,4 @@
+interface:
+  display_name: "Service Catalog"
+  short_description: "Define service ownership, dependencies, and runbooks."
+  default_prompt: "Use $service-catalog-and-runbook-standard to create or review a service operational record."

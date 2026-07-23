@@ -1,0 +1,4 @@
+interface:
+  display_name: "Observability & SLO"
+  short_description: "Define SLOs, alerts, dashboards, and telemetry."
+  default_prompt: "Use $observability-slo-and-alerting to design service SLOs and actionable alerts."

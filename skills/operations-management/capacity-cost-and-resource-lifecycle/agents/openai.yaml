@@ -1,0 +1,4 @@
+interface:
+  display_name: "Capacity & Lifecycle"
+  short_description: "Plan capacity, resizing, cost controls, and retirement."
+  default_prompt: "Use $capacity-cost-and-resource-lifecycle to assess a resource lifecycle or resize change."
