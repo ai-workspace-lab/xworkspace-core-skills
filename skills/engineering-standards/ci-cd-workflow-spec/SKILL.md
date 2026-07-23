@@ -45,6 +45,10 @@ OIDC contracts.
   artifact flow, protected environments/refs for CD, and `id_tokens` rather than
   deprecated job JWT variables for OIDC. In GitHub, use explicit event filters,
   `needs`, environments, `permissions`, and `concurrency` with the same intent.
+- GitLab `secrets:vault` writes fetched secrets to a temporary file by default.
+  That default conflicts with a zero-secret-to-disk policy: use OIDC to obtain
+  only the short-lived value needed by the job, and use a reviewed non-file
+  delivery mode only when the process can avoid logging or persisting it.
 
 ### 1.1 Jenkins migration policy
 
