@@ -1,11 +1,16 @@
 ---
-name: github-actions-workflow-spec
-description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers external-script modularization, pinned actions, concurrency and matrix safety, least-privilege permissions, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, false-green prevention, invocation-shape reuse, and eliminating hardcoded environment-varying values without blindly modernizing legacy workflows.
+name: ci-cd-workflow-spec
+description: General CI/CD workflow standards for AI Workspace Infra pipelines and external scripts. Use when creating, refactoring, or auditing CI, CD, promotion, deployment, or GitHub Actions workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers CI/CD separation, reusable scripts, immutable artifacts, least-privilege OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
 ---
 
-# GitHub Actions Workflow Specification
+# CI/CD Workflow Specification
 
-GitHub-Actions-specific rules for clean, secure, reproducible workflows. **This is a generic template**: keep the rules, but treat every file, script, job, and role name below as an example to rename for the target repo. For policy that spans tools, defer to the sibling standards rather than restating them here:
+General rules for clean, secure, reproducible CI/CD workflows. GitHub Actions is
+the current implementation context, so its file paths and syntax appear in
+examples; treat them as adapters, not as the policy itself. Keep the rules, but
+rename every example workflow, script, job, and role for the target repository.
+For policy that spans tools, defer to the sibling standards rather than restating
+it here:
 
 Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) first. Apply the target repository's current workflow conventions; do not copy a legacy workflow's inline scripts, secrets, or broad trigger scope into a new delivery path.
 
@@ -131,6 +136,39 @@ A multi-cloud IaC repo typically splits responsibilities across these five patte
 | Component matrix | `resources-matrix.yaml` | `strategy.matrix` over `fromJSON(inputs.components_json)` |
 | PR quality gate | `validate-pr.yaml` | `pull_request` + `checkout` `fetch-depth: 0` + secret scan (e.g. `gitleaks`) |
 | Readiness checker | `check-ready.yaml` | `workflow_dispatch`; inspects prior run status via the Actions API |
+
+### 7.1 CI and CD must be separate
+
+CI establishes whether a revision is safe to promote; CD changes a managed
+environment. They MAY share reusable scripts or callable workflows, but MUST
+remain separate workflow boundaries, permissions, and success criteria.
+
+| Concern | CI workflow | CD workflow |
+| --- | --- | --- |
+| Trigger | Pull requests and ordinary branch pushes | Only the repository's approved promotion event or an explicitly authorized dispatch |
+| Purpose | Lint, test, render, validate, scan, and build | Consume a promoted release, deploy, migrate, verify, and report rollout state |
+| Credentials | Read-only by default; no cloud mutation or production Vault role | Least-privilege OIDC/Vault role for the selected environment |
+| Infrastructure | `terraform fmt`/`validate`/`plan` only | Explicitly confirmed `apply`, replacement, migration, or DNS action only |
+| Artifact | Build once; publish immutable digest/version plus provenance | Download and verify the exact promoted digest/version; never rebuild from a moving ref |
+| Failure meaning | Revision is not eligible for promotion | Environment did not reach the declared state; preserve diagnostics and rollback point |
+
+- A CI workflow MUST NOT apply Terraform, mutate cloud resources, alter DNS,
+  run production Ansible, or obtain deployment credentials. A green CI result is
+  eligibility evidence, not a deployment claim.
+- A CD workflow MUST consume an immutable artifact identity produced or approved
+  by CI (digest, version, signed manifest, or plan artifact). Do not `checkout`
+  an unconstrained branch tip and rebuild during deployment; that breaks the
+  proof that was tested.
+- Pass only explicit, typed promotion inputs across the boundary: revision SHA,
+  artifact identity, target environment, approved action, and a correlation ID.
+  Validate them at the CD entry point and record them in the deployment summary.
+- Do not run untrusted pull-request code in a privileged context. In particular,
+  `pull_request_target` and reusable workflows with deployment permissions need
+  a reviewed, immutable caller/ref and must never execute PR-supplied scripts.
+- Keep a separate deploy gate from the CI gate. Environment approval, concurrency,
+  preflight, health checks, rollback, and post-deploy verification belong to CD;
+  test/lint failures belong to CI. A CD workflow can call a narrow validation
+  script, but must not be reported as “CI passed” if it skipped deployment.
 
 ## 8. Deploys must fail on no-op (no false green)
 
