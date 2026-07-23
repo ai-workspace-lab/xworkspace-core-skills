@@ -399,7 +399,7 @@ workflows in the `playbooks` repository via reusable workflow calls.
 |---|---|---|
 | Terraform provision | ✓ | ✗ |
 | CMDB / inventory generation | ✓ | ✗ |
-| Node bootstrap (SSH, packages, users) | ✓ | ✗ |
+| Node bootstrap (SSH, packages, users) | ✗ | ✓ |
 | Service deployment (Ansible roles, compose stacks) | ✗ — delegates via `uses:` | ✓ |
 | Vault OIDC authentication | per-environment role | own role (`github-actions-playbooks-{env}`) |
 | Secret scope | `kv/data/CICD/{env}` (infra creds) | domain-specific paths (`kv/data/WEB_SAAS`, etc.) |
