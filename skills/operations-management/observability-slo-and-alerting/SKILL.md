@@ -7,6 +7,8 @@ description: Define and operate SLIs, SLOs, error budgets, dashboards, alerts, t
 
 Measure user-visible outcomes, not merely process liveness. Alerts must be actionable, attributable, and linked to an owner and runbook.
 
+Reference basis: [Google SRE error-budget policy](https://sre.google/workbook/error-budget-policy/) for release/reliability decisions, and [OpenTelemetry log correlation](https://opentelemetry.io/docs/specs/otel/logs/) for connecting logs, traces, and metrics through shared execution and resource context.
+
 ## 1. Service reliability contract
 
 For each production service, declare owner, users/journey, critical dependencies, SLI source, SLO target/window, error-budget policy, alert thresholds, dashboard, and runbook. Choose SLIs that reflect the service: availability, latency, correctness, freshness, saturation, or successful asynchronous delivery.

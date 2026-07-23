@@ -7,6 +7,8 @@ description: Plan, implement, test, and audit backups, disaster recovery, VPS or
 
 A backup is not a recovery capability until a restore has met its declared RPO, RTO, integrity, and security requirements. Keep backup, migration, cutover, and cleanup as independently auditable phases.
 
+Reference basis: [NIST contingency planning guidance](https://csrc.nist.gov/topics/security-and-privacy/security-programs-and-operations/contingency-planning) for coordinated recovery of systems, operations, and data after disruption.
+
 ## 1. Establish the recovery contract
 
 For every critical service, define owner, data classes, dependency order, RPO, RTO, backup frequency, retention, encryption/key owner, restore destination, validation query, and last successful drill. Use the business impact to prioritize recovery; do not use a single generic target for all services.

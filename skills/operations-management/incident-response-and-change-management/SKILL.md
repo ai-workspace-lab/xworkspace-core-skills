@@ -7,6 +7,8 @@ description: Manage production incidents, emergency changes, rollout freezes, re
 
 Treat customer impact, data loss, security exposure, and uncontrolled blast radius as incidents. Stabilize first; diagnose second; improve last. Never use an incident as authority to bypass access controls, erase evidence, or make an unreviewed destructive change.
 
+Reference basis: [Google SRE error-budget policy](https://sre.google/workbook/error-budget-policy/) for balancing reliability work, release decisions, and post-incident follow-up.
+
 ## 1. Declare and control
 
 1. Classify severity from user impact, data/security impact, affected scope, and time sensitivity. Record the rationale and time.
