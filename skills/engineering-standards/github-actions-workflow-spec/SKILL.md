@@ -1,6 +1,6 @@
 ---
 name: github-actions-workflow-spec
-description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers external-script modularization, pinned actions, concurrency and matrix safety, least-privilege permissions, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, false-green prevention, invocation-shape reuse, and eliminating hardcoded environment-varying values without blindly modernizing legacy workflows.
+description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers CI/CD separation, external-script modularization, pinned actions, concurrency and matrix safety, least-privilege permissions, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, false-green prevention, invocation-shape reuse, and eliminating hardcoded environment-varying values without blindly modernizing legacy workflows.
 ---
 
 # GitHub Actions Workflow Specification
@@ -131,6 +131,39 @@ A multi-cloud IaC repo typically splits responsibilities across these five patte
 | Component matrix | `resources-matrix.yaml` | `strategy.matrix` over `fromJSON(inputs.components_json)` |
 | PR quality gate | `validate-pr.yaml` | `pull_request` + `checkout` `fetch-depth: 0` + secret scan (e.g. `gitleaks`) |
 | Readiness checker | `check-ready.yaml` | `workflow_dispatch`; inspects prior run status via the Actions API |
+
+### 7.1 CI and CD must be separate
+
+CI establishes whether a revision is safe to promote; CD changes a managed
+environment. They MAY share reusable scripts or callable workflows, but MUST
+remain separate workflow boundaries, permissions, and success criteria.
+
+| Concern | CI workflow | CD workflow |
+| --- | --- | --- |
+| Trigger | Pull requests and ordinary branch pushes | Only the repository's approved promotion event or an explicitly authorized dispatch |
+| Purpose | Lint, test, render, validate, scan, and build | Consume a promoted release, deploy, migrate, verify, and report rollout state |
+| Credentials | Read-only by default; no cloud mutation or production Vault role | Least-privilege OIDC/Vault role for the selected environment |
+| Infrastructure | `terraform fmt`/`validate`/`plan` only | Explicitly confirmed `apply`, replacement, migration, or DNS action only |
+| Artifact | Build once; publish immutable digest/version plus provenance | Download and verify the exact promoted digest/version; never rebuild from a moving ref |
+| Failure meaning | Revision is not eligible for promotion | Environment did not reach the declared state; preserve diagnostics and rollback point |
+
+- A CI workflow MUST NOT apply Terraform, mutate cloud resources, alter DNS,
+  run production Ansible, or obtain deployment credentials. A green CI result is
+  eligibility evidence, not a deployment claim.
+- A CD workflow MUST consume an immutable artifact identity produced or approved
+  by CI (digest, version, signed manifest, or plan artifact). Do not `checkout`
+  an unconstrained branch tip and rebuild during deployment; that breaks the
+  proof that was tested.
+- Pass only explicit, typed promotion inputs across the boundary: revision SHA,
+  artifact identity, target environment, approved action, and a correlation ID.
+  Validate them at the CD entry point and record them in the deployment summary.
+- Do not run untrusted pull-request code in a privileged context. In particular,
+  `pull_request_target` and reusable workflows with deployment permissions need
+  a reviewed, immutable caller/ref and must never execute PR-supplied scripts.
+- Keep a separate deploy gate from the CI gate. Environment approval, concurrency,
+  preflight, health checks, rollback, and post-deploy verification belong to CD;
+  test/lint failures belong to CI. A CD workflow can call a narrow validation
+  script, but must not be reported as “CI passed” if it skipped deployment.
 
 ## 8. Deploys must fail on no-op (no false green)
 
