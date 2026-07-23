@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backup & Recovery"
+  short_description: "Plan backups, recovery drills, and migrations."
+  default_prompt: "Use $backup-disaster-recovery-and-data-migration to plan a verified recovery or migration."

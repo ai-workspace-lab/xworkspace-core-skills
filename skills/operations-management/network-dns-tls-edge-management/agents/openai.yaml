@@ -1,0 +1,4 @@
+interface:
+  display_name: "Network, DNS & TLS"
+  short_description: "Manage DNS, TLS, ingress, cutovers, and rollback."
+  default_prompt: "Use $network-dns-tls-edge-management to plan a safe DNS or TLS change."
