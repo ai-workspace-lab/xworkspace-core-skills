@@ -9,6 +9,12 @@ General rules for clean, secure, reproducible CI/CD workflows. The supported
 first-class adapters are GitHub Actions YAML and GitLab CI YAML; their syntax,
 file paths, and keywords implement this policy but do not replace it. For policy
 that spans tools, defer to the sibling standards rather than restating it here:
+General rules for clean, secure, reproducible CI/CD workflows. GitHub Actions is
+the current implementation context, so its file paths and syntax appear in
+examples; treat them as adapters, not as the policy itself. Keep the rules, but
+rename every example workflow, script, job, and role for the target repository.
+For policy that spans tools, defer to the sibling standards rather than restating
+it here:
 
 Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) first. Apply the target repository's current workflow conventions; do not copy a legacy workflow's inline scripts, secrets, or broad trigger scope into a new delivery path.
 
@@ -116,13 +122,10 @@ full-SHA or digest pins where that repository already uses them.
 | `hashicorp/vault-action` | target-repository approved version/SHA |
 | `hashicorp/setup-terraform` | target-repository approved version/SHA |
 
-## 4. Shared scripts
 
-Reuse cross-workflow logic via `common_*.sh` scripts under the provider adapter
-directory (`.github/scripts/` for GitHub Actions; `ci/scripts/` or equivalent for
-GitLab CI), for example `common_terraform_init_backend.sh`,
-`common_run_ansible_playbook.sh`, and `common_configure_ssh_key.sh`. Step scripts
-delegate rather than copy:
+## 3. Shared scripts
+
+Reuse cross-workflow logic via `common_*.sh` scripts under `.github/scripts/` (e.g. `common_terraform_init_backend.sh`, `common_run_ansible_playbook.sh`, `common_configure_ssh_key.sh`). Step scripts delegate rather than copy:
 
 ```bash
 #!/usr/bin/env bash
@@ -130,6 +133,13 @@ set -e
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec "${DIR}/common_terraform_init_backend.sh"
 ```
+## 4. Shared scripts
+
+Reuse cross-workflow logic via `common_*.sh` scripts under the provider adapter
+directory (`.github/scripts/` for GitHub Actions; `ci/scripts/` or equivalent for
+GitLab CI), for example `common_terraform_init_backend.sh`,
+`common_run_ansible_playbook.sh`, and `common_configure_ssh_key.sh`. Step scripts
+delegate rather than copy:
 
 ### 4.1 Generalize by shape, not by step
 
