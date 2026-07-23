@@ -334,3 +334,138 @@ passes. Branch names and PR targets follow `project-development-standard`.
 - In `artifacts`, many existing image/chart workflows predate this layout. Make
   focused compatibility changes and audit `paths` filters against Dockerfiles,
   chart dependencies, and scripts actually consumed by the job.
+
+## 13. Environment variable layering — define once, at the highest valid scope
+
+Repeated `env:` blocks are a maintenance hazard: each copy is a place the next
+rename, secret rotation, or typo fix will be forgotten. Place every variable at
+the *highest scope where all its inputs are available*, and never lower.
+
+| Layer (highest → lowest) | What can appear here | When to use |
+|---|---|---|
+| **Workflow-level `env:`** | Literal constants, expressions using only `github.*` / `inputs.*` contexts | Vault KV paths, static directory paths (`VPS_ROOT`, `ENV_DIR`), environment routing expressions (`DEPLOY_ENV`, `VAULT_ROLE`) |
+| **Job-level `env:`** | Everything above + `matrix.*`, `needs.<job>.outputs.*` | `MATRIX_HOST`, `ANSIBLE_SSH_ARGS`, `ANSIBLE_HOST_KEY_CHECKING`, `INPUT_*` forwarded to scripts, `PROVISION_*_DOMAIN_BASE` from provision outputs |
+| **`GITHUB_ENV` export step** | Vault / step outputs (only available after their producing step runs) | `AWS_ACCESS_KEY_ID`, `TF_STATE_*`, `TF_VAR_vultr_api_key`, `MIGRATION_S3_*`, `VAULT_TOKEN` — write them once via `echo "KEY=value" >> "$GITHUB_ENV"`, then every subsequent step inherits them without per-step `env:` |
+| **Step-level `env:`** | Anything — but use **only** for keys unique to that one step | `CLOUDFLARE_DNS_API_TOKEN`, step-specific overrides |
+
+### Rules
+
+1. **A variable that appears in ≥2 steps of the same job MUST be hoisted.** If
+   two steps both set `AWS_ACCESS_KEY_ID`, one of the layers above is wrong.
+2. **Job-level `env:` is illegal on `uses:` (reusable workflow) jobs.** GitHub
+   Actions rejects `env:` alongside `uses:` at the job level. Only `with:` and
+   `secrets:` are valid there. The called workflow defines its own `env:`.
+3. **`runs-on:` is illegal on `uses:` jobs.** The runner is defined inside the
+   called workflow. Adding `runs-on:` to a job with `uses:` causes a schema
+   validation error at queue time.
+4. **`GITHUB_ENV` does not cross job boundaries.** Each job runs on a fresh
+   runner. Pass values between jobs via `outputs:` on the producing job and
+   `needs.<job>.outputs.<key>` on the consuming job.
+5. **Prefer `GITHUB_ENV` over per-step `env:` for Vault outputs.** A single
+   "Export credentials" step after `vault-action` is clearer and smaller than
+   repeating the same 5 keys across 3–4 Terraform steps.
+6. **Comments replace removed `env:` blocks.** When hoisting removes a step's
+   `env:`, leave a brief `# KEY from job env` or `# KEY from GITHUB_ENV`
+   comment so reviewers can trace the source without scrolling.
+
+### Anti-pattern: the "looks right, deploys wrong" empty variable
+
+`vault-action` with `ignoreNotFound: true` turns a renamed or missing key into
+an empty string. An empty `AWS_ACCESS_KEY_ID` doesn't fail — it authenticates
+as anonymous and either silently succeeds (public bucket) or fails several steps
+later with a confusing error. The `GITHUB_ENV` export step is the right place to
+add an assertion:
+
+```bash
+- name: Export Terraform credentials
+  run: |
+    : "${TF_STATE_ACCESS_KEY:?Vault key TF_STATE_ACCESS_KEY is empty}"
+    echo "AWS_ACCESS_KEY_ID=${TF_STATE_ACCESS_KEY}" >> "$GITHUB_ENV"
+    ...
+  env:
+    TF_STATE_ACCESS_KEY: ${{ steps.vault.outputs.TF_STATE_ACCESS_KEY }}
+```
+
+## 14. Domain-CD delegation — platform-ops-toolkit as orchestrator only
+
+`platform-ops-toolkit` owns environment lifecycle (Terraform, CMDB, node
+bootstrap, migration, DNS cutover). It MUST NOT checkout, build, or deploy
+application code. Service deployment is delegated to domain-specific CD
+workflows in the `playbooks` repository via reusable workflow calls.
+
+### Boundary contract
+
+| Concern | `platform-ops-toolkit` | `playbooks` domain-cd workflow |
+|---|---|---|
+| Terraform provision | ✓ | ✗ |
+| CMDB / inventory generation | ✓ | ✗ |
+| Node bootstrap (SSH, packages, users) | ✓ | ✗ |
+| Service deployment (Ansible roles, compose stacks) | ✗ — delegates via `uses:` | ✓ |
+| Vault OIDC authentication | per-environment role | own role (`github-actions-playbooks-{env}`) |
+| Secret scope | `kv/data/CICD/{env}` (infra creds) | domain-specific paths (`kv/data/WEB_SAAS`, etc.) |
+
+### Delegation pattern
+
+```yaml
+# platform-ops-toolkit/.github/workflows/platform-ops.yaml
+deploy_web_saas:
+  needs: provision
+  if: ${{ ... && needs.provision.outputs.hosts_web_saas != '[]' }}
+  strategy:
+    matrix:
+      host: ${{ fromJSON(needs.provision.outputs.hosts_web_saas) }}
+  uses: ai-workspace-infra/playbooks/.github/workflows/web-saas-domain-cd.yaml@main
+  with:
+    target_host: ${{ matrix.host }}
+    deploy_env:  ${{ needs.provision.outputs.deployment_env }}
+```
+
+### Constraints
+
+- **No `runs-on:` on `uses:` jobs.** The reusable workflow declares its own runner.
+- **No `env:` on `uses:` jobs.** Pass configuration via `with:` inputs only.
+- **No `steps:` on `uses:` jobs.** The reusable workflow owns all step logic.
+- **Vault roles for `playbooks` must be provisioned.** The `vault_auth_split.sh`
+  script in `platform-ops-toolkit` must create `github-actions-playbooks-{sit,uat,prod}`
+  roles with `job_workflow_ref` claims matching `playbooks/.github/workflows/*.yaml@*`.
+
+### Domain inventory
+
+| Domain | Services | CD workflow | Bootstrap playbook |
+|---|---|---|---|
+| `web-saas` | Console, Accounts, Billing, Caddy ingress | `web-saas-domain-cd.yaml` | `setup-Doco-CD.yaml` |
+| `ai-workspace` | OpenClaw, LiteLLM, Hermes, QMD | `ai-workspace-domain-cd.yaml` | `setup-ai-workspace-rootless.yml` |
+| `agent-proxy` | Caddy, Xray, Exporter, Vector, agent-svc-plus | `agent-proxy-domain-cd.yaml` | `setup-agent-proxy-domain.yml` |
+| `open-platform` | Gitea, Vault, Zitadel, Grafana, VictoriaMetrics | `open-platform-domain-cd.yaml` | `setup-open-platform-domain.yml` |
+
+## 15. Environment resolution — keep the expression simple
+
+Environment routing (SIT/UAT/Prod) uses a single expression pattern repeated
+across `DEPLOY_ENV`, `VAULT_ENV_PATH`, `VAULT_ROLE`, and all `VAULT_KV_*` paths.
+Write it once in its simplest form and repeat identically — never expand it with
+redundant conditions.
+
+### Canonical expression
+
+```yaml
+${{ github.event_name == 'pull_request' && 'sit'
+ || startsWith(github.ref, 'refs/tags/v') && 'prod'
+ || github.event.inputs.vault_env_path
+ || 'uat' }}
+```
+
+### Rules
+
+1. **Three cases, one fallback.** PR → `sit`, tag → `prod`, dispatch input →
+   user's choice, everything else → `uat`. Do not add `github.event_name == 'push'`
+   guards — `main` and `release/*` pushes naturally fall through to `'uat'`.
+2. **Identical expression in every use.** `DEPLOY_ENV`, `VAULT_ENV_PATH`,
+   `VAULT_ROLE` suffix, `VAULT_KV_BASE` suffix, `VAULT_KV_DATABASES` infix, and
+   `VAULT_KV_AGENT_PROXY` infix must all use exactly the same expression. A
+   divergence means one path resolves `uat` while another resolves `prod`.
+3. **No nested parentheses.** GitHub Actions expression evaluation is
+   left-to-right with `&&` binding tighter than `||`. The short-circuit form
+   `A && 'x' || B && 'y' || C || 'z'` is correct without grouping.
+4. **`workflow_dispatch` input takes precedence over branch.** When an operator
+   dispatches from `main` with `vault_env_path=sit`, the input wins (it appears
+   before the `'uat'` fallback). This is intentional — dispatch is explicit.
