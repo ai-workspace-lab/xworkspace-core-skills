@@ -1,11 +1,16 @@
 ---
-name: github-actions-workflow-spec
-description: GitHub Actions standards for AI Workspace Infra workflows and external scripts. Use when creating, refactoring, or auditing workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers CI/CD separation, external-script modularization, pinned actions, concurrency and matrix safety, least-privilege permissions, Vault OIDC, Terraform/Ansible safety, CMDB artifacts, false-green prevention, invocation-shape reuse, and eliminating hardcoded environment-varying values without blindly modernizing legacy workflows.
+name: ci-cd-workflow-spec
+description: General CI/CD workflow standards for AI Workspace Infra pipelines and external scripts. Use when creating, refactoring, or auditing CI, CD, promotion, deployment, or GitHub Actions workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers CI/CD separation, reusable scripts, immutable artifacts, least-privilege OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
 ---
 
-# GitHub Actions Workflow Specification
+# CI/CD Workflow Specification
 
-GitHub-Actions-specific rules for clean, secure, reproducible workflows. **This is a generic template**: keep the rules, but treat every file, script, job, and role name below as an example to rename for the target repo. For policy that spans tools, defer to the sibling standards rather than restating them here:
+General rules for clean, secure, reproducible CI/CD workflows. GitHub Actions is
+the current implementation context, so its file paths and syntax appear in
+examples; treat them as adapters, not as the policy itself. Keep the rules, but
+rename every example workflow, script, job, and role for the target repository.
+For policy that spans tools, defer to the sibling standards rather than restating
+it here:
 
 Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) first. Apply the target repository's current workflow conventions; do not copy a legacy workflow's inline scripts, secrets, or broad trigger scope into a new delivery path.
 
