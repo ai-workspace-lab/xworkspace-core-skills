@@ -402,19 +402,19 @@ workflows in the `playbooks` repository via reusable workflow calls.
 | Node bootstrap (SSH, packages, users) | ✗ | ✓ |
 | Service deployment (Ansible roles, compose stacks) | ✗ — delegates via `uses:` | ✓ |
 | Vault OIDC authentication | per-environment role | own role (`github-actions-playbooks-{env}`) |
-| Secret scope | `kv/data/CICD/{env}` (infra creds) | domain-specific paths (`kv/data/WEB_SAAS`, etc.) |
+| Secret scope | `kv/data/CICD/{env}` (infra creds) | domain-specific paths (per-domain paths) |
 
 ### Delegation pattern
 
 ```yaml
-# platform-ops-toolkit/.github/workflows/platform-ops.yaml
-deploy_web_saas:
+# <orchestrator-repo>/.github/workflows/<delivery>.yaml
+deploy_<domain>:
   needs: provision
-  if: ${{ ... && needs.provision.outputs.hosts_web_saas != '[]' }}
+  if: ${{ ... && needs.provision.outputs.hosts_<domain> != '[]' }}
   strategy:
     matrix:
-      host: ${{ fromJSON(needs.provision.outputs.hosts_web_saas) }}
-  uses: ai-workspace-infra/playbooks/.github/workflows/web-saas-domain-cd.yaml@main
+      host: ${{ fromJSON(needs.provision.outputs.hosts_<domain>) }}
+  uses: <org>/<playbooks-repo>/.github/workflows/<domain>-domain-cd.yaml@<ref>
   with:
     target_host: ${{ matrix.host }}
     deploy_env:  ${{ needs.provision.outputs.deployment_env }}
@@ -426,17 +426,22 @@ deploy_web_saas:
 - **No `env:` on `uses:` jobs.** Pass configuration via `with:` inputs only.
 - **No `steps:` on `uses:` jobs.** The reusable workflow owns all step logic.
 - **Vault roles for `playbooks` must be provisioned.** The `vault_auth_split.sh`
-  script in `platform-ops-toolkit` must create `github-actions-playbooks-{sit,uat,prod}`
-  roles with `job_workflow_ref` claims matching `playbooks/.github/workflows/*.yaml@*`.
+  The orchestrator's Vault bootstrap must create a `github-actions-<playbooks-repo>-{env}`
+  role per environment, with `job_workflow_ref` pinned to that repo's CD workflow files.
 
-### Domain inventory
+### Where the domain list lives
 
-| Domain | Services | CD workflow | Bootstrap playbook |
-|---|---|---|---|
-| `web-saas` | Console, Accounts, Billing, Caddy ingress | `web-saas-domain-cd.yaml` | `setup-Doco-CD.yaml` |
-| `ai-workspace` | OpenClaw, LiteLLM, Hermes, QMD | `ai-workspace-domain-cd.yaml` | `setup-ai-workspace-rootless.yml` |
-| `agent-proxy` | Caddy, Xray, Exporter, Vector, agent-svc-plus | `agent-proxy-domain-cd.yaml` | `setup-agent-proxy-domain.yml` |
-| `open-platform` | Gitea, Vault, Zitadel, Grafana, VictoriaMetrics | `open-platform-domain-cd.yaml` | `setup-open-platform-domain.yml` |
+Which domains exist, which services each owns, and which playbook bootstraps them
+are **facts about a specific platform**, not part of this spec. They change as the
+business evolves; pinning them here would make the spec stale and non-reusable.
+
+Keep that mapping as a delivery manifest in the consuming repository — one table
+with domain, owning services, where CI builds them, and the CD entry point. This
+spec only fixes the *shape*: one delegating job per domain, matrix-fed from the
+provisioner's per-domain host list, calling that domain's reusable CD workflow.
+
+The orchestrating workflow must not grow per-service steps. A new service belongs
+to an existing domain's CD workflow; a new domain gets one more delegating job.
 
 ## 15. Environment resolution — keep the expression simple
 
