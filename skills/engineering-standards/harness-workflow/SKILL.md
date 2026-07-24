@@ -26,6 +26,16 @@ flowchart TD
     Rollback -->|Closed Loop| Analyze
 ```
 
+## 依赖技能 (Dependencies)
+
+本核心工作流强依赖并统一编排以下独立的工程标准技能：
+- [`ai-agent-collaboration-standard`](../ai-agent-collaboration-standard/)
+- [`ci-cd-workflow-spec`](../ci-cd-workflow-spec/)
+- [`config-as-code-spec`](../config-as-code-spec/)
+- [`infrastructure-as-code-spec`](../infrastructure-as-code-spec/)
+- [`multi-environment-delivery-and-release`](../multi-environment-delivery-and-release/)
+- [`project-development-standard`](../project-development-standard/)
+
 ## 工作流拆解与标准串联
 
 本 Harness Workflow 规定了在循环的每一个环节中，Agent 必须调用的具体工程标准技能。
