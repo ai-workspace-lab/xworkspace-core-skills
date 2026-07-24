@@ -107,3 +107,26 @@ If a secret is exposed in the repository:
 1. **Revoke** immediately in Vault/Provider.
 2. **Generate** a new credential.
 3. Purge the Git history (e.g. using `git filter-repo`)—do not merely "delete" the file in a new commit.
+
+## 5. Documentation cites Vault KV path + key name, never the value
+
+A real incident: an account database export, an SMTP password, and an OAuth token manual all
+ended up committed as literal values in markdown/YAML — live MFA TOTP secrets included — sitting
+in a public repository's history for months before a `gitleaks` gate caught them. Regenerating
+credentials fixed the accounts; the git history purge is the part that doesn't fix itself and
+needs `git filter-repo` (§4) plus a force-push everyone with a clone must re-pull.
+
+- **Documentation, runbooks, and example configs cite `kv/<path>` `<KEY_NAME>` — never the
+  secret's actual value.** A setup guide that shows a real SMTP password or a real API key is
+  itself a leak, indistinguishable in git history from one that was never meant to be read.
+  Write `password: "{{ vault kv/CICD SMTP_PASSWORD }}"` or the equivalent for the pipeline in
+  question, not the string it resolves to.
+- **This includes "just an example" or "sanitized" values that are actually real.** The account
+  export above was checked in as ops documentation, not intentionally as a secret — that
+  distinction doesn't survive a `git clone`.
+- **Data exports containing secrets (account dumps, API responses, debug captures) do not belong
+  in the repository at all**, sanitized or not — they belong in the artifact/backup path that
+  already exists for that purpose (§4 of the IaC spec's Vault-push pattern), not in docs/.
+- **`gitleaks` failing on a PR that didn't introduce the secret is not a false positive to
+  suppress.** It scans full history; a red Sec QA Gate on an unrelated PR means a prior commit
+  leaked something and the fix is the purge above, not an allowlist entry.
