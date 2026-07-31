@@ -56,7 +56,7 @@ ansible -i inventory/terraform_cmdb.py <hostname> -m ping
 - 禁止将密码、Token、私钥、数据库连接串或 Vault password file 提交仓库、写入 GitHub Secret、落入日志或生成到临时文件。
 - CI/CD MUST 使用 GitHub OIDC 向 Vault 换取环境专属短期凭证；Vault role 按环境隔离，例如 `github-actions-<repo>-sit`、`-uat`、`-prod`。
 - 环境专属 Vault 路径 MUST 由单一运行时变量（如 `VAULT_ENV_PATH`）派生；不得在 playbook、role 或 workflow 中分散硬编码 `sit`、`uat`、`prod` 路径。
-- 运行时环境变量仅可承载 OIDC 登录参数或本次 Job 从 Vault 读取后的短期值。变量优先级为：运行时环境变量 → Vault 查询 → 非敏感默认值；凭证、目标主机、环境路径和生产域名等必填值缺失时 MUST 通过 `assert` 或 `fail` 明确失败，不得提供危险 fallback。
+- 运行时环境变量仅可承载 OIDC 登录参数或本次 Job 从 Vault 读取后的短期值。变量优先级为：运行时环境变量 → Vault 查询 → 安全的非敏感默认值（如 `127.0.0.1`）。凭证、目标主机、环境路径和域名端点等必填值缺失时 MUST 通过 `assert` 或 `fail` 明确失败；绝对禁止在 Playbook、Ansible `defaults/main.yml`、模板（如 `secrets.env.j2`）或角色中硬编码生产域名（如 `https://accounts.svc.plus`）作为退回 fallback。模板中的服务 URL 必须根据当前主机的环境域名（如 `web_saas_host_config_accounts_domain`）动态派生。
 - 涉及敏感变量的任务使用 `no_log: true`，但不得因此隐藏安全的控制流诊断；应暴露状态码、服务状态和失败前置条件，并遮蔽秘密值。
 - 发现泄露时 MUST 先吊销并轮换，再用 `git filter-repo` 清理历史并记录影响范围；只删除文件不算完成处置。
 

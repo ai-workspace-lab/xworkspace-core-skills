@@ -22,6 +22,20 @@ For `platform-ops-toolkit/platform-ops.yaml`, preserve the mapped resource file,
 workspace, backend key, domain base, and Vault role as one atomic profile. Changing
 only one of them can make Terraform manage one host while Ansible deploys another.
 
+### 1.1 Strict No Production Fallbacks Rule (禁止默认配置兜底至生产)
+
+- **Default 永远不应该是生产**：在代码、环境变量模版（如 `.env.production`）、Ansible `defaults/main.yml`、Docker Compose 与服务配置文件中，绝对禁止将生产域名（如 `https://accounts.svc.plus`、`https://api.svc.plus`、`https://docs.svc.plus`）作为全局退回默认值（fallback）。
+- **非生产环境严格隔离**：SIT、UAT 与本地 Dev 环境绝不能因为未传参而静默连通生产数据库或生产微服务。
+- **Fail-Fast & Safe Defaults**：当必填服务 URL 未显式传入时，配置解析器必须满足以下条件之一：
+  1. 退回至安全的本地开发地址（如 `http://127.0.0.1:8080`）；
+  2. 根据当前 Host / 环境显式派生（如根据 Host `console-uat.onwalk.net` 派生 `accounts-uat.onwalk.net`）；
+  3. 显式抛出异常或断言失败（fail-fast），禁止静默命中生产端点。
+
+### 1.2 Build-Time Artifact vs. Runtime Loader Precedence (打包产物与运行期配置优先级)
+
+- **打包产物不得硬编码环境端点**：前端/BFF 在 Docker 镜像构建阶段（如 `next build`）不得把具体环境的生产/测试 URL 固化进打包产物中。
+- **运行期 Loader 优先**：服务配置解析逻辑（如 `serviceConfig.ts`）必须优先评估运行期动态配置（如 `runtime-service-config.<env>.yaml` 或容器注入的 `ACCOUNT_SERVICE_URL`），且运行期配置必须高于构建期 `.env` 中的退回默认值。
+
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
 - Authentication must use GitHub OIDC → Vault JWT.
