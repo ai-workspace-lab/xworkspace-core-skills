@@ -22,19 +22,24 @@ For `platform-ops-toolkit/platform-ops.yaml`, preserve the mapped resource file,
 workspace, backend key, domain base, and Vault role as one atomic profile. Changing
 only one of them can make Terraform manage one host while Ansible deploys another.
 
-### 1.1 Strict No Production Fallbacks Rule (禁止默认配置兜底至生产)
+### 1.1 Universal Zero-Production-Fallback Rule (零生产兜底原则)
 
-- **Default 永远不应该是生产**：在代码、环境变量模版（如 `.env.production`）、Ansible `defaults/main.yml`、Docker Compose 与服务配置文件中，绝对禁止将生产域名（如 `https://accounts.svc.plus`、`https://api.svc.plus`、`https://docs.svc.plus`）作为全局退回默认值（fallback）。
-- **非生产环境严格隔离**：SIT、UAT 与本地 Dev 环境绝不能因为未传参而静默连通生产数据库或生产微服务。
-- **Fail-Fast & Safe Defaults**：当必填服务 URL 未显式传入时，配置解析器必须满足以下条件之一：
-  1. 退回至安全的本地开发地址（如 `http://127.0.0.1:8080`）；
-  2. 根据当前 Host / 环境显式派生（如根据 Host `console-uat.onwalk.net` 派生 `accounts-uat.onwalk.net`）；
-  3. 显式抛出异常或断言失败（fail-fast），禁止静默命中生产端点。
+- **Default 绝不包含生产端点与资源**：在所有源代码、编译/构建模板、配置管理脚本（Ansible defaults/vars）、容器编排清单（Docker Compose / Kubernetes / Helm）及服务默认配置文件中，绝对禁止将生产环境的域名、IP、数据库 DSN、密钥或服务端点作为兜底退回值（default/fallback）。
+- **非生产环境强隔离（Non-Production Isolation）**：Dev、Test、SIT、UAT 等非生产环境在任何缺省或参数未传状态下，严禁静默退回并连通生产资源或生产依赖服务。
+- **Safe Fallbacks or Fail-Fast**：当必填服务地址、端点或依赖凭证未显示提供时，配置解析引擎必须严格遵循以下三种安全模式之一：
+  1. **Safe Local Fallback**：仅退回至完全隔离且无公网风险的本地 Mock / Loopback 地址（如 `http://127.0.0.1:<port>` 或 `http://localhost:<port>`）；
+  2. **Dynamic Host/Environment Derivation**：根据当前运行环境上下文或请求 Host 头强类型派生同环境同级子域名/服务名；
+  3. **Fail-Fast**：在应用启动阶段或配置加载初始化阶段立即抛出异常或断言失败，禁止隐式降级运行。
 
-### 1.2 Build-Time Artifact vs. Runtime Loader Precedence (打包产物与运行期配置优先级)
+### 1.2 Build-Time Artifact vs. Runtime Resolution Precedence (构建期产物与运行期决议优先级)
 
-- **打包产物不得硬编码环境端点**：前端/BFF 在 Docker 镜像构建阶段（如 `next build`）不得把具体环境的生产/测试 URL 固化进打包产物中。
-- **运行期 Loader 优先**：服务配置解析逻辑（如 `serviceConfig.ts`）必须优先评估运行期动态配置（如 `runtime-service-config.<env>.yaml` 或容器注入的 `ACCOUNT_SERVICE_URL`），且运行期配置必须高于构建期 `.env` 中的退回默认值。
+- **构建产物环境无关性（Immutable Environment-Agnostic Artifacts）**：任何编译打包产物（包括 Docker 镜像、二进制包、前端静态编译Bundle）必须保持环境无关。禁止在镜像构建阶段将特定环境的真实 upstream 端点硬编码写死至打包产物中。
+- **运行期配置决议优先（Runtime Precedence）**：应用服务在运行时解析依赖端点与参数时，运行期动态配置（如环境变量注入、外部挂载的动态配置文件、服务发现）必须具备最高优先级，强制覆盖构建期打入的静态默认退回值。
+
+### 1.3 End-to-End Orchestration Parameter Propagation (声明式编排全链路透传)
+
+- **编排层显式透传**：容器编排文件（Compose / K8s Manifests）必须显式声明关键依赖服务 URL 的环境变量映射，确保宿主机或配置中心注入的环境配置能无损传递至应用程序容器。
+- **配置管理模板动态派生**：配置管理系统（Ansible / Helm）渲染环境配置文件或秘密文件时，依赖服务的地址必须由当前环境的核心域名/网络变量动态派生，禁止跨角色写死字面值。
 
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
