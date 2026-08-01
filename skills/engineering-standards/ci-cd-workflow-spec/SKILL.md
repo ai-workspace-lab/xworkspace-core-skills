@@ -221,6 +221,34 @@ an explicit `needs:artifacts` relationship for the consuming job.
 
 ## 8. Workflow roles
 
+### 8.0 Cross-repository snapshot orchestration
+
+When one release spans multiple repositories, treat the snapshot as a
+first-class coordination artifact rather than as a collection of unrelated
+successful jobs:
+
+- Resolve the source ref to an expected commit SHA per repository before tag
+  creation.
+- Create one immutable snapshot tag per repository. Never move, delete, or
+  force-update an existing snapshot tag; allocate a new `-rN` tag for retries.
+- Keep the tag fan-out matrix separate from the required artifact-build matrix.
+  A tag existing in a repository does not prove that its image, package, chart,
+  or release manifest was built.
+- Match build runs by repository, snapshot tag, expected SHA, intended event or
+  workflow, and successful conclusion. Matching only a branch/tag name can
+  reuse an old retry run.
+- Aggregate an auditable per-repository result with distinct states such as
+  `tag_ready`, `unchanged`, `build_succeeded`, `build_failed`,
+  `manifest_missing`, `build_timeout`, and `build_lookup_failed`. Pending or
+  unknown states are not successful.
+- Allocate a retry suffix once before matrix fan-out. Independent jobs must not
+  calculate different retry tags.
+
+The workflow summary should include the snapshot tag, source ref, expected SHA,
+resolved SHA, build URL, artifact/manifest result, and retry reason where
+applicable. A snapshot is deployable only when every required repository passes
+all checks; a successful tag job alone is not sufficient.
+
 A multi-cloud IaC repo typically splits responsibilities across these five patterns. The file names are examples — rename to match your repo:
 
 | Pattern | Example file | Role |

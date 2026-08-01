@@ -67,6 +67,23 @@ Public-repo hygiene: if the repository is public, PR bodies, commit messages, an
 - Tags are SemVer `vMAJOR.MINOR.PATCH` (pre-releases: `-alpha.N` / `-beta.N` / `-rc.N`), annotated, created deliberately at a release point — never as a side effect of branch synchronization.
 - Every published artifact must trace to exactly one release tag; each release records version, date, changelog, and any breaking/migration/security notes.
 
+### Cross-repository snapshots
+
+For a coordinated build across repositories:
+
+- define the participating repository and artifact matrix before tagging;
+- resolve and record the source SHA for every repository;
+- use immutable snapshot tags such as `daily-build-YYYY.MM.DD`;
+- never move or delete an existing snapshot tag; retry with a new `-rN` suffix;
+- verify the CI run matches both the tag and expected SHA, then verify the
+  required image/package/chart/manifest before selecting the snapshot;
+- keep tag creation, artifact builds, and environment deployment as separate
+  auditable stages.
+
+The handoff must state whether the snapshot is deployable, tag-ready only, or
+blocked, and include per-repository evidence. A successful build in one
+repository does not establish a successful cross-repository release.
+
 ## Backport vs cherry-pick (direction cheat)
 
 - Fix born on `main`, needed on a release line → `backport/*` → PR into `release/*`.
