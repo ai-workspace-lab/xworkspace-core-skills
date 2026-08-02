@@ -176,8 +176,10 @@ single workflow result:
    the merge commit and required checks; do not tag a feature branch or a local
    worktree that was not merged.
 2. Create one immutable, cross-repository snapshot tag (for example,
-   `uat-daily-build-YYYY.MM.DD-rN`) from the resolved `main` SHAs. A failed
-   attempt keeps its tag; retry with the next suffix rather than moving it.
+   `uat-daily-build-YYYY.MM.DD-rN`) from the resolved `main` SHAs. The first
+   snapshot for a UTC date is `r1`; retries and later same-day snapshots use
+   the next available `rN`. A failed attempt keeps its tag; retry with the
+   next suffix rather than moving or reusing it.
 3. Verify the image/package build for every deployable repository by exact tag
    and commit SHA. A repository tag, a successful tag matrix, or a successful
    workflow dispatch is not by itself proof that the artifact exists.
