@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Actions Dispatch"
+  short_description: "Dispatch and verify operational GitHub Actions workflows safely."
+  default_prompt: "Use $github-actions-operational-dispatch to dispatch and verify an operational workflow_dispatch run."
