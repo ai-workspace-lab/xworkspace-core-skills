@@ -259,7 +259,61 @@ A multi-cloud IaC repo typically splits responsibilities across these five patte
 | PR quality gate | `validate-pr.yaml` | `pull_request` + `checkout` `fetch-depth: 0` + secret scan (e.g. `gitleaks`) |
 | Readiness checker | `check-ready.yaml` | `workflow_dispatch`; inspects prior run status via the Actions API |
 
-### 8.1 CI and CD must be separate
+### 8.1 Dual-plane telemetry and billing delivery
+
+When a release carries usage accounting and operational observability together,
+model them as two consumers of the same exporter output. The billing plane and
+the real-time monitoring plane MUST be independently observable and MUST NOT
+make each other a runtime prerequisite:
+
+```text
+Xray -> exporter -> Vector -> authenticated Billing ingest -> shared PostgreSQL
+                                      -> Accounts API -> Portal
+                         +--> Prometheus remote_write / observability -> Grafana
+```
+
+- The exporter MUST emit a canonical snapshot identity containing the account
+  key (email and/or UUID), source/node identity, collection time, and byte
+  counters. When one account appears on multiple nodes or inbounds, normalize
+  and aggregate by the canonical UUID; do not create a separate billable
+  account for each inbound tag.
+- Vector SHOULD be the fan-out boundary. Billing consumes an authenticated
+  push/ingest endpoint by default; Billing MUST NOT directly pull the exporter
+  as the normal path. A direct-pull mode, if retained, is an explicitly named
+  rollback/compatibility mode and MUST be disabled by default.
+- The Vector-to-Billing sink MUST use an environment-scoped service credential,
+  bounded retry, a durable buffer where supported, and a payload format that
+  preserves the snapshot identity. Redact credentials from config dumps and
+  logs. Prometheus remote write remains a separate sink and must keep its own
+  health signal.
+- Billing ingestion MUST be idempotent. Use a deterministic event/checkpoint
+  identity, reject or safely ignore duplicate snapshots, and persist the
+  resulting ledger/quota state in the shared PostgreSQL database. Schema
+  initialization and migrations MUST be idempotent and deployed before the
+  reader path is enabled.
+- Accounts is the aggregation/read API over that shared database. Portal MUST
+  read usage through Accounts rather than querying PostgreSQL or Billing
+  directly. A Portal value of zero is not proof of zero traffic until the
+  upstream ingest, ledger, and Accounts query checkpoints have been verified.
+
+The release evidence MUST distinguish these checkpoints:
+
+| Checkpoint | Evidence | Failure meaning |
+|---|---|---|
+| exporter collection | snapshot counter/log or test endpoint | Xray identity/collection issue |
+| Vector billing sink | accepted event, retry/buffer status | routing/auth/backpressure issue |
+| Billing ingest | HTTP status and idempotency result | endpoint/token/payload issue |
+| PostgreSQL write | ledger/quota row and migration state | schema/transaction issue |
+| Accounts read | authenticated usage summary | API/query/identity issue |
+| Portal display | browser/API response | frontend mapping/cache issue |
+| Grafana path | remote-write arrival and dashboard series | observability path issue; not a billing verdict |
+
+Do not close a release from a green deployment job alone. A service being
+`active` proves process health, not data flow. Record the release tag, expected
+source SHA, deployment run, target environment, and each checkpoint's timestamp
+in the repository's task/progress record.
+
+### 8.2 CI and CD must be separate
 
 CI establishes whether a revision is safe to promote; CD changes a managed
 environment. They MAY share reusable scripts or callable workflows, but MUST
