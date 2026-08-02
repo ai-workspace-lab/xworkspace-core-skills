@@ -166,3 +166,51 @@ needs `git filter-repo` (§4) plus a force-push everyone with a clone must re-pu
 - **`gitleaks` failing on a PR that didn't introduce the secret is not a false positive to
   suppress.** It scans full history; a red Sec QA Gate on an unrelated PR means a prior commit
   leaked something and the fix is the purge above, not an allowlist entry.
+
+## 6.1 UAT release closeout and recovery
+
+For a multi-repository UAT release, completion is a controlled sequence, not a
+single workflow result:
+
+1. Merge each participating repository through a PR targeting `main`. Confirm
+   the merge commit and required checks; do not tag a feature branch or a local
+   worktree that was not merged.
+2. Create one immutable, cross-repository snapshot tag (for example,
+   `uat-daily-build-YYYY.MM.DD-rN`) from the resolved `main` SHAs. A failed
+   attempt keeps its tag; retry with the next suffix rather than moving it.
+3. Verify the image/package build for every deployable repository by exact tag
+   and commit SHA. A repository tag, a successful tag matrix, or a successful
+   workflow dispatch is not by itself proof that the artifact exists.
+4. Update the UAT GitOps desired state through a PR. Pull-only CD means the
+   deployment workflow must never write image tags into GitOps; it may validate
+   the requested tag against the committed `.env.<env>` or equivalent.
+5. Wait for the pull-only CD/reconciliation and verify the rendered image tag,
+   service health, and migration status on the exact UAT hosts. Do not use
+   production domains, DNS records, credentials, or database endpoints as a
+   fallback during UAT validation.
+6. Validate data flow at each boundary. For a usage path, verify exporter
+   collection, Vector fan-out, authenticated Billing ingest, shared PostgreSQL
+   write, Accounts read, and Portal display separately. Validate Grafana's
+   remote-write path separately; missing Grafana data must not be “fixed” by
+   coupling it to billing.
+7. Record the tag, PRs, merge SHAs, GitOps PR/commit, workflow URLs, target
+   environment, DNS result, service status, schema/migration result, and
+   checkpoint results in `docs/tasks/` or the consuming repository's equivalent.
+
+If any checkpoint is unknown, pending, or only inferred from a downstream UI,
+the release remains incomplete. Use the evidence table in
+`ci-cd-workflow-spec` to classify the fault before changing code or data.
+
+### 6.2 DNS and authenticated cross-node ingress
+
+- DNS creation/update is a separately auditable operation. Verify authoritative
+  and public resolver answers before relying on an HTTPS endpoint; an old local
+  resolver answer is not evidence that DNS is wrong.
+- Cross-node ingest endpoints MUST use the same environment-scoped service
+  authentication contract as peer internal services, plus network restriction
+  where appropriate. Keep the application Bearer check independent from the
+  Caddy/ingress route so a permitted network source still cannot write without
+  the token.
+- UAT checks MUST use redacted requests and never print the token. Test both
+  expected success and expected unauthorized/forbidden behavior, without
+  weakening production ingress or modifying production Xray configuration.
