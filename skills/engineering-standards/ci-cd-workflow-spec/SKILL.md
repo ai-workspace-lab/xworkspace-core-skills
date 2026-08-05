@@ -55,6 +55,7 @@ OIDC contracts.
   That default conflicts with a zero-secret-to-disk policy: use OIDC to obtain
   only the short-lived value needed by the job, and use a reviewed non-file
   delivery mode only when the process can avoid logging or persisting it.
+- Deployment pipelines MUST NOT depend on volatile or unverified daily-build release assets from external repositories during automated execution. Release artifacts consumed during deployment MUST be immutable, verified in preflight, or hosted in internal artifact repositories.
 
 ### 1.1 Jenkins migration policy
 

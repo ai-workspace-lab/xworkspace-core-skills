@@ -70,6 +70,12 @@ ansible -i inventory/terraform_cmdb.py <hostname> -m ping
 - 模板通过变量表达环境差异；多主机配置从 `groups` 与 `hostvars` 派生，不维护第二份静态节点清单。
 - 使用 `ansible.builtin.*` 全限定模块、显式 `changed_when`/`failed_when`，并保持迁移/备份/恢复可重复和可重启。
 
+### 4.1 Binary artifact download and version pinning
+
+- **Immutable Pinning**: Playbooks and Ansible roles downloading remote binary dependencies MUST pin to verified, immutable release versions or SHAs (e.g. `v0.6.0`), or pull from controlled internal artifact repositories (GHCR, Vault, or mirror stores).
+- **No Unverified Dynamic Daily Tags**: Dynamic date-based release tags (such as `daily-build-YYYY.MM.DD`) MUST NOT be hardcoded as default download URLs in deployment playbooks without artifact existence verification or explicit mirror fallbacks.
+- **Preflight & Error Handling**: Tasks using `ansible.builtin.get_url` to fetch binaries MUST check HTTP status / artifact availability, provide clear failure messaging when release assets are missing (avoiding ambiguous 404 errors), and support alternative mirror/fallback URLs where appropriate.
+
 删除、清库、覆盖配置、重建集群、DNS 切换和源机清理等破坏性操作 MUST：使用显式布尔确认变量；任务名标明影响；先做范围断言和备份/快照检查；默认不可执行。
 
 ## 5. Resize, migration, and recovery handoff
