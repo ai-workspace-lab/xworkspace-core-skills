@@ -88,6 +88,29 @@ The handoff must state whether the snapshot is deployable, tag-ready only, or
 blocked, and include per-repository evidence. A successful build in one
 repository does not establish a successful cross-repository release.
 
+### Production ref and tag gate
+
+The only refs eligible to enter a production-capable path are:
+
+- `refs/tags/v*` for the immutable stable release artifact; or
+- `refs/heads/release/v*` for a protected release line with an explicit,
+  reviewed production action.
+
+Everything else, including `main`, pull-request refs, feature/bugfix branches,
+`daily-build-*`, and `uat-daily-build-*`, MUST be rejected by the production
+entry gate. A shared tag script is acceptable only when it validates tag kind and
+environment semantics; it must not treat a successful tag creation as proof that
+the artifact is deployable.
+
+Stable tags are append-only history. Do not move, overwrite, force-update, or
+delete a published stable tag. Use a new SemVer tag for a stable retry and a new
+`-rN` suffix for a daily snapshot retry.
+
+Before release publication, record passing evidence for the source ref/SHA,
+artifact build and digest, required tests, Vault role and KV path, environment
+route, GitOps desired version, and deployment/rollback plan. If any item is
+unknown or inferred only from a downstream UI, the release is blocked.
+
 ## Backport vs cherry-pick (direction cheat)
 
 - Fix born on `main`, needed on a release line → `backport/*` → PR into `release/*`.

@@ -255,6 +255,30 @@ resolved SHA, build URL, artifact/manifest result, and retry reason where
 applicable. A snapshot is deployable only when every required repository passes
 all checks; a successful tag job alone is not sufficient.
 
+### 8.0.1 Tagging and release preflight contract
+
+Stable and daily builds may call the same tagging helper, but the helper MUST
+validate an explicit tag kind and reject an environment/tag mismatch before
+creating or updating any ref. Production entry points MUST accept only
+`refs/tags/v*` or `refs/heads/release/v*`; they MUST reject `main`, pull-request
+refs, arbitrary dispatch refs, and `daily-build-*` / `uat-daily-build-*` tags.
+
+The stable path and daily path differ by tag semantics, not by a second mutable
+tagging implementation:
+
+| Kind | Required semantics | Retry |
+|---|---|---|
+| Stable `vMAJOR.MINOR.PATCH` | reviewed release point, immutable, production-eligible | new SemVer tag |
+| `daily-build-*` / `uat-daily-build-*` | non-production snapshot, never production-eligible | new `-rN` suffix |
+
+The release preflight MUST check, as one consistent matrix, the triggering event
+and ref, resolved source SHA, artifact build/digest/provenance, required test
+conclusions, GitOps desired tag, environment route, Vault role/KV path, and
+rollback evidence. The same computed environment must feed routing, credentials,
+and test selection; if one resolver says UAT while another says production, fail
+before credentials or mutation. A tag-exists or workflow-dispatch success is not
+an artifact, test, or deployment success.
+
 A multi-cloud IaC repo typically splits responsibilities across these five patterns. The file names are examples — rename to match your repo:
 
 | Pattern | Example file | Role |
