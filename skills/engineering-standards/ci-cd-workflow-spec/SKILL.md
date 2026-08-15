@@ -55,6 +55,7 @@ OIDC contracts.
   That default conflicts with a zero-secret-to-disk policy: use OIDC to obtain
   only the short-lived value needed by the job, and use a reviewed non-file
   delivery mode only when the process can avoid logging or persisting it.
+- Deployment pipelines MUST NOT depend on volatile or unverified daily-build release assets from external repositories during automated execution. Release artifacts consumed during deployment MUST be immutable, verified in preflight, or hosted in internal artifact repositories.
 
 ### 1.1 Jenkins migration policy
 
@@ -229,8 +230,11 @@ successful jobs:
 
 - Resolve the source ref to an expected commit SHA per repository before tag
   creation.
-- Create one immutable snapshot tag per repository. Never move, delete, or
-  force-update an existing snapshot tag; allocate a new `-rN` tag for retries.
+- Create one immutable snapshot tag per repository using the same daily series
+  (`uat-daily-build-YYYY.MM.DD-r1` … `-rN`) across the matrix. Allocate `r1`
+  for the first UTC-date snapshot and the next available suffix for every
+  same-date retry or later snapshot. Never move, delete, or force-update an
+  existing tag.
 - Keep the tag fan-out matrix separate from the required artifact-build matrix.
   A tag existing in a repository does not prove that its image, package, chart,
   or release manifest was built.
@@ -241,8 +245,10 @@ successful jobs:
   `tag_ready`, `unchanged`, `build_succeeded`, `build_failed`,
   `manifest_missing`, `build_timeout`, and `build_lookup_failed`. Pending or
   unknown states are not successful.
-- Allocate a retry suffix once before matrix fan-out. Independent jobs must not
-  calculate different retry tags.
+- Resolve and reserve the suffix once before matrix fan-out. Independent jobs
+  must not calculate different retry tags; if any participating repository
+  already has the candidate tag, abort allocation and advance the whole
+  cross-repository series together.
 
 The workflow summary should include the snapshot tag, source ref, expected SHA,
 resolved SHA, build URL, artifact/manifest result, and retry reason where

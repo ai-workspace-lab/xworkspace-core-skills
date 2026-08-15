@@ -73,8 +73,12 @@ For a coordinated build across repositories:
 
 - define the participating repository and artifact matrix before tagging;
 - resolve and record the source SHA for every repository;
-- use immutable snapshot tags such as `daily-build-YYYY.MM.DD`;
-- never move or delete an existing snapshot tag; retry with a new `-rN` suffix;
+- use one immutable daily naming series: `uat-daily-build-YYYY.MM.DD-rN`;
+- allocate `r1` for the first snapshot on a UTC date, then increment the same
+  date's suffix (`r2` … `rN`) for every retry or later snapshot; reset to `r1`
+  only when the UTC date changes;
+- resolve the next suffix against all participating repositories before matrix
+  fan-out, and never move, delete, or reuse an existing snapshot tag;
 - verify the CI run matches both the tag and expected SHA, then verify the
   required image/package/chart/manifest before selecting the snapshot;
 - keep tag creation, artifact builds, and environment deployment as separate

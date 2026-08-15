@@ -167,7 +167,16 @@ Split the KV tree by whether a secret has an *environment dimension* at all:
 - Always use Pull Requests. **Do not push directly to `main` or `release/*`**.
 - `feature/*` and `bugfix/*` MUST target `main`.
 - `hotfix/*` MUST target `release/*`.
-- Production deployments ONLY occur via annotated tags (`v*`).
+- Production deployments ONLY occur via annotated stable tags (`v*`). Stable tags are immutable release identities: never move, overwrite, or delete them after publication.
+- Preserve `main` and `release/*` permanently. Protect them with required reviews/checks and prohibit force-push, ref replacement, and deletion; normal reviewed commits remain allowed.
+
+### 3.1 Release and build reference retention
+
+- Treat every tag matching `v*` as a stable release tag and retain it permanently, including date-based and legacy version forms. Apply repository tag protection or a ruleset so only the release automation identity can create such tags and nobody can update or delete them.
+- Retain all build/environment tags created within the configurable recent window `RECENT_RETENTION_DAYS` (default: 7 calendar days). This includes prefixes such as `daily-build-*`, `uat-daily-build-*`, `sit-*`, and equivalent repository-specific environment tags.
+- Retain at least one deployable rollback tag per environment and service even when it is older than seven days; record the exception and its owner.
+- Treat older non-stable build/environment tags as cleanup candidates only after verifying that no deployment workflow, Vault/CMDB record, release note, rollback plan, or open PR references them.
+- Publish release notes or update the repository changelog with the stable tag's scope, target commit, artifact identity, deployment environments, verification evidence, and rollback reference. Do not rebuild from a moving branch after tagging.
 
 ## 4. Emergency Secret Leaks
 If a secret is exposed in the repository:
@@ -207,8 +216,10 @@ single workflow result:
    the merge commit and required checks; do not tag a feature branch or a local
    worktree that was not merged.
 2. Create one immutable, cross-repository snapshot tag (for example,
-   `uat-daily-build-YYYY.MM.DD-rN`) from the resolved `main` SHAs. A failed
-   attempt keeps its tag; retry with the next suffix rather than moving it.
+   `uat-daily-build-YYYY.MM.DD-rN`) from the resolved `main` SHAs. The first
+   snapshot for a UTC date is `r1`; retries and later same-day snapshots use
+   the next available `rN`. A failed attempt keeps its tag; retry with the
+   next suffix rather than moving or reusing it.
 3. Verify the image/package build for every deployable repository by exact tag
    and commit SHA. A repository tag, a successful tag matrix, or a successful
    workflow dispatch is not by itself proof that the artifact exists.
