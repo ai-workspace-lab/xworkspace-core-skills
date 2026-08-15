@@ -26,6 +26,24 @@ Treat policy/role changes as a two-part delivery: configuration change plus an a
 
 Never log, commit, artifact, cache, or persist secret values. Redact diagnostics while retaining safe identifiers such as role name, path (when non-sensitive), request ID, and status code.
 
+### 3.1 Release-route and Vault consistency
+
+For every delivery path, compute the environment once and use that same value for
+the deployment route, GitHub Environment, Vault role suffix, KV path, artifact
+selection, and release tests. Review the complete tuple together:
+
+```text
+event/ref -> environment -> artifact/tag -> route -> Vault role/KV path -> tests
+```
+
+Production credentials MUST be unreachable from `main`, pull-request refs,
+feature/bugfix branches, and `daily-build-*` / `uat-daily-build-*` tags. A
+production-capable path MUST be limited to `refs/tags/v*` or
+`refs/heads/release/v*`, with protected-ref and approval checks enforced by the
+workload identity. Test both the intended success path and the wrong-ref,
+wrong-environment, and adjacent-secret denial paths; a successful Vault login
+alone is not evidence that routing is correct.
+
 ## 4. Exposure and emergency access
 
 On suspected exposure, contain first: revoke or disable the credential, identify consumers, rotate replacement values, validate recovery, then purge history when a value entered Git. A new commit deleting the value is insufficient.

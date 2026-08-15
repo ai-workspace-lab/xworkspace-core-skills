@@ -58,6 +58,37 @@ status, artifact evidence, and any retry reason.
 - **编排层显式透传**：容器编排文件（Compose / K8s Manifests）必须显式声明关键依赖服务 URL 的环境变量映射，确保宿主机或配置中心注入的环境配置能无损传递至应用程序容器。
 - **配置管理模板动态派生**：配置管理系统（Ansible / Helm）渲染环境配置文件或秘密文件时，依赖服务的地址必须由当前环境的核心域名/网络变量动态派生，禁止跨角色写死字面值。
 
+### 1.5 Production ref allowlist and tag semantics
+
+Production eligibility is a hard allowlist, not a naming convention. A production-capable
+workflow MUST fail closed unless `github.ref` matches one of:
+
+- `refs/tags/vMAJOR.MINOR.PATCH` (the immutable stable release tag); or
+- `refs/heads/release/vMAJOR.MINOR` (the protected release line, only when an explicit
+  production action and approval are also present).
+
+`main`, feature/bugfix branches, pull-request refs, arbitrary dispatch refs, and all
+`daily-build-*` / `uat-daily-build-*` snapshots are non-production inputs. A workflow may
+use a release branch to validate or stage a release, but it MUST NOT infer production
+promotion from a branch name alone.
+
+Stable and daily artifacts MAY share one tagging script. The shared tagging script MUST require or
+derive an explicit tag kind and validate the complete tag/ref/environment matrix before
+creating anything:
+
+| Tag kind | Example | Allowed use |
+|---|---|---|
+| Stable | `v1.2.3` | Production promotion only after release gates |
+| Daily/UAT | `uat-daily-build-YYYY.MM.DD-rN` | UAT/SIT validation and deployment only |
+| Daily snapshot | `daily-build-YYYY.MM.DD-rN` | Non-production integration only |
+
+Published stable tags MUST never be moved, overwritten, force-updated, or deleted. A failed
+stable release gets a new version; a failed daily attempt gets a new `-rN` snapshot suffix.
+The preflight MUST verify the event, ref, source SHA, tag immutability, artifact matrix,
+artifact digest/provenance, GitOps desired version, Vault role/KV path, target route, and
+required test conclusions before any production credential is read or deployment mutation
+starts.
+
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
 - Authentication must use GitHub OIDC → Vault JWT.

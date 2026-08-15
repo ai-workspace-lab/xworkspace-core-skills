@@ -45,3 +45,25 @@ Emergency does not mean unlogged. It means the approval is time-bound and record
 Publish a factual, blameless postmortem for material incidents. Include impact, detection, timeline, contributing system conditions, what worked, what did not, and concrete actions. Actions need an owner, priority, due date, acceptance test, and link to the implementation PR or runbook. Do not close an action because a document was written; close it when the preventive control is verified.
 
 Route configuration, Terraform, CI/CD, Vault, DNS, and backup changes to their owning standards. Use error-budget consumption and repeated incident class to decide whether to freeze releases or prioritize reliability work.
+
+## 6. Fault-change closure loop
+
+Every material release or operational fault MUST close through one traceable loop:
+
+```text
+impact -> containment -> evidence -> bounded change -> review/approval
+       -> CI/preflight -> deployment -> boundary verification
+       -> monitoring window -> postmortem action closure
+```
+
+The incident record must preserve the triggering release/tag, source SHA,
+environment route, workflow/PR links, Vault role/path used, test and health
+evidence, rollback point, and the owner plus expiry of any cleanup decision.
+Do not declare recovery from a green process or downstream UI alone; verify the
+user-facing boundary and each relevant dependency boundary. If the corrective
+change is made during an incident, represent it in the owning repository through
+the normal PR/release path or record an explicit revert plan and follow-up owner.
+
+An action is closed only when its preventive control has passed its acceptance
+test and the evidence is linked back to the incident. A document, a successful
+workflow dispatch, or an unchanged dashboard is not closure evidence by itself.
