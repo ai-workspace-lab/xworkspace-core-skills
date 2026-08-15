@@ -51,9 +51,9 @@ Route configuration, Terraform, CI/CD, Vault, DNS, and backup changes to their o
 Treat release-reference and branch cleanup as a normal, auditable change rather than an ad-hoc deletion. Run a read-only inventory weekly and retain its output as evidence.
 
 - Permanently preserve stable `v*` release tags; never move, overwrite, or delete them. Protect them with repository rulesets where available.
-- Preserve all build/environment tags from the most recent seven calendar days and at least one deployable rollback tag per environment/service.
-- Protect `main`, `master`, `develop`, and `release/*`. Preserve the current branch, branches with open PRs, active deployment references, or explicit retention labels.
-- A branch is eligible for deletion only when it is merged into the default branch, has no open PR, has no active deployment reference, and has passed a seven-day post-merge grace period. Unknown merge or deployment state means keep it.
+- Preserve all build/environment tags from the configurable recent window `RECENT_RETENTION_DAYS` (default: 7 calendar days) and at least one deployable rollback tag per environment/service.
+- Protect `main`, `master`, `develop`, and `release/*` permanently; prohibit force-push, ref replacement, and deletion. Preserve every branch that is not archived within the configurable recent window `RECENT_RETENTION_DAYS` (default: 7 calendar days), as well as branches with open PRs, active deployment references, or explicit retention labels.
+- A branch is eligible for deletion only when it is archived, merged into the default branch, has no open PR, has no active deployment reference, and has passed the configured grace period. Unknown archive, merge, or deployment state means keep it.
 - Before deletion, publish the exact candidate refs, classification, reason, repository, operator, and timestamp. Use explicit ref names; never delete with a broad wildcard.
 - After deletion, re-fetch with pruning and verify protected refs, retained rollback references, and the deletion result. Preserve local worktrees, local branches, and uncommitted files.
 - Review the retention exceptions monthly and assign an owner and expiry to every exception.

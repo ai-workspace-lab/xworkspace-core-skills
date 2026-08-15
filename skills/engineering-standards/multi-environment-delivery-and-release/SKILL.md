@@ -137,12 +137,12 @@ Split the KV tree by whether a secret has an *environment dimension* at all:
 - `feature/*` and `bugfix/*` MUST target `main`.
 - `hotfix/*` MUST target `release/*`.
 - Production deployments ONLY occur via annotated stable tags (`v*`). Stable tags are immutable release identities: never move, overwrite, or delete them after publication.
-- Protect `main` and `release/*` with required reviews/checks and no force-push or delete permission. Preserve branches with open PRs, active deployment references, or an explicit retention label.
+- Preserve `main` and `release/*` permanently. Protect them with required reviews/checks and prohibit force-push, ref replacement, and deletion; normal reviewed commits remain allowed.
 
 ### 3.1 Release and build reference retention
 
 - Treat every tag matching `v*` as a stable release tag and retain it permanently, including date-based and legacy version forms. Apply repository tag protection or a ruleset so only the release automation identity can create such tags and nobody can update or delete them.
-- Retain all build/environment tags created within the most recent seven calendar days. This includes prefixes such as `daily-build-*`, `uat-daily-build-*`, `sit-*`, and equivalent repository-specific environment tags.
+- Retain all build/environment tags created within the configurable recent window `RECENT_RETENTION_DAYS` (default: 7 calendar days). This includes prefixes such as `daily-build-*`, `uat-daily-build-*`, `sit-*`, and equivalent repository-specific environment tags.
 - Retain at least one deployable rollback tag per environment and service even when it is older than seven days; record the exception and its owner.
 - Treat older non-stable build/environment tags as cleanup candidates only after verifying that no deployment workflow, Vault/CMDB record, release note, rollback plan, or open PR references them.
 - Publish release notes or update the repository changelog with the stable tag's scope, target commit, artifact identity, deployment environments, verification evidence, and rollback reference. Do not rebuild from a moving branch after tagging.
