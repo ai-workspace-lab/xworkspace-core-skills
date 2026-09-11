@@ -56,6 +56,8 @@ OIDC contracts.
   only the short-lived value needed by the job, and use a reviewed non-file
   delivery mode only when the process can avoid logging or persisting it.
 - Deployment pipelines MUST NOT depend on volatile or unverified daily-build release assets from external repositories during automated execution. Release artifacts consumed during deployment MUST be immutable, verified in preflight, or hosted in internal artifact repositories.
+- Edge node and client provisioning scripts consuming daily builds MUST implement dynamic asset resolution (with SHA-specific bundle matching) and graceful two-tier fallback to individual standalone binaries; see `multi-environment-delivery-and-release` §1.1.1.
+- Release promotion from non-production (UAT) to production (PROD) MUST require explicit, verified immutable snapshot source refs and enforce backend-first deployment gates before publishing frontend assets; see `multi-environment-delivery-and-release` §1.5.1.
 
 ### 1.1 Jenkins migration policy
 

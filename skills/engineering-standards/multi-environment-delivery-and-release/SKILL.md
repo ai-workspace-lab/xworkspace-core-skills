@@ -39,6 +39,17 @@ version. Failed retries retain their tags and use a new `-rN` suffix. The
 snapshot summary must preserve the workflow URL, per-repository SHA/build
 status, artifact evidence, and any retry reason.
 
+### 1.1.1 Daily build asset resolution and resilient client provisioning
+
+Client and edge-node provisioning scripts (such as `setup-proxy.sh`) that consume daily builds must not assume rigid, unversioned asset filenames:
+
+1. **Dynamic Asset Discovery**: Query the GitHub Releases API or release asset list to match hashed bundles (e.g. `artifact-${goarch}-<hash>.tar.gz`) or latest daily build tags.
+2. **Two-Tier Download Fallback**: If the composite tarball is missing, incomplete, or corrupted, automatically fall back to downloading standalone individual binaries before failing.
+3. **Legacy Binary & Service Migration**: When binary names evolve (e.g., `agent-svc-plus` -> `xconnect-edge-agent`), installation logic must:
+   - Gracefully stop and disable prior legacy systemd units (`agent-proxy`, `agent-svc-plus`).
+   - Create backward-compatible symlinks in `/usr/local/bin/`.
+   - Ensure permissions and certificates are seamlessly adopted without requiring host reboot.
+
 ### 1.2 Universal Zero-Production-Fallback Rule (零生产兜底原则)
 
 - **Default 绝不包含生产端点与资源**：在所有源代码、编译/构建模板、配置管理脚本（Ansible defaults/vars）、容器编排清单（Docker Compose / Kubernetes / Helm）及服务默认配置文件中，绝对禁止将生产环境的域名、IP、数据库 DSN、密钥或服务端点作为兜底退回值（default/fallback）。
@@ -88,6 +99,14 @@ The preflight MUST verify the event, ref, source SHA, tag immutability, artifact
 artifact digest/provenance, GitOps desired version, Vault role/KV path, target route, and
 required test conclusions before any production credential is read or deployment mutation
 starts.
+
+### 1.5.1 UAT to PROD Promotion Execution Contract
+
+When promoting an immutable build from UAT to PROD via `daily-main-snapshot.yaml`:
+1. **Source Reference Validation**: `snapshot_source_ref` must explicitly point to an existing, verified non-production snapshot tag (`uat-daily-build-YYYY.MM.DD-rN` or `daily-build-YYYY.MM.DD-rN`). Direct promotion from moving `main` is strictly prohibited.
+2. **Target Release Tag**: `snapshot_tag` must be a valid, immutable SemVer or calendar-versioned release tag (`vYYYY.MM.DD[-rN]` or `vX.Y.Z`).
+3. **Preflight Cross-Org Matrix**: All participating repositories in `daily-snapshot-builds.json` must have their container images or release binaries built and verified for that exact tag.
+4. **Backend-First Deployment Gating**: Downstream orchestrators (`serverless-orchestrator.yml`) must gate the frontend Cloudflare deployment on a 100% successful Cloud Run backend rollout. Never publish frontend assets against a failed or partial backend.
 
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
