@@ -47,6 +47,8 @@ flowchart TD
 ### 1. 现状分析 (Analyze Current State)
 需求锚定之后、动手之前，禁止直接修改代码。
 - **关联标准**：[`references`](../references/)
+- 涉及 Zero Trust overlay、Gateway、受控客户端或隧道传输时，同时读取
+  [`zero-trust-overlay-delivery`](../zero-trust-overlay-delivery/)，先确认控制面、数据面和配置所有权。
 - **动作**：通过阅读 `references`（如 Repo Map）准确理解系统架构、依赖关系和仓库边界。评估当前环境的状态，确保下一步计划的安全边界。
 
 ### 2. 规划最小变更 (Plan the Smallest Change)
@@ -60,6 +62,7 @@ flowchart TD
 - **关联标准**：
   - [`config-as-code-spec`](../config-as-code-spec/)：若涉及配置修改，确保配置代码化、声明式。
   - [`infrastructure-as-code-spec`](../infrastructure-as-code-spec/)：若涉及云资源或基础设施变更，确保使用 IaC（如 Terraform）并遵循模块化最佳实践。
+  - [`zero-trust-overlay-delivery`](../zero-trust-overlay-delivery/)：若涉及覆盖网络，确保目标值来自规范化声明，运行时凭据和 peer 状态不进入 GitOps。
 - **动作**：保持用户现场整洁（不破坏未追踪文件），遵循单一职责原则进行 Commit。
 
 ### 4. 生成可验证制品 (Generate Verifiable Artifact)
@@ -72,6 +75,8 @@ flowchart TD
 ### 5. 验证与人类审查 (Validate & Human Review)
 所有制品必须经过自动化门禁和（必要时的）人类确认。
 - **关联标准**：[`ci-cd-workflow-spec`](../ci-cd-workflow-spec/)
+- 覆盖网络变更还必须按
+  [`zero-trust-overlay-delivery`](../zero-trust-overlay-delivery/) 区分 ACK、真实 peer handshake 和私网流量验收，避免配置已下发但数据面未通被误判为成功。
 - **动作**：依赖 CI Pipeline 的静态检查、自动化测试、安全扫描进行拦截。若 CI 失败，必须回到 "Execute One Step" 进行修复；严禁忽视 CI 报错强组合入。
 
 ### 6. 成功：下一增量与发布 (Success: Next Increment)
@@ -87,6 +92,8 @@ flowchart TD
   - [`ai-agent-collaboration-standard`](../ai-agent-collaboration-standard/)：执行应急响应预案（如凭证泄露强制洗库，违规操作强制 `git revert`）。
   - [`project-development-standard`](../project-development-standard/)：使用对应的故障处理流（如通过 `hotfix/*` 分支修复发布环境问题）。
 - **动作**：清理现场，恢复到安全基线，重新回到“现状分析 (Analyze Current State)”节点进行调整。
+- 覆盖网络故障必须把脱敏后的症状、违反的不变量、责任层、证据和新增 guard
+  回写到 [`zero-trust-overlay-delivery`](../zero-trust-overlay-delivery/) 的学习闭环；不得把一次性 IP、主机名或密钥写成新的默认值。
 
 ## 核心心智模型 (Mindset)
 
