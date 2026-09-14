@@ -19,6 +19,41 @@ Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-reposi
 4. If a secret was committed: revoke it FIRST, rewrite history second (see below).
 5. Preserve unrelated local changes. Inspect `git status --short --branch` before switching branches or staging; only stage named target paths.
 
+## Local `main` and worktree discipline
+
+The local `main` checkout is an integration mirror, not a development workspace.
+Use it only to fetch, fast-forward, inspect the merged result, and create an
+isolated worktree. Do not edit files, run experimental deployment changes, or
+accumulate uncommitted work on local `main`.
+
+Before pulling or changing branches:
+
+1. Run `git status --short --branch` and classify every tracked and untracked
+   path. Never use `reset --hard`, `clean`, `checkout -- <path>`, or an
+   unrecorded stash to make a dirty checkout pullable.
+2. If local `main` is dirty, preserve the named work in a topic or recovery
+   branch first. A recovery commit is acceptable when it is the safest way to
+   preserve the exact local state; it is not automatically a merge candidate.
+3. Compare the preserved snapshot with `origin/main` before opening a PR.
+   Files already present with identical content on `origin/main` are not new
+   work and must not be recommitted merely because an old local checkout showed
+   them as untracked.
+4. Update the integration mirror only after it is clean, using
+   `git fetch origin main` and `git pull --ff-only`. A non-fast-forward result
+   requires investigation, not a forced update.
+
+Prefer one worktree per task:
+
+```bash
+git fetch origin main
+git worktree add ../<repo>-<task> -b feature/<issue>-<task> origin/main
+```
+
+All edits, commits, tests, and PR work happen in that topic worktree. Keep the
+local `main` worktree clean and short-lived. If an uncommitted change is found
+on `main` after work has started, stop and perform the preservation/comparison
+sequence above before doing anything else.
+
 ## Branch kinds and PR targets
 
 | Branch | Purpose | PR target |
@@ -87,6 +122,26 @@ For a coordinated build across repositories:
 The handoff must state whether the snapshot is deployable, tag-ready only, or
 blocked, and include per-repository evidence. A successful build in one
 repository does not establish a successful cross-repository release.
+
+### Release, consumer-pin, and deployment order
+
+When a workflow consumes artifacts from another repository, use this order:
+
+1. Merge the producer implementation through its PR and verify the merged
+   commit.
+2. Publish a new immutable release tag from that reviewed commit and verify
+   the expected assets/checksums.
+3. Update each consumer's GitOps/workflow release tag and source SHA in a
+   separate focused PR. Do not dispatch deployment using stale pins.
+4. Wait for the consumer PR checks, merge it, and record the resulting
+   immutable refs.
+5. Dispatch UAT with those exact refs; promote further only after the UAT
+   acceptance evidence is complete.
+
+If a preflight fails before resource mutation, fix the owning contract first.
+Do not bypass the check by widening a Vault policy, accepting a mutable ref, or
+reusing an old release. For cross-repository changes, record the dependency
+order and rollback owner in each PR.
 
 ### Production ref and tag gate
 

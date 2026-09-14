@@ -1,6 +1,6 @@
 ---
 name: harness-workflow
-description: Agent Harness 工作流核心技能。定义了“工程闭环 × 小步快跑”的核心逻辑，并将各项工程标准（协作规范、项目开发、CI/CD、配置/基础设施即代码、多环境发布等）串联入该循环中。
+description: Agent Harness 工作流核心技能。定义了“工程闭环 × 小步快跑”的核心逻辑，并将工程标准与运营管理（协作规范、项目开发、CI/CD、配置/基础设施即代码、多环境发布、workflow dispatch、资源生命周期、Vault、DNS、观测和故障闭环）串联入该循环中。
 ---
 
 # Agent Harness Workflow
@@ -85,6 +85,26 @@ flowchart TD
   - [`multi-environment-delivery-and-release`](../multi-environment-delivery-and-release/)：环境路由与发布鉴权。
   - [`issue-pr-traceability-standard`](../issue-pr-traceability-standard/)：**闭环的收尾是回写需求**——带着证据（PR 编号 + CI 结论 + 部署记录）关闭 Issue；证据不全或只完成一部分，就不关，拆剩余项到新 Issue。
 - **动作**：遵循环境路由刚性锁定（如 PR 对应 SIT，主干合并对应 UAT，打 Tag 对应 Prod）。通过 Git 语义化操作触发 CD 部署，完成本次闭环。
+
+### 6.1 运营落地与验证闭环 (Operational Realization)
+
+代码合入只是工程闭环的一半。进入部署、资源操作或运行维护后，按
+`operations-management` 下的专门技能继续完成运营闭环，不把“workflow
+绿色”或“页面显示在线”当作最终证据：
+
+- **GitHub Actions dispatch**：先读取实际 workflow 的输入、默认值和隐含约束，执行本地 preflight；对 destroy、DNS cutover、restore、生产目标和凭证轮换等高风险字段单独确认，然后 dispatch 并独立核验结果。
+- **资源生命周期**：先枚举精确资源、所有权、租约、成本和回滚点；Spot、临时节点、快照、IP、DNS、Terraform state 和凭证撤销分别记录，不能把一个清理授权扩展成全部清理。
+- **身份与秘密**：验证 workflow 的 OIDC role、`job_workflow_ref`、Vault policy 和实际 KV 读取路径组成完整契约；新增 secret read 必须同时更新配置并由授权身份 apply，使用最小精确路径，禁止用 wildcard 或 dispatch token 绕过 403。
+- **网络与服务**：DNS/TLS 变更先验证权威解析、证书和边界可达性；部署后从用户边界和依赖边界分别验证，服务进程、ACK、handshake、私网流量、HTTP 标记和监控数据要区分记录。
+- **故障与收尾**：失败时保留脱敏日志和资源状态，按 incident/change runbook containment → evidence → bounded fix → review → deploy → observation window → action closure 执行；预防性 guard 通过可重复测试后才关闭行动项。
+
+对应技能：
+[`github-actions-operational-dispatch`](../../operations-management/github-actions-operational-dispatch/)、
+[`capacity-cost-and-resource-lifecycle`](../../operations-management/capacity-cost-and-resource-lifecycle/)、
+[`secrets-identity-and-access-governance`](../../operations-management/secrets-identity-and-access-governance/)、
+[`network-dns-tls-edge-management`](../../operations-management/network-dns-tls-edge-management/)、
+[`observability-slo-and-alerting`](../../operations-management/observability-slo-and-alerting/)、
+[`incident-response-and-change-management`](../../operations-management/incident-response-and-change-management/)。
 
 ### 7. 失败：回滚与重规划 (Failure: Rollback / Replan)
 遇到质量门禁拒绝、安全漏洞或部署失败时，必须进入标准化止损流程。
