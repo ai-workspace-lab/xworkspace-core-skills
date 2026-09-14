@@ -30,6 +30,8 @@ description: AI Workspace Infra 人机协作与安全执行纪律。用于维护
 5. **保留用户现场**：先运行 `git status --short --branch`。未追踪或无关修改默认归用户所有；不得为切换分支、清理测试或方便提交而 reset、checkout、stage、删除它们。
 6. **先验证作用域再破坏**：删除 VPS、快照、DNS、Terraform state、Vault metadata 或发布制品前，先只读列出精确目标、影响和回滚点；获得明确授权后才执行。授权删除实例不自动等于授权删除快照、DNS 或 state。
 
+本地 `main` 只作为干净的集成镜像：发现脏工作树时先保留并分类本地改动，再从最新 `origin/main` 创建独立 topic worktree；不得通过丢弃、清理或强制同步来“解决” `git pull` 冲突。具体恢复与同步步骤遵循 `project-development-standard` 的 Local `main` and worktree discipline。
+
 ## 3. 标准开发工作流 (SOP)
 
 所有特性开发必须严格遵循以下阶段流转：

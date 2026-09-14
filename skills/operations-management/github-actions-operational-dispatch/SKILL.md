@@ -26,3 +26,20 @@ Actions provides `status` and `conclusion` on the run; use them to know when a d
 ## 5. Stay inside the dispatch boundary
 
 Only call `workflow_dispatch` (or equivalent) against workflows the operator has explicitly authorized for this target. Do not create branches, tags, or PRs to route around a workflow's trigger rules; do not modify the workflow, its scripts, or the repositories it deploys as a side effect of getting a dispatch to succeed. If a legitimate request cannot be satisfied within the existing trigger/authorization rules, say so and stop — that is a routing problem for the operator to fix, not something to bypass from a chat session.
+
+## 6. Dispatch closeout is an operational handoff
+
+After a dispatch, record a redacted operation record containing the repository,
+workflow, run URL/ID, resolved inputs, source SHA or release tag, environment,
+target scope, start/end state, and independent verification evidence. Classify
+the result as `not_started`, `preflight_failed`, `mutated_and_failed`,
+`verified`, or `verified_with_observation`; do not collapse a preflight failure
+or an in-progress lease into “success”.
+
+For a mutating run, hand the result to the owning operations skill: resource
+and lease state to `capacity-cost-and-resource-lifecycle`, DNS/TLS state to
+`network-dns-tls-edge-management`, credentials and denied-path evidence to
+`secrets-identity-and-access-governance`, service metrics to
+`observability-slo-and-alerting`, and material failures to
+`incident-response-and-change-management`. The action is closed only when the
+declared observation/rollback window and its evidence are complete.

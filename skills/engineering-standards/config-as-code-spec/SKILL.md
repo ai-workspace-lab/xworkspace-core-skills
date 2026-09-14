@@ -50,6 +50,8 @@ ansible -i inventory/terraform_cmdb.py <hostname> -m ping
 - Terraform 负责云主机、网络、安全组、负载均衡、DNS 基础资源及状态输出。
 - Ansible 负责操作系统配置、软件安装、服务部署、运行时配置和应用级验证。
 - 跨 IaC、CI 与 Playbooks 的业务敏感状态，其权威来源和交接媒介 MUST 为 Vault；不得由 GitHub Secret、artifact、临时文件或手工环境变量替代。
+- GitOps 中的 `resources/<project>/<env>/<provider>/*.yaml` 是非敏感的期望状态声明；它描述项目、环境、服务商和资源参数，不承载密码、Token、私钥或运行时配置。IaC 渲染器从该路径读取声明并输出 CMDB，Ansible 只消费 CMDB 与 Vault，不得反向修改或在 `playbooks/` 中维护第二份拓扑。
+- 任何跨仓库交接都必须保留同一个 `<project>/<env>/<provider>` 元组、提交 SHA 和状态标识。环境或服务商改变时创建新的声明路径和独立 state，禁止通过默认值把 UAT、生产或不同云账户混到同一清单。
 
 ## 3. Credentials and Vault
 

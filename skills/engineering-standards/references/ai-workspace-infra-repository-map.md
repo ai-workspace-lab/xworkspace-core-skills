@@ -30,13 +30,12 @@ independent repositories, not one monorepo. Discover the target's own
    `playbooks/inventory/terraform_cmdb.py` translates the CMDB into Ansible
    groups and host variables. Never commit a generated inventory or replace it
    with a host/IP literal in a delivery path.
-3. **Topology migration is incomplete:** `gitops` documents
-   `resources/<project>/<env>/<provider>/` as the declaration home, but the
-   current `platform-ops.yaml` still renders Vultr host declarations from
-   `iac_modules/terraform-hcl-standard/vultr-vps/config/resources/<env>/*.yaml`.
-   Treat the executing workflow and renderer as authoritative. Do not duplicate
-   or relocate declarations until the consumer is changed in the same reviewed
-   migration.
+3. **Topology ownership:** `gitops` is the canonical home for non-sensitive
+   declarations under `resources/<project>/<env>/<provider>/*.yaml`. The IaC
+   repository contains reusable modules, templates, renderers and state
+   adapters; it must not retain a second provider/environment configuration
+   tree. A consumer migration is complete only when its renderer accepts the
+   GitOps path explicitly and CI proves that the old path is no longer read.
 4. **Workflow code wins over prose:** README pages can describe an earlier route
    or blast radius. Before changing a delivery path, inspect its workflow,
    external scripts, and actual job conditions; update drifted docs in the same
@@ -46,7 +45,10 @@ independent repositories, not one monorepo. Discover the target's own
    credential, or a plaintext generated secret. Adding a Vault-using workflow
    also requires the managed Vault role's exact `job_workflow_ref` allowlist to
    be updated through its configuration-as-code source and applied by an
-   authorized operator.
+   authorized operator. Use an environment-first KV v2 layout such as
+   `kv/<env>/platform/{oidc,jwt,cloudflare,gcp,observability,gitea}` and
+   `kv/<env>/services/{xconnect,ai-workspace}`; do not introduce shared
+   credential paths or cross-environment wildcard reads.
 6. **Destructive operations:** Enumerate exact provider resources first; require
    explicit confirmation for deletion, DNS cutover, source-instance destruction,
    state removal, or snapshot cleanup. Preserve a rollback point unless the user
