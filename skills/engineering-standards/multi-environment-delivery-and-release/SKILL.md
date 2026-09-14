@@ -22,6 +22,21 @@ For `platform-ops-toolkit/platform-ops.yaml`, preserve the mapped resource file,
 workspace, backend key, domain base, and Vault role as one atomic profile. Changing
 only one of them can make Terraform manage one host while Ansible deploys another.
 
+### 1.0 GitOps declaration and promotion contract
+
+- The desired-state file is selected by the explicit tuple
+  `resources/<project>/<env>/<provider>/*.yaml`; workflow inputs, Terraform
+  workspaces, backend keys, Vault roles, CMDB output, and deployment targets MUST
+  resolve to that same tuple before credentials are read.
+- A UAT promotion MUST validate the exact GitOps commit and immutable artifact
+  first, then promote that same commit/artifact identity to PROD through a PR or
+  protected release action. Do not rebuild from `main`, silently rewrite image
+  tags, or infer a production path from a missing environment value.
+- Rollback keeps the previous GitOps commit, state snapshot, artifact digest, and
+  environment-specific Vault references available until the observation window
+  closes. A rollback in one environment does not mutate another environment's
+  declaration or state.
+
 ### 1.1 Cross-repository snapshot and deployment boundary
 
 An immutable cross-repository snapshot is a build/release candidate, not an
