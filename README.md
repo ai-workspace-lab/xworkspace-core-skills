@@ -80,7 +80,7 @@
 | IaC 规约（iac_modules） | 拓扑/规格 YAML 驱动、Backend State 按环境隔离、HCL 保持纯声明、经 Vault/CMDB 与配置层解耦 | `skills/engineering-standards/infrastructure-as-code-spec/SKILL.md` |
 | Config-as-Code 规约（playbooks） | Ansible 剧本：Vault-first 凭证零落盘、剧本纯净度与可复用抽象、消费上游 IaC 输出（CMDB/Vault） | `skills/engineering-standards/config-as-code-spec/SKILL.md` |
 | AI 代理协作标准 | 人机协作约束与 AI 代理团队执行纪律：权限边界、容错应急响应、工作流基准 | `skills/engineering-standards/ai-agent-collaboration-standard/SKILL.md` |
-| 应用商店与初创扶持官网规范 | 满足 Google/Apple/微软应用商店上架与 Google for Startups 审核的主页设计、品牌/文案/数据流/SEO/GEO 交付规范 | `skills/engineering-standards/store-and-startup-homepage-spec/SKILL.md` |
+| 应用商店与初创扶持官网规范 | 项目级标准：满足 Google（Startups/Play/Android）、Apple、Microsoft 公司与应用审核的官网设计、域名边界、真实性红线、商店对照表，以及部署后 post-check 清单与自检 | `skills/engineering-standards/store-and-startup-homepage-spec/SKILL.md` |
 
 ## Examples
 

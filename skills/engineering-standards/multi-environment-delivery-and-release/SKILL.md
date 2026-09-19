@@ -140,6 +140,16 @@ When promoting an immutable build from UAT to PROD via `daily-main-snapshot.yaml
 2. **两阶段验证铁律**：客户端/Daemon 发版必须遵循 `打 Tag -> Actions 产出 Release 资产 -> xconnect-one-uat.yaml (dry-run) -> xconnect-one-uat.yaml (apply) -> 观测 30 分钟`。
 3. **禁止节点就地热修**：严禁 SSH 登录 UAT 机器直接修改二进制文件；任何变更必须有 Git 提交、PR 评审、发布 Tag 和 CI 构建产物。
 
+### 1.7 Post-deploy public-site review-readiness check
+
+A deploy that touches the brand domain's edge routing, SSR public/content boundaries or Pages MUST run the review-readiness post-check from `store-and-startup-homepage-spec` §9 before it is reported successful, in every environment (SIT/UAT/Prod):
+
+- public pages return 200 in place on the brand host (no 3xx), the homepage shows the legal name, `/contact` and `/support` expose only the company-domain mailbox, `robots.txt`/`sitemap.xml` are valid;
+- a Cloudflare challenge seen from the runner is a warning (datacenter IPs), not a pass or a fail, unless strict mode is set;
+- ordering: ship the application change that makes a page pass BEFORE merging a check that requires it, otherwise the pipeline blocks itself.
+
+Implemented by `scripts/serverless_uat/verify_brand_site_review_readiness.sh` in `platform-ops-toolkit`.
+
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
 - Authentication must use GitHub OIDC → Vault JWT.
