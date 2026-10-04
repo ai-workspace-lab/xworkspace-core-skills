@@ -1,6 +1,6 @@
 ---
 name: ci-cd-workflow-spec
-description: General CI/CD workflow standards for AI Workspace Infra pipelines and external scripts. Use when creating, refactoring, or auditing CI, CD, promotion, deployment, or GitHub Actions workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers CI/CD separation, reusable scripts, immutable artifacts, least-privilege OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
+description: General CI/CD workflow standards for AI Workspace Infra pipelines and external scripts. Use when creating, refactoring, or auditing CI, CD, promotion, deployment, or GitHub Actions workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers cross-repository control-plane ownership, CI/CD separation, reusable scripts, immutable artifacts, least-privilege OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
 ---
 
 # CI/CD Workflow Specification
@@ -503,7 +503,7 @@ add an assertion:
     TF_STATE_ACCESS_KEY: ${{ steps.vault.outputs.TF_STATE_ACCESS_KEY }}
 ```
 
-## 14. Domain-CD delegation — platform-ops-toolkit as orchestrator only
+## 14. Cross-repository ownership — orchestration is not execution
 
 `platform-ops-toolkit` owns the delivery control plane: environment selection,
 immutable artifact provenance, approvals, phase ordering, dispatch, and release
@@ -546,8 +546,7 @@ deploy_<domain>:
 - **No `runs-on:` on `uses:` jobs.** The reusable workflow declares its own runner.
 - **No `env:` on `uses:` jobs.** Pass configuration via `with:` inputs only.
 - **No `steps:` on `uses:` jobs.** The reusable workflow owns all step logic.
-- **Vault roles for `playbooks` must be provisioned.** The `vault_auth_split.sh`
-  The orchestrator's Vault bootstrap must create a `github-actions-<playbooks-repo>-{env}`
+- **Vault roles for `playbooks` must be provisioned.** The orchestrator's Vault bootstrap must create a `github-actions-<playbooks-repo>-{env}`
   role per environment, with `job_workflow_ref` pinned to that repo's CD workflow files.
 
 ### Where the domain list lives
@@ -568,7 +567,9 @@ to an existing domain's CD workflow; a new domain gets one more delegating job.
 
 For a new or substantially changed UAT/PROD upgrade path, resolve each change
 to one owner before editing. This is a required review boundary, not a request
-to move unrelated legacy files during a focused fix.
+to move unrelated legacy files during a focused fix. Apply the boundary by
+role when repository names differ; do not create an extra repository just to
+match this example.
 
 | Owner | Put here | Do not put here |
 | --- | --- | --- |
@@ -576,6 +577,7 @@ to move unrelated legacy files during a focused fix.
 | `playbooks` | reusable, parameterized Ansible roles/playbooks for host and database preflight, encrypted backup, isolated restore verification, migration, deployment, application rollback and business probes | workflow-specific, one-off copies of the same shell command per phase/environment |
 | `gitops` | public desired state: environment topology, routing, pinned image identities, backup target/root and release settings | credentials, imperative execution, generated CMDB or inventory |
 | `iac_modules` | reusable Terraform modules/renderers that provision the required storage, mount, capacity and CMDB facts | release decisions, application deployment, host-specific desired-state copies |
+| service repository | reviewed incremental SQL, compatibility tests, application image and immutable digest | cloud identity, host provisioning, release approval |
 
 Before adding a script under `platform-ops-toolkit/.github/scripts/`, verify
 that its behavior is control-plane-only. An entrypoint that must run `pg_dump`,
@@ -602,6 +604,13 @@ the toolkit orchestrator. CI in each owner repository tests its own behavior.
 Only after the reviewed dependencies are available may the toolkit enable the
 live UAT phase. A missing phase implementation is a blocked release, not a
 successful no-op.
+
+When consolidating or renaming workflow entries, migrate **every** caller,
+reusable-workflow input, permission boundary, Vault `job_workflow_ref`
+allowlist, contract test and operator runbook before deleting the old entry.
+Make legacy data imports an explicit UAT-only operation rather than a side
+effect of an ordinary upgrade. A renamed YAML file alone is not a working
+migration or evidence of safe execution.
 
 ## 15. Environment resolution — keep the expression simple
 
