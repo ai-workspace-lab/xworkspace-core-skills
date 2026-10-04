@@ -21,6 +21,7 @@ Read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-reposi
 - Environment routing (SIT/UAT/Prod) & Vault OIDC role names → `multi-environment-delivery-and-release`
 - No-inline-scripts / code purity for HCL & playbooks → `infrastructure-as-code-spec`, `config-as-code-spec`
 - Branching, PR targets, and committed-secret response → `project-development-standard`
+- Cross-repository execution-script ownership and safe removal → [execution-ownership-migration](../execution-ownership-migration/SKILL.md)
 
 ## 1. Supported pipeline adapters
 
@@ -563,7 +564,7 @@ provisioner's per-domain host list, calling that domain's reusable CD workflow.
 The orchestrating workflow must not grow per-service steps. A new service belongs
 to an existing domain's CD workflow; a new domain gets one more delegating job.
 
-### Release execution ownership across the four infra repositories
+### Release execution ownership across the infra repositories
 
 For a new or substantially changed UAT/PROD upgrade path, resolve each change
 to one owner before editing. This is a required review boundary, not a request
@@ -577,13 +578,16 @@ match this example.
 | `playbooks` | reusable, parameterized Ansible roles/playbooks for host and database preflight, encrypted backup, isolated restore verification, migration, deployment, application rollback and business probes | workflow-specific, one-off copies of the same shell command per phase/environment |
 | `gitops` | public desired state: environment topology, routing, pinned image identities, backup target/root and release settings | credentials, imperative execution, generated CMDB or inventory |
 | `iac_modules` | reusable Terraform modules/renderers that provision the required storage, mount, capacity and CMDB facts | release decisions, application deployment, host-specific desired-state copies |
+| Observability owner | telemetry-specific collection, pipeline and service logic | generic platform topology or a Toolkit-local duplicate |
 | service repository | reviewed incremental SQL, compatibility tests, application image and immutable digest | cloud identity, host provisioning, release approval |
 
 Before adding a script under `platform-ops-toolkit/.github/scripts/`, verify
 that its behavior is control-plane-only. An entrypoint that must run `pg_dump`,
 `psql` for a mutation, `pg_restore`, `ssh` to change a host, or a provider
-deployment command is execution logic: implement it in a shared `playbooks`
-role and dispatch that role from the toolkit. Keep adapter scripts thin and
+deployment command is execution logic: put host/database work in a shared
+`playbooks` role, provider resource work in `iac_modules`, and telemetry-specific
+work with its Observability owner. Toolkit retains its GitOps reader/validator
+and indispensable control-plane adapters. Keep adapter scripts thin and
 parameterized by environment, phase, immutable release, reviewed database
 version/checksum, and CMDB target. Do not create a separate copy for UAT,
 PROD, and each service when one role can validate those inputs.

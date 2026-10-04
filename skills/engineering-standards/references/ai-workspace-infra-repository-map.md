@@ -14,15 +14,15 @@ independent repositories, not one monorepo. Discover the target's own
 | `gitops` | Kustomize/Flux declarations and non-sensitive desired state | Secrets, generated inventories, playbooks, imperative scripts, application charts | `kustomize build` for each touched base/overlay. |
 | `playbooks` | Ansible entry playbooks, reusable parameterized roles, dynamic CMDB inventory, host configuration, backup/restore and migration execution, business acceptance probes | Terraform resource ownership, GitOps desired state, generated infrastructure declarations, committed credentials | Run `ansible-playbook --syntax-check` for touched entrypoints; validate the exact generated inventory and use check mode where the role supports it. |
 | `iac_modules` | Reusable Terraform modules, renderers, provider abstractions, generated CMDB contract | Credentials, hand-maintained inventory, service deployment | Apply `terraform-hcl-standard/AGENTS.md`; run `terraform fmt`/`validate` and renderer/inventory checks where available. |
-| `observability.svc.plus` | Pigsty/Ansible-based observability stack, compose/templates, monitoring roles | General platform topology or unrelated app charts | Syntax-check touched playbooks/roles; treat DNS and ACME readiness as a deployment precondition. |
-| `platform-ops-toolkit` | Control-plane workflows, Vault OIDC integration, release gates/dispatch, immutable artifact and sanitized receipt validation, Terraform orchestration | New host/database backup, restore, SQL migration or service deploy implementation; provider modules, persistent secrets, hand-written inventory | Validate touched scripts and workflow YAML; verify each executable phase delegates to its owner and fails closed on missing evidence. |
+| `observability` (or its current owner repo) | Telemetry-specific collection, pipelines, dashboards and observability service implementation | General platform topology or unrelated app charts | Validate touched telemetry config and service tests; use Playbooks role checks for generic host operations. |
+| `platform-ops-toolkit` | Control-plane workflows, Vault OIDC integration, GitOps reader/validator, release gates/dispatch, immutable artifact and sanitized receipt validation, Terraform orchestration | Reusable host/database backup, restore, SQL migration, provider resource or observability execution; persistent secrets, hand-written inventory | Validate touched scripts and workflow YAML; verify each executable phase delegates to its owner and fails closed on missing evidence. |
 
 ## Cross-repository contracts
 
 1. **Artifact flow:** `artifacts` publishes build outputs; `gitops` selects desired
    Kubernetes state; `iac_modules` provisions resources and produces CMDB facts;
    `platform-ops-toolkit` orchestrates the delivery; `playbooks` applies host
-   configuration and migration/restore roles; `observability.svc.plus` owns its
+   configuration and migration/restore roles; the Observability owner owns its
    observability deployment layer. Do not move a concern across these boundaries
    just to make one PR convenient.
 2. **Topology and inventory:** `cmdb.json` and `inventory.ini` are derived build
@@ -93,7 +93,7 @@ independent repositories, not one monorepo. Discover the target's own
   dependencies and API readiness before initialization, treat the init-key file
   as a protected state artifact, and never regenerate or reset storage merely
   because the key file is absent without an explicit recovery decision.
-- `observability.svc.plus` combines Ansible, Pigsty-like entry playbooks, Docker
+- The Observability repository combines Ansible, Pigsty-like entry playbooks, Docker
   Compose, Terraform, and shell installers. Change only the layer that owns the
   requested behavior. For public HTTPS changes, verify the DNS record exists
   before relying on Caddy/ACME.

@@ -76,6 +76,7 @@
 | Issue/PR 溯源与需求事实来源 | 需求以 Issue 为准、Issue→分支→PR→CI→部署→tag 溯源链、Agent 自取上下文、验收标准可证伪 | `skills/engineering-standards/issue-pr-traceability-standard/SKILL.md` |
 | 工程开发规范 | 通用分支类型/PR 目标矩阵、合并策略、发布打 tag 规则、密钥泄露应急流程 | `skills/engineering-standards/project-development-standard/SKILL.md` |
 | CI/CD 工作流规约 | CI 与 CD 分离、脚本外置与复用、最小权限 OIDC、制品不可变、假绿防治 | `skills/engineering-standards/ci-cd-workflow-spec/SKILL.md` |
+| 执行逻辑归属迁移 | Toolkit 控制面与 Playbooks/IaC/GitOps/Observability 的边界；按新增归属实现→切换调用→验证→删除旧副本迁移 | `skills/engineering-standards/execution-ownership-migration/SKILL.md` |
 | 多环境交付与发布 | 通用 SIT/UAT/Prod 路由规则、GitHub OIDC → Vault 鉴权隔离、密钥泄露应急流程 | `skills/engineering-standards/multi-environment-delivery-and-release/SKILL.md` |
 | IaC 规约（iac_modules） | 拓扑/规格 YAML 驱动、Backend State 按环境隔离、HCL 保持纯声明、经 Vault/CMDB 与配置层解耦 | `skills/engineering-standards/infrastructure-as-code-spec/SKILL.md` |
 | Config-as-Code 规约（playbooks） | Ansible 剧本：Vault-first 凭证零落盘、剧本纯净度与可复用抽象、消费上游 IaC 输出（CMDB/Vault） | `skills/engineering-standards/config-as-code-spec/SKILL.md` |
