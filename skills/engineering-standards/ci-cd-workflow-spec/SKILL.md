@@ -432,10 +432,11 @@ passes. Branch names and PR targets follow `project-development-standard`.
 
 ## 13. AI Workspace Infra workflow rules
 
-- In `platform-ops-toolkit`, keep non-trivial logic in executable
-  `.github/scripts/` files. Workflow `run:` entries invoke scripts; pass values
-  via `env:`. Validate only the touched scripts with `bash -n`, parse touched YAML,
-  and run the workflow's existing PR gate.
+- In `platform-ops-toolkit`, keep non-trivial **control-plane** logic in
+  executable `.github/scripts/` files. Workflow `run:` entries invoke scripts;
+  pass values via `env:`. Put host/database execution in its owning reusable
+  playbook role (§14), then validate touched scripts with `bash -n`, parse
+  touched YAML, and run the workflow's existing PR gate.
 - Keep the domain-delivery sequence intact: render topology → Terraform → generate
   CMDB/inventory → upload/download CMDB artifact → Ansible. A replacement instance
   must be adopted into the original Terraform state before inventory generation.
@@ -504,56 +505,25 @@ add an assertion:
 
 ## 14. Cross-repository ownership — orchestration is not execution
 
-For a delivery spanning an orchestration repository and separate GitOps, IaC,
-playbook, and service repositories, assign one authoritative owner per layer.
-`platform-ops-toolkit` is this platform's control plane, not a catch-all
-execution repository. Apply the same boundary by *role* when repositories have
-different names; it does not grant permission to create extra repositories.
+`platform-ops-toolkit` owns the delivery control plane: environment selection,
+immutable artifact provenance, approvals, phase ordering, dispatch, and release
+evidence validation. It may orchestrate Terraform, CMDB, migration and DNS
+work, but the workflow itself MUST NOT implement database backup/restore,
+schema changes, host bootstrap, or application deployment. Those operations
+belong to the repository that owns the resource or execution mechanism.
 
-| Layer | Owns | Does not own |
+### Boundary contract
+
+| Concern | `platform-ops-toolkit` | `playbooks` domain-cd workflow |
 |---|---|---|
-| Control plane (`platform-ops-toolkit`) | workflow entry, explicit environment/provider selection, approval and concurrency, immutable ref/digest and evidence gates, dispatch, sanitized release receipt | provider resource definitions, long-running host scripts, SQL migration implementation, application build/deploy |
-| Desired state (`gitops`) | non-secret target declarations, provider/account/region, host lifecycle and storage intent, state key, Vault path references | credentials, remote execution, Terraform implementation |
-| Provisioning (`iac_modules`) | reusable provider modules/renderers, resource protection, plan validation, CMDB/inventory generation from applied state | release policy, business SQL, service configuration |
-| Host operations (`playbooks`) | parameterized roles for disk preparation, backup, isolated restore proof, migration invocation, application deployment and runtime checks | deciding a release's environment, provider, or approval outcome |
-| Service repository | reviewed incremental SQL and compatibility tests, application image and digest | cloud identity or host provisioning |
-
-Control-plane scripts may parse inputs, verify claims, coordinate adapters, and
-validate sanitized evidence. If a workflow contains provider API loops,
-database dumps, filesystem formatting, service installation, or substantial
-business SQL, move that implementation to its owning reusable module or role;
-keep only typed parameters and a narrow dispatch in the control plane. Group
-repeated host operations by parameterized playbook *shape*, not one wrapper per
-environment, host, or workflow step.
-
-### Delegation contract
-
-- A mutating action requires a reviewed, version-pinned implementation in the
-  owning repository and an exact OIDC/Vault workflow allowlist. A missing
-  adapter, inventory target, approval, or evidence result fails closed; it
-  must not become a successful no-op or fall back to an unrelated provider.
-- Resolve one target environment/provider and exact resource identity before
-  requesting credentials. GitOps declares desired lifecycle; the matching IaC
-  module and playbook must enforce it. Do not infer PROD from a UAT branch or
-  silently use a legacy state key.
-- For stateful releases, tie checkpoint, reviewed SQL checksum, pre/post schema
-  version, source SHA, image digest, restore proof, acceptance and rollback
-  digest into one sanitized receipt. Execute backup/restore/migration in the
-  host-operations layer; the control plane checks the receipt before promotion.
-- Do not replace a running host, detach or format a populated disk, delete a
-  protected resource, or perform a destructive database restore merely because
-  a general-purpose deployment input allows it. Require a separate reviewed
-  operation and explicit target-specific approval.
-- When consolidating workflow entries, migrate every caller, permissions
-  boundary, Vault `job_workflow_ref` allowlist, test, and runbook before removing
-  the old entry. A renamed file alone is not a working migration.
-
-### Domain-CD delegation
-
-Service deployment is delegated to domain-specific CD workflows in `playbooks`
-via reusable workflow calls. The orchestrator does not checkout, build, or
-deploy application code. It passes the accepted artifact digest and exact
-CMDB-derived target, then verifies the domain workflow's result.
+| Terraform provision | ✓ | ✗ |
+| CMDB / inventory generation | ✓ | ✗ |
+| Node bootstrap (SSH, packages, users) | ✗ | ✓ |
+| Service deployment (Ansible roles, compose stacks) | ✗ — delegates via `uses:` | ✓ |
+| Database backup/restore and incremental schema execution | gate, dispatch, verify receipt | reusable playbook role on the selected host |
+| Business health and account/subscription acceptance | gate, aggregate, fail closed | domain-owned probes with reviewable receipts |
+| Vault OIDC authentication | per-environment role | own role (`github-actions-playbooks-{env}`) |
+| Secret scope | `kv/data/CICD/{env}` (infra creds) | domain-specific paths (per-domain paths) |
 
 ### Delegation pattern
 
@@ -592,6 +562,55 @@ provisioner's per-domain host list, calling that domain's reusable CD workflow.
 
 The orchestrating workflow must not grow per-service steps. A new service belongs
 to an existing domain's CD workflow; a new domain gets one more delegating job.
+
+### Release execution ownership across the four infra repositories
+
+For a new or substantially changed UAT/PROD upgrade path, resolve each change
+to one owner before editing. This is a required review boundary, not a request
+to move unrelated legacy files during a focused fix. Apply the boundary by
+role when repository names differ; do not create an extra repository just to
+match this example.
+
+| Owner | Put here | Do not put here |
+| --- | --- | --- |
+| `platform-ops-toolkit` | GitHub Actions entrypoints, phase dependencies, environment approval, immutable tag/digest and migration-checksum checks, dispatch, status and sanitized receipt verification | new per-service SSH/SQL/backup/deploy scripts or an Ansible role copied into `.github/scripts/` |
+| `playbooks` | reusable, parameterized Ansible roles/playbooks for host and database preflight, encrypted backup, isolated restore verification, migration, deployment, application rollback and business probes | workflow-specific, one-off copies of the same shell command per phase/environment |
+| `gitops` | public desired state: environment topology, routing, pinned image identities, backup target/root and release settings | credentials, imperative execution, generated CMDB or inventory |
+| `iac_modules` | reusable Terraform modules/renderers that provision the required storage, mount, capacity and CMDB facts | release decisions, application deployment, host-specific desired-state copies |
+| service repository | reviewed incremental SQL, compatibility tests, application image and immutable digest | cloud identity, host provisioning, release approval |
+
+Before adding a script under `platform-ops-toolkit/.github/scripts/`, verify
+that its behavior is control-plane-only. An entrypoint that must run `pg_dump`,
+`psql` for a mutation, `pg_restore`, `ssh` to change a host, or a provider
+deployment command is execution logic: implement it in a shared `playbooks`
+role and dispatch that role from the toolkit. Keep adapter scripts thin and
+parameterized by environment, phase, immutable release, reviewed database
+version/checksum, and CMDB target. Do not create a separate copy for UAT,
+PROD, and each service when one role can validate those inputs.
+
+Put actual backup bytes only on the environment-authorized storage target;
+the toolkit receives a non-sensitive checkpoint ID, source/restore identity,
+version and verification result. The role must verify these facts through the
+remote system before emitting a receipt. The toolkit rejects a missing,
+skipped, mismatched or unreviewed receipt. A boolean supplied by the caller is
+not evidence that a backup restored, a migration ran, or a user could log in.
+Use GitOps/CMDB to resolve the host and IaC facts to verify the storage mount.
+Never infer actual traffic direction solely from the intended topology; check
+the applied configuration before choosing the database to migrate.
+
+Ship a cross-repository release change in dependency order: IaC capacity and
+GitOps desired state when needed, then the playbooks execution contract, then
+the toolkit orchestrator. CI in each owner repository tests its own behavior.
+Only after the reviewed dependencies are available may the toolkit enable the
+live UAT phase. A missing phase implementation is a blocked release, not a
+successful no-op.
+
+When consolidating or renaming workflow entries, migrate **every** caller,
+reusable-workflow input, permission boundary, Vault `job_workflow_ref`
+allowlist, contract test and operator runbook before deleting the old entry.
+Make legacy data imports an explicit UAT-only operation rather than a side
+effect of an ordinary upgrade. A renamed YAML file alone is not a working
+migration or evidence of safe execution.
 
 ## 15. Environment resolution — keep the expression simple
 
