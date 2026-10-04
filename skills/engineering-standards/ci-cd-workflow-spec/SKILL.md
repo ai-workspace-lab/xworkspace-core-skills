@@ -1,6 +1,6 @@
 ---
 name: ci-cd-workflow-spec
-description: General CI/CD workflow standards for AI Workspace Infra pipelines and external scripts. Use when creating, refactoring, or auditing CI, CD, promotion, deployment, or GitHub Actions workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers CI/CD separation, reusable scripts, immutable artifacts, least-privilege OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
+description: General CI/CD workflow standards for AI Workspace Infra pipelines and external scripts. Use when creating, refactoring, or auditing CI, CD, promotion, deployment, or GitHub Actions workflows in platform-ops-toolkit, artifacts, gitops, playbooks, iac_modules, observability.svc.plus, or their shell scripts. Covers cross-repository control-plane ownership, CI/CD separation, reusable scripts, immutable artifacts, least-privilege OIDC, Terraform/Ansible safety, CMDB artifacts, and false-green prevention without blindly modernizing legacy workflows.
 ---
 
 # CI/CD Workflow Specification
@@ -502,23 +502,58 @@ add an assertion:
     TF_STATE_ACCESS_KEY: ${{ steps.vault.outputs.TF_STATE_ACCESS_KEY }}
 ```
 
-## 14. Domain-CD delegation — platform-ops-toolkit as orchestrator only
+## 14. Cross-repository ownership — orchestration is not execution
 
-`platform-ops-toolkit` owns environment lifecycle (Terraform, CMDB, node
-bootstrap, migration, DNS cutover). It MUST NOT checkout, build, or deploy
-application code. Service deployment is delegated to domain-specific CD
-workflows in the `playbooks` repository via reusable workflow calls.
+For a delivery spanning an orchestration repository and separate GitOps, IaC,
+playbook, and service repositories, assign one authoritative owner per layer.
+`platform-ops-toolkit` is this platform's control plane, not a catch-all
+execution repository. Apply the same boundary by *role* when repositories have
+different names; it does not grant permission to create extra repositories.
 
-### Boundary contract
-
-| Concern | `platform-ops-toolkit` | `playbooks` domain-cd workflow |
+| Layer | Owns | Does not own |
 |---|---|---|
-| Terraform provision | ✓ | ✗ |
-| CMDB / inventory generation | ✓ | ✗ |
-| Node bootstrap (SSH, packages, users) | ✗ | ✓ |
-| Service deployment (Ansible roles, compose stacks) | ✗ — delegates via `uses:` | ✓ |
-| Vault OIDC authentication | per-environment role | own role (`github-actions-playbooks-{env}`) |
-| Secret scope | `kv/data/CICD/{env}` (infra creds) | domain-specific paths (per-domain paths) |
+| Control plane (`platform-ops-toolkit`) | workflow entry, explicit environment/provider selection, approval and concurrency, immutable ref/digest and evidence gates, dispatch, sanitized release receipt | provider resource definitions, long-running host scripts, SQL migration implementation, application build/deploy |
+| Desired state (`gitops`) | non-secret target declarations, provider/account/region, host lifecycle and storage intent, state key, Vault path references | credentials, remote execution, Terraform implementation |
+| Provisioning (`iac_modules`) | reusable provider modules/renderers, resource protection, plan validation, CMDB/inventory generation from applied state | release policy, business SQL, service configuration |
+| Host operations (`playbooks`) | parameterized roles for disk preparation, backup, isolated restore proof, migration invocation, application deployment and runtime checks | deciding a release's environment, provider, or approval outcome |
+| Service repository | reviewed incremental SQL and compatibility tests, application image and digest | cloud identity or host provisioning |
+
+Control-plane scripts may parse inputs, verify claims, coordinate adapters, and
+validate sanitized evidence. If a workflow contains provider API loops,
+database dumps, filesystem formatting, service installation, or substantial
+business SQL, move that implementation to its owning reusable module or role;
+keep only typed parameters and a narrow dispatch in the control plane. Group
+repeated host operations by parameterized playbook *shape*, not one wrapper per
+environment, host, or workflow step.
+
+### Delegation contract
+
+- A mutating action requires a reviewed, version-pinned implementation in the
+  owning repository and an exact OIDC/Vault workflow allowlist. A missing
+  adapter, inventory target, approval, or evidence result fails closed; it
+  must not become a successful no-op or fall back to an unrelated provider.
+- Resolve one target environment/provider and exact resource identity before
+  requesting credentials. GitOps declares desired lifecycle; the matching IaC
+  module and playbook must enforce it. Do not infer PROD from a UAT branch or
+  silently use a legacy state key.
+- For stateful releases, tie checkpoint, reviewed SQL checksum, pre/post schema
+  version, source SHA, image digest, restore proof, acceptance and rollback
+  digest into one sanitized receipt. Execute backup/restore/migration in the
+  host-operations layer; the control plane checks the receipt before promotion.
+- Do not replace a running host, detach or format a populated disk, delete a
+  protected resource, or perform a destructive database restore merely because
+  a general-purpose deployment input allows it. Require a separate reviewed
+  operation and explicit target-specific approval.
+- When consolidating workflow entries, migrate every caller, permissions
+  boundary, Vault `job_workflow_ref` allowlist, test, and runbook before removing
+  the old entry. A renamed file alone is not a working migration.
+
+### Domain-CD delegation
+
+Service deployment is delegated to domain-specific CD workflows in `playbooks`
+via reusable workflow calls. The orchestrator does not checkout, build, or
+deploy application code. It passes the accepted artifact digest and exact
+CMDB-derived target, then verifies the domain workflow's result.
 
 ### Delegation pattern
 
@@ -541,8 +576,7 @@ deploy_<domain>:
 - **No `runs-on:` on `uses:` jobs.** The reusable workflow declares its own runner.
 - **No `env:` on `uses:` jobs.** Pass configuration via `with:` inputs only.
 - **No `steps:` on `uses:` jobs.** The reusable workflow owns all step logic.
-- **Vault roles for `playbooks` must be provisioned.** The `vault_auth_split.sh`
-  The orchestrator's Vault bootstrap must create a `github-actions-<playbooks-repo>-{env}`
+- **Vault roles for `playbooks` must be provisioned.** The orchestrator's Vault bootstrap must create a `github-actions-<playbooks-repo>-{env}`
   role per environment, with `job_workflow_ref` pinned to that repo's CD workflow files.
 
 ### Where the domain list lives
