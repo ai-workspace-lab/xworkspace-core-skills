@@ -15,6 +15,18 @@ Do not infer a workflow's inputs, defaults, or hidden rules from its name or fro
 
 Run every rule from the catalog locally before calling `workflow_dispatch`. A rule violation must block the dispatch with a clear explanation, not be discovered ten or twenty minutes later inside a failed run. If a downstream system enforces an immutability or pin contract (e.g. a GitOps repo that only deploys an already-pinned image tag), check that contract before dispatch — requesting a value the downstream system will reject is not a workflow bug, it's a preventable preflight failure.
 
+### 2.1 跨仓发布调度前置守则 (Multi-Repo Dispatch Preflight Checklist)
+
+在调用 `gh workflow run` 调度运维或发版工作流前，必须执行以下显式检查：
+
+1. **目标标签与产物存在性确认**：
+   - 若参数涉及 `gateway_release_tag` 或 `cli_release_tag`，必须预先通过 `gh release view <tag> -R <repo>` 检查 GitHub Release 是否已发布，且对应架构二进制产物（如 `linux-amd64`、`linux-arm64`）已上传完整，严禁向工作流传递未完成构建的虚空 Tag。
+2. **全量快照 vs 定向验证隔离**：
+   - 仅对单个组件（如 Gateway 或 One）进行迭代验证时，**优先使用定向工作流**（如 `xconnect-one-uat.yaml`），避免调用全量快照工作流导致其他所有关联仓库一同被覆盖构建。
+   - 调用 `daily-main-snapshot.yaml` 验证非生产时，必须强制指定 `-f enable_migration=false`，严禁让生产数据库单向数据同步覆盖 UAT 的测试与 Overlay 配置状态。
+3. **Dry-Run 优先验证**：
+   - 凡支持 `mode=dry-run` 的运维工作流（如 `xconnect-one-uat.yaml`），首次执行必须使用 `dry-run` 观察 Ansible 对账 diff 与配置渲染，确认无破坏性漂移后再执行 `mode=apply`。
+
 ## 3. Confirm before dispatching, especially the dangerous fields
 
 State every resolved input back to the user in plain language before dispatching — not "shall I proceed?" but the literal values that will be sent. Any input that is destructive, irreversible, or crosses an environment boundary (destroy, restore, a production/prod target, a traffic cutover, a credential rotation) requires the user to confirm that specific field, not a general "yes, go ahead". Never default a dangerous field to the enabled/destructive state; leave it off unless the user explicitly asked for it.

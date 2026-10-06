@@ -123,6 +123,33 @@ When promoting an immutable build from UAT to PROD via `daily-main-snapshot.yaml
 3. **Preflight Cross-Org Matrix**: All participating repositories in `daily-snapshot-builds.json` must have their container images or release binaries built and verified for that exact tag.
 4. **Backend-First Deployment Gating**: Downstream orchestrators (`serverless-orchestrator.yml`) must gate the frontend Cloudflare deployment on a 100% successful Cloud Run backend rollout. Never publish frontend assets against a failed or partial backend.
 
+### 1.6 跨仓库类型发版矩阵与多阶段交付契约 (Multi-Repo Release & Rollback Matrix)
+
+各仓库根据架构特性与运行载体不同，具有严格区分的发版语义与部署途径：
+
+| 仓库类别 / 代表仓库 | 合并到 main 之后 | 版本号与 Tag 规范 | UAT 部署途径 | 生产发布触发条件 | 回滚策略 |
+|---|---|---|---|---|---|
+| **Serverless / Web 平台**<br>(`accounts`, `portal`) | `ci-pipeline.yml` 自动构建并**自动部署 UAT** (Cloud Run) | 流水线内部自增构建号；**严禁手动打 `v*`、`release/**` 或 `prod-release-*` 标签** | 提交合并到 main 自动触发 | 创建 `vMAJOR.MINOR.PATCH` 标签或受保护 `release/*` 分支 | Revert PR 合并到 main（流水线自动重发）或 Cloud Run 控制台切回前一 revision |
+| **独立节点 Daemon**<br>(`XConnect-Gateway`) | 仅触发 CI 测试；**不会**自动部署到节点 | 在 main 上打递增标签 `v0.1.N`，由 Release CI 构建并发布 GitHub Release 产物 | 通过 toolkit `xconnect-one-uat.yaml` 传 `gateway_release_tag=v0.1.N`（必须先 dry-run 再 apply） | 经 UAT 连续 30 分钟验证常绿并经人工审批 | 使用上一个已知良好的 tag 重新执行 toolkit apply |
+| **跨平台客户端 CLI**<br>(`XConnect-One`) | 仅触发 CI 编译与自动化测试；**不会**自动安装 | 在 main 上打递增标签 `v0.1.N`，由 Release CI 发布多平台二进制及 Homebrew Formula | 通过 toolkit `xconnect-one-uat.yaml` 传 `cli_release_tag=v0.1.N`（先 dry-run 后 apply） | 经 UAT 验证无 4xx/404 契约漂移并经人工审批 | 使用上一个已知良好 tag 重新下发或通过包管理器回滚 |
+| **汇聚型边缘 Agent**<br>(`xconnect-edge-agent`) | `build-release-artifacts.yml` 构建产物 | 语义化 `v*` 标签发布正本，或由全量快照生成 `daily-build-*` 标签 | `daily-main-snapshot.yaml` (`deploy_env=uat`, `enable_migration=false`) -> `selfhost-orchestrator.yml` 部署 proxy 角色 | 经集成节点负载与双角色验证常绿后人工审批 | 使用上一快照标签重新部署 |
+| **移动端应用**<br>(`xconnect-app`) | 不直接由单个库 main 触发 | 跟随全量快照 `daily-build-*` 触发 `repository_dispatch` (`event_type=xconnect-release`) | 自动触发移动端构建管线，产出 UAT/内测包 (APK, TestFlight) | 正式上架应用商店由发布经理人工触发 | 回退至上一稳定构建包或上架历史版本 |
+
+#### 关键约束守则：
+1. **防生产误触铁律**：`accounts` 和 `portal` 的 `v*` 标签是生产发布触发器，日常演进、UAT 验证与 Hotfix 过程中严禁打任何 `v*` 标签。
+2. **两阶段验证铁律**：客户端/Daemon 发版必须遵循 `打 Tag -> Actions 产出 Release 资产 -> xconnect-one-uat.yaml (dry-run) -> xconnect-one-uat.yaml (apply) -> 观测 30 分钟`。
+3. **禁止节点就地热修**：严禁 SSH 登录 UAT 机器直接修改二进制文件；任何变更必须有 Git 提交、PR 评审、发布 Tag 和 CI 构建产物。
+
+### 1.7 Post-deploy public-site review-readiness check
+
+A deploy that touches the brand domain's edge routing, SSR public/content boundaries or Pages MUST run the review-readiness post-check from `store-and-startup-homepage-spec` §9 before it is reported successful, in every environment (SIT/UAT/Prod):
+
+- public pages return 200 in place on the brand host (no 3xx), the homepage shows the legal name, `/contact` and `/support` expose only the company-domain mailbox, `robots.txt`/`sitemap.xml` are valid;
+- a Cloudflare challenge seen from the runner is a warning (datacenter IPs), not a pass or a fail, unless strict mode is set;
+- ordering: ship the application change that makes a page pass BEFORE merging a check that requires it, otherwise the pipeline blocks itself.
+
+Implemented by `scripts/serverless_uat/verify_brand_site_review_readiness.sh` in `platform-ops-toolkit`.
+
 ## 2. Vault Authentication & Secrets
 - **DO NOT** store sensitive credentials in GitHub Actions Secrets.
 - Authentication must use GitHub OIDC → Vault JWT.
