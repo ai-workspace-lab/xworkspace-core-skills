@@ -28,7 +28,21 @@ description: Enforce the four-repository execution boundary and safe cutover amo
 
 Playbooks may consume IaC-generated CMDB but must not generate or modify authoritative cloud facts. Toolkit may validate CMDB evidence but must not execute cloud or host actions. A change matching two rows must be split into an owner implementation and a thin caller.
 
-## 2. Standard data flow
+## 2.1 Repeated logic and `.github/actions`
+
+Repeated **control-plane** logic in Toolkit—input normalization, environment/target validation, Vault/OIDC preflight,
+fixed-SHA dispatch, child-run correlation, evidence/checksum/digest validation, redaction, and final status mapping—must
+prefer a parameterized, versioned reusable action under `.github/actions/<name>/`. The action must be deterministic,
+side-effect-limited to control-plane orchestration, expose explicit inputs/outputs, and include its own contract tests.
+
+`.github/actions` is not an escape hatch for execution ownership. A repeated cloud/provider operation belongs in an IaC
+Module; a repeated host/service/database/backup/restore/health operation belongs in a Playbooks Role or reusable workflow;
+a repeated desired-state fragment belongs in GitOps. Toolkit actions may call those reviewed owner workflows, but must not
+copy their implementation or invoke SSH, provider APIs, Terraform, Ansible, Docker, systemd, database clients, or service
+commands. Before adding an action, search existing actions and prove that the abstraction removes duplicate control-plane
+code without creating a second execution path.
+
+## 3. Standard data flow
 
 ```text
 GitOps declaration
@@ -39,7 +53,7 @@ GitOps declaration
   → Toolkit evidence aggregation and final gate
 ```
 
-## 3. Required cutover order
+## 4. Required cutover order
 
 1. **Inventory the contract.** Find every workflow, wrapper, test, runbook and external caller, plus inputs, outputs, credentials, permissions, target selection and failure behavior. Record the legacy path and intended owner in an inventory or PR. Resolve ambiguous ownership before moving code.
 2. **Add the owner implementation.** Create or extend a reusable Role/Workflow/provider executor, with explicit environment and target inputs, idempotence or safe retry semantics, and owner-local tests. Keep secrets runtime-only. Merge or otherwise make an immutable reviewed owner ref available before the consumer uses it.
@@ -49,7 +63,7 @@ GitOps declaration
 
 The dependency chain is **owner implementation → Toolkit caller cutover → verified execution → legacy deletion**. Never delete a called script merely to reduce the file count. Do not run a mutating environment workflow solely to validate a documentation or ownership refactor.
 
-## 4. Mandatory merge gates
+## 5. Mandatory merge gates
 
 - New files must declare `owner`, `caller`, side-effect resources, and input/output evidence in the PR description.
 - A read-only schema/CMDB/manifest check does not automatically change ownership; inspect the command's final side effect.
@@ -58,7 +72,7 @@ The dependency chain is **owner implementation → Toolkit caller cutover → ve
 - Cross-boundary work must provide four evidence sections: owner implementation, caller diff, verification result, and legacy-copy deletion result.
 - Unclear ownership, stale callers, local-only verification, missing UAT evidence, or two executable implementations stop merge and release.
 
-## 5. Agent loading contract
+## 6. Agent loading contract
 
 Each governed repository must have a root `AGENTS.md` linking this skill and restating its local allowlist/denylist. Agents must read it before editing. If the root file is missing, the skill link is broken, or the worktree contains unrelated unapproved changes, stop and report the boundary problem before implementation changes.
 
