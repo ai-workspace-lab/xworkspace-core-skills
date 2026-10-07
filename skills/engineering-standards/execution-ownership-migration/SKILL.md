@@ -9,7 +9,22 @@ description: Enforce the four-repository execution boundary and safe cutover amo
 
 这份 skill 是四个基础设施仓库的共同判定源。每个受管仓库根目录的 `AGENTS.md` 必须引用它；如果 skill 未被当前 Agent 加载，根 `AGENTS.md` 仍然有效，不能以“没有加载 skill”为例外。
 
-## 1. 四边界判定表
+## 五层模型：控制面、Pipeline 与四个资源边界
+
+为避免把 Pipeline 误认为新的资源 owner，统一使用以下五层模型：
+
+| 层 | 职责 | 禁止事项 |
+| --- | --- | --- |
+| **Toolkit** | 共享控制面能力：GitOps reader、输入/契约校验、证据校验、状态判断、放行规则 | 直接执行云资源、主机、服务、数据库或业务数据操作 |
+| **Pipeline** | GitHub Actions 入口、审批、环境/目标选择、阶段顺序、固定 SHA 派发、运行关联；重复控制逻辑可封装为 Toolkit 的 `.github/actions` | 成为新的执行实现、复制 IaC/Playbooks 逻辑、绕过 owner workflow |
+| **GitOps** | 声明式目标状态：拓扑、provider/environment、版本、域名和非敏感配置引用 | 执行脚本、运行时 CMDB、provider API、主机/服务/数据库操作 |
+| **IaC Modules** | 云资源、DNS、Registry、OS Login、临时防火墙、State、云事实和 CMDB 产出 | 主机/服务/数据库执行、证书、迁移、备份恢复和健康检查 |
+| **Playbooks Roles** | 主机与服务部署、证书恢复、Caddy/Xray/Observability、数据迁移、备份恢复、诊断和健康检查 | 云资源/DNS/Registry/State 变更、权威 CMDB 生成 |
+
+Pipeline 是 Toolkit 控制面的交付与编排层，不是第六个资源执行层。Toolkit 和 Pipeline 可以位于同一控制面仓库；
+`.github/actions` 只承载可复用的控制面胶水，不能改变下方四个资源边界。
+
+## 1. 四边界资源归属判定
 
 按以下顺序询问，第一项为“是”即确定 owner：
 
@@ -28,18 +43,32 @@ description: Enforce the four-repository execution boundary and safe cutover amo
 
 Playbooks may consume IaC-generated CMDB but must not generate or modify authoritative cloud facts. Toolkit may validate CMDB evidence but must not execute cloud or host actions. A change matching two rows must be split into an owner implementation and a thin caller.
 
-## 2. Standard data flow
+## 2.1 Repeated logic and `.github/actions`
+
+Repeated **control-plane** logic in Toolkit—input normalization, environment/target validation, Vault/OIDC preflight,
+fixed-SHA dispatch, child-run correlation, evidence/checksum/digest validation, redaction, and final status mapping—must
+prefer a parameterized, versioned reusable action under `.github/actions/<name>/`. The action must be deterministic,
+side-effect-limited to control-plane orchestration, expose explicit inputs/outputs, and include its own contract tests.
+
+`.github/actions` is not an escape hatch for execution ownership. A repeated cloud/provider operation belongs in an IaC
+Module; a repeated host/service/database/backup/restore/health operation belongs in a Playbooks Role or reusable workflow;
+a repeated desired-state fragment belongs in GitOps. Toolkit actions may call those reviewed owner workflows, but must not
+copy their implementation or invoke SSH, provider APIs, Terraform, Ansible, Docker, systemd, database clients, or service
+commands. Before adding an action, search existing actions and prove that the abstraction removes duplicate control-plane
+code without creating a second execution path.
+
+## 3. Standard data flow
 
 ```text
 GitOps declaration
-  → Toolkit selection/approval/authorization/fixed version
+  → Toolkit/Pipeline selection/approval/authorization/fixed version
   → IaC Modules cloud action and CMDB output
-  → Toolkit CMDB/evidence check
+  → Toolkit/Pipeline CMDB/evidence check
   → Playbooks Roles host/service/database action
-  → Toolkit evidence aggregation and final gate
+  → Toolkit/Pipeline evidence aggregation and final gate
 ```
 
-## 3. Required cutover order
+## 4. Required cutover order
 
 1. **Inventory the contract.** Find every workflow, wrapper, test, runbook and external caller, plus inputs, outputs, credentials, permissions, target selection and failure behavior. Record the legacy path and intended owner in an inventory or PR. Resolve ambiguous ownership before moving code.
 2. **Add the owner implementation.** Create or extend a reusable Role/Workflow/provider executor, with explicit environment and target inputs, idempotence or safe retry semantics, and owner-local tests. Keep secrets runtime-only. Merge or otherwise make an immutable reviewed owner ref available before the consumer uses it.
@@ -49,7 +78,7 @@ GitOps declaration
 
 The dependency chain is **owner implementation → Toolkit caller cutover → verified execution → legacy deletion**. Never delete a called script merely to reduce the file count. Do not run a mutating environment workflow solely to validate a documentation or ownership refactor.
 
-## 4. Mandatory merge gates
+## 5. Mandatory merge gates
 
 - New files must declare `owner`, `caller`, side-effect resources, and input/output evidence in the PR description.
 - A read-only schema/CMDB/manifest check does not automatically change ownership; inspect the command's final side effect.
@@ -58,7 +87,7 @@ The dependency chain is **owner implementation → Toolkit caller cutover → ve
 - Cross-boundary work must provide four evidence sections: owner implementation, caller diff, verification result, and legacy-copy deletion result.
 - Unclear ownership, stale callers, local-only verification, missing UAT evidence, or two executable implementations stop merge and release.
 
-## 5. Agent loading contract
+## 6. Agent loading contract
 
 Each governed repository must have a root `AGENTS.md` linking this skill and restating its local allowlist/denylist. Agents must read it before editing. If the root file is missing, the skill link is broken, or the worktree contains unrelated unapproved changes, stop and report the boundary problem before implementation changes.
 
