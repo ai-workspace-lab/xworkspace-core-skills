@@ -9,7 +9,22 @@ description: Enforce the four-repository execution boundary and safe cutover amo
 
 这份 skill 是四个基础设施仓库的共同判定源。每个受管仓库根目录的 `AGENTS.md` 必须引用它；如果 skill 未被当前 Agent 加载，根 `AGENTS.md` 仍然有效，不能以“没有加载 skill”为例外。
 
-## 1. 四边界判定表
+## 五层模型：控制面、Pipeline 与四个资源边界
+
+为避免把 Pipeline 误认为新的资源 owner，统一使用以下五层模型：
+
+| 层 | 职责 | 禁止事项 |
+| --- | --- | --- |
+| **Toolkit** | 共享控制面能力：GitOps reader、输入/契约校验、证据校验、状态判断、放行规则 | 直接执行云资源、主机、服务、数据库或业务数据操作 |
+| **Pipeline** | GitHub Actions 入口、审批、环境/目标选择、阶段顺序、固定 SHA 派发、运行关联；重复控制逻辑可封装为 Toolkit 的 `.github/actions` | 成为新的执行实现、复制 IaC/Playbooks 逻辑、绕过 owner workflow |
+| **GitOps** | 声明式目标状态：拓扑、provider/environment、版本、域名和非敏感配置引用 | 执行脚本、运行时 CMDB、provider API、主机/服务/数据库操作 |
+| **IaC Modules** | 云资源、DNS、Registry、OS Login、临时防火墙、State、云事实和 CMDB 产出 | 主机/服务/数据库执行、证书、迁移、备份恢复和健康检查 |
+| **Playbooks Roles** | 主机与服务部署、证书恢复、Caddy/Xray/Observability、数据迁移、备份恢复、诊断和健康检查 | 云资源/DNS/Registry/State 变更、权威 CMDB 生成 |
+
+Pipeline 是 Toolkit 控制面的交付与编排层，不是第六个资源执行层。Toolkit 和 Pipeline 可以位于同一控制面仓库；
+`.github/actions` 只承载可复用的控制面胶水，不能改变下方四个资源边界。
+
+## 1. 四边界资源归属判定
 
 按以下顺序询问，第一项为“是”即确定 owner：
 
@@ -46,11 +61,11 @@ code without creating a second execution path.
 
 ```text
 GitOps declaration
-  → Toolkit selection/approval/authorization/fixed version
+  → Toolkit/Pipeline selection/approval/authorization/fixed version
   → IaC Modules cloud action and CMDB output
-  → Toolkit CMDB/evidence check
+  → Toolkit/Pipeline CMDB/evidence check
   → Playbooks Roles host/service/database action
-  → Toolkit evidence aggregation and final gate
+  → Toolkit/Pipeline evidence aggregation and final gate
 ```
 
 ## 4. Required cutover order
