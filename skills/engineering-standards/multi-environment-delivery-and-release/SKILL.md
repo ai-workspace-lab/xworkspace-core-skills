@@ -13,6 +13,10 @@ For AI Workspace Infra, read [AI Workspace Infra Repository Map](../references/a
 
 ## 1. Environment Routing Rules
 
+For cross-generation database reconciliation, also follow
+[Target-side generation reconciliation](references/target-side-generation-reconciliation.md).
+This applies to manual SSH/Playbooks/GitOps delivery as well as pipelines.
+
 A single delivery workflow (e.g. `<delivery-workflow>.yaml`) should route traffic to specific environments based on Git events. Never hardcode environments outside of these bounds:
 - **`pull_request`** -> routes to **`sit`** environment.
 - **`main` or `release/*` push** -> routes to **`uat`** environment.

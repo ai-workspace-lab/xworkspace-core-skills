@@ -89,6 +89,10 @@ The dependency chain is **owner implementation → Toolkit caller cutover → ve
 
 ## 6. Agent loading contract
 
+For one-way recovery-generation data merges, load
+[Target-side generation reconciliation](../multi-environment-delivery-and-release/references/target-side-generation-reconciliation.md).
+Keep the serving source host immutable and all execution on the explicit target.
+
 Each governed repository must have a root `AGENTS.md` linking this skill and restating its local allowlist/denylist. Agents must read it before editing. If the root file is missing, the skill link is broken, or the worktree contains unrelated unapproved changes, stop and report the boundary problem before implementation changes.
 
 For stateful data operations, retain release-specific backup, restore-test, checksum, schema-version and rollback gates from [CI/CD workflow standards](../ci-cd-workflow-spec/SKILL.md); this skill governs ownership and cutover, not permission to migrate or restore a database.
