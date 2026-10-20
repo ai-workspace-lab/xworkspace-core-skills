@@ -7,6 +7,11 @@ description: Plan, implement, test, and audit backups, disaster recovery, VPS or
 
 A backup is not a recovery capability until a restore has met its declared RPO, RTO, integrity, and security requirements. Keep backup, migration, cutover, and cleanup as independently auditable phases.
 
+For generation replacement, read [Generation upgrade operational validation](references/generation-upgrade-validation.md)
+for target protection, populated-data restore, actual incident regression cases,
+writer handoff, and post-cutover reconciliation. The linked engineering skill
+owns stage ordering and acceptance gates; this skill owns recovery procedures.
+
 Reference basis: [NIST contingency planning guidance](https://csrc.nist.gov/topics/security-and-privacy/security-programs-and-operations/contingency-planning) for coordinated recovery of systems, operations, and data after disruption.
 
 ## 1. Establish the recovery contract

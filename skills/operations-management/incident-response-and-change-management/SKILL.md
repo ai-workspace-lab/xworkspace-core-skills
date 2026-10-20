@@ -68,6 +68,12 @@ An action is closed only when its preventive control has passed its acceptance
 test and the evidence is linked back to the incident. A document, a successful
 workflow dispatch, or an unchanged dashboard is not closure evidence by itself.
 
+For faults discovered during generation upgrades, map each incident to an actual
+regression script, expected boundary behavior, and candidate-specific receipt.
+Use the [generation upgrade regression contract](../backup-disaster-recovery-and-data-migration/references/generation-upgrade-validation.md).
+Repair the owning configuration source and rerun the affected deployment/restore
+path; a host-only fix must not silently disappear on the next generation.
+
 ## 6.1 Scheduled repository hygiene
 
 Treat release-reference and branch cleanup as a normal, auditable change rather than an ad-hoc deletion. Run a read-only inventory weekly and retain its output as evidence.
