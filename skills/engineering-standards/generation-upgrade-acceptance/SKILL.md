@@ -1,11 +1,36 @@
 ---
 name: generation-upgrade-acceptance
-description: Plan and verify repeatable source-to-target generation upgrades with immutable artifacts, fresh deployment, data reconciliation, restore drills, real incident regression cases, and evidence gates. Use for generation replacement and pre-cutover acceptance; keep serving traffic and writer ownership unchanged unless cutover is explicitly authorized.
+description: Plan and verify parameterized source-to-target upgrades through manual or pipeline execution, immutable main-based releases, fresh deployment, reconciliation, restore drills, incident regression, and a fix-PR-release-retest loop. Use for generation replacement and pre-cutover acceptance; keep source traffic and writer ownership unchanged unless cutover is explicitly authorized.
 ---
 
 # 可重复代际升级验收
 
 证明固定构件可全新部署、安全重跑并恢复，而非只证明构建或健康检查成功。适用于 Vn→Vnext、蓝绿或主机替换；不绑定云平台、业务域名、数据库或 CD 产品。默认完成阶段 0–7 并提交待切换报告。
+
+## 参数契约
+
+云平台/基础设施类型、目标环境、源/目标代际、执行入口、配置执行器、固定声明和部署控制器均为输入，不以某个云、代际或工具链作为隐式默认：
+
+```yaml
+upgrade:
+  provider: <选定云平台或基础设施类型>
+  environment: <目标环境>
+  source_generation: <当前已验收代际>
+  target_generation: <待验收代际>
+execution:
+  mode: <manual或pipeline>
+  entrypoint: <人工连接入口或流水线入口及固定版本>
+  configuration_executor: <既有配置执行器及固定版本>
+  desired_state_ref: <固定声明仓库commit或不可变tag>
+  deployment_controller: <既有部署控制器及固定版本>
+acceptance:
+  stages: "0-7"
+  cutover: manual_confirmation
+```
+
+将输入归一化为同一份已核实的环境、inventory 和构件清单，再交给执行 owner。必填输入缺失或相互矛盾时不启动相应变更；不静默选择生产平台、源或目标。不适用的配置执行器/控制器明确说明替代执行路径及证据，不引入工具来填字段。
+
+manual 可映射 SSH → Playbook → 固定 GitOps → Doco-CD，pipeline 可映射已审查的流水线 → 固定执行器 → 固定声明 → 部署控制器。两种模式共享阶段、数据保护和证据门禁，不能因选择流水线而获得额外权限。
 
 ## 输入与执行归属
 
@@ -19,7 +44,7 @@ description: Plan and verify repeatable source-to-target generation upgrades wit
 
 | 阶段 | 放行条件 |
 | --- | --- |
-| 0 固定候选 | 源状态核实；固定仓库/工具完整 commit、镜像 digest、schema/迁移校验和、目标及 run_id；列出本轮历史问题和必测 case。 |
+| 0 固定候选 | 核实源及参数；从各参与仓库已合并且必需检查通过的 main commit 创建唯一不可变 tag，验证构件确由该 tag/commit 产生；固定镜像 digest、声明 commit、schema/迁移校验和、目标及 run_id，列出必测 case。tag 成功不代表构件已存在或可部署。 |
 | 1 前置检查 | 主机/连接身份、数据卷、网络端口、密钥引用、证书和域名正确；数据库按其实际协议/隧道检查，不套用 Web 健康检查。 |
 | 2 全新部署 | 在独立候选目标或新业务库使用正式初始化路径部署，保留已有库；实际运行版本、CD 观察 commit、卷、权限及数据库连接符合声明。 |
 | 3 单向对齐 | 对既有目标变更前完成可恢复备份；一致性预览后仅应用审核过的无冲突计划，保留目标独有事实；记录源快照边界。 |
@@ -38,6 +63,27 @@ description: Plan and verify repeatable source-to-target generation upgrades wit
 - 证据绑定 run_id、固定候选和实际运行版本，包含命令/脚本版本、目标、时间、退出码、脱敏结果、恢复和指纹记录及关联问题。密钥运行时读取，不记录值或敏感身份。
 - 修复生成新候选，重跑受影响阶段及依赖项；部署/恢复共享配置变化需重验全新部署、幂等和恢复。旧版本回执不能直接放行新版本。
 - 观察预算基于业务/采集/调度周期和任务约定，记录起止和样本；时间或条件不足明确标未完成。
+
+## 修复、发布与重新验收闭环
+
+升级或迁移发现问题时，保留失败候选及证据，按以下闭环推进，不能以文档更新、主机热修或 PR 通过代替运行关闭：
+
+```text
+记录故障和复现证据
+→ 在所属仓库修复，新增或修正真实回归 case
+→ 提交 PR，通过必需检查和审查
+→ 按任务授权合并 main，核实远端合并 commit
+→ 从该 main commit 创建新的唯一不可变 tag，验证构件及来源
+→ 更新消费者的固定声明，经其审查流程形成新的声明 commit
+→ 重新部署候选，重跑受影响阶段及后续依赖验收
+→ 依据运行证据关闭问题；未通过则进入下一轮
+```
+
+- 版本命名采用所属仓库批准的规则，不移动、覆盖、删除或复用旧 tag；失败重试分配新版本。生产资格仍受原有环境/ref 门禁约束，不把 main 直接当作生产部署 ref。
+- 多仓修复分别走所属 PR，并按 producer → 已验证构件 → consumer 固定声明顺序推进。未改仓库可保留已验证的不可变版本，重新绑定本轮完整构件矩阵，不强制无意义重建。
+- 每轮记录 attempt_id、上一失败轮次、问题、修复 PR、main 合并 SHA、新 tag/digest、声明 commit 和 case 回执。构件或参数变化需明确证据失效范围；新候选不能继承已失效结论。
+- 若共享部署/恢复配置、schema/迁移或跨服务契约改变，重新执行其影响的全新部署、数据保护、恢复、回归和幂等验证；新候选重新完成相关稳定观察。
+- 合并、tag 发布和目标部署依据任务已有授权执行，无需重复索取已给出的授权；本技能不自行授予这些权限。未授权/门禁阻断时记录精确边界，继续独立工作。修复循环不包含公共流量或写入权的自动切换。
 
 ## 切换及下一代
 
