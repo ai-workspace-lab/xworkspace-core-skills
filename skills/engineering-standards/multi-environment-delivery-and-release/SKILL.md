@@ -17,6 +17,11 @@ For cross-generation database reconciliation, also follow
 [Target-side generation reconciliation](references/target-side-generation-reconciliation.md).
 This applies to manual SSH/Playbooks/GitOps delivery as well as pipelines.
 
+For fresh source-to-target generation replacement and repeatable pre-cutover
+acceptance, use [Generation upgrade acceptance](../generation-upgrade-acceptance/SKILL.md).
+It defines stages 0–7 and links the operations-owned restore/regression contract;
+do not treat a successful migration or build as authorization to cut traffic.
+
 A single delivery workflow (e.g. `<delivery-workflow>.yaml`) should route traffic to specific environments based on Git events. Never hardcode environments outside of these bounds:
 - **`pull_request`** -> routes to **`sit`** environment.
 - **`main` or `release/*` push** -> routes to **`uat`** environment.

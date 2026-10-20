@@ -1,0 +1,4 @@
+interface:
+  display_name: "可重复代际升级验收"
+  short_description: "固定构件验证全新部署、数据对齐、恢复及历史回归，保留显式切换门禁"
+  default_prompt: "使用 $generation-upgrade-acceptance 完成源到目标代际的阶段 0–7 验收，源继续服务，真实执行历史回归并汇总证据，切换按明确授权执行。"
