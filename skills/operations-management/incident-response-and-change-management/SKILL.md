@@ -74,6 +74,13 @@ Use the [generation upgrade regression contract](../backup-disaster-recovery-and
 Repair the owning configuration source and rerun the affected deployment/restore
 path; a host-only fix must not silently disappear on the next generation.
 
+For upgrade or migration faults, keep one linked sequence from the failed
+attempt through the repair PR, reviewed main merge, new immutable release,
+consumer declaration, redeployment, and actual regression/observation results.
+Use the [parameterized upgrade repair loop](../../engineering-standards/generation-upgrade-acceptance/SKILL.md).
+Manual and pipeline execution share the same closure evidence; neither implies
+authorization to switch public traffic or writer ownership.
+
 ## 6.1 Scheduled repository hygiene
 
 Treat release-reference and branch cleanup as a normal, auditable change rather than an ad-hoc deletion. Run a read-only inventory weekly and retain its output as evidence.
