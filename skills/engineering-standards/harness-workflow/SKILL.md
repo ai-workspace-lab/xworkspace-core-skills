@@ -75,6 +75,8 @@ flowchart TD
 ### 5. 验证与人类审查 (Validate & Human Review)
 所有制品必须经过自动化门禁和（必要时的）人类确认。
 - **关联标准**：[`ci-cd-workflow-spec`](../ci-cd-workflow-spec/)
+- 改动公开官网、产品页、页脚/联系方式、边缘路由或品牌域名相关流水线时，同时按
+  [`store-and-startup-homepage-spec`](../store-and-startup-homepage-spec/) 过 Google/Apple/Android 公司与应用审核的官网门禁（守卫测试 + 线上探针）。
 - 覆盖网络变更还必须按
   [`zero-trust-overlay-delivery`](../zero-trust-overlay-delivery/) 区分 ACK、真实 peer handshake 和私网流量验收，避免配置已下发但数据面未通被误判为成功。
 - **动作**：依赖 CI Pipeline 的静态检查、自动化测试、安全扫描进行拦截。若 CI 失败，必须回到 "Execute One Step" 进行修复；严禁忽视 CI 报错强组合入。
@@ -85,6 +87,9 @@ flowchart TD
   - [`multi-environment-delivery-and-release`](../multi-environment-delivery-and-release/)：环境路由与发布鉴权。
   - [`issue-pr-traceability-standard`](../issue-pr-traceability-standard/)：**闭环的收尾是回写需求**——带着证据（PR 编号 + CI 结论 + 部署记录）关闭 Issue；证据不全或只完成一部分，就不关，拆剩余项到新 Issue。
 - **动作**：遵循环境路由刚性锁定（如 PR 对应 SIT，主干合并对应 UAT，打 Tag 对应 Prod）。通过 Git 语义化操作触发 CD 部署，完成本次闭环。
+
+- **部署后 post-check**：品牌域名所在边界（边缘路由、SSR 公共/内容边界、Pages）部署后，流水线必须运行
+  [`store-and-startup-homepage-spec`](../store-and-startup-homepage-spec/) §9 的审核就绪清单；公开页跳出品牌域名、法人名/同域邮箱缺失都视为部署失败，而不是"页面能打开就算成功"。
 
 ### 6.1 运营落地与验证闭环 (Operational Realization)
 
