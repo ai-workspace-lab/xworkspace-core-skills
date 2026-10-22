@@ -1,25 +1,31 @@
 # Skills
 
-本目录是仓库唯一的 Skill 入口，按能力域分类：
+本目录是仓库唯一的 Skill 入口，共收录 **78 个 Skill**，按 10 大能力域分类管理。
 
-| Category | 用途 |
-|---|---|
-| `content-planning/` | 选题拆解、图文连载、内容排期 |
-| `video-production/` | AI 新闻、产品介绍、IT 基础设施讲解视频 |
-| `image-production/` | 连续风格 PNG / 信息图素材 |
-| `audio-production/` | SFX、BGM、音频素材工作流 |
-| `animation/` | HyperFrames 动效、简笔画动画、Anime.js 适配 |
-| `workflows/` | 跨技能编排工作流、阶段验收、交付合同 |
-| `engineering-standards/` | 工程与交付规范/规约、发布治理、多环境与合规标准 |
-| `operations-management/` | 运维容灾、凭证治理与基础设施巡检标准 |
-| `workspace-core/` | OpenClaw/Codex runtime core skills |
+> [!IMPORTANT]
+> ### 核心自研验证资产 vs 上游引用技能包
+> - ⭐ **核心自研资产（实践·总结·验证）**：
+>   - `engineering-standards/`：包含 13 项自研工程研发与交付规范（Harness 工作流、Issue/PR 溯源、四仓执行归属、多环境发布、GitOps 等）。
+>   - `operations-management/`：包含 8 项自研生产级运维标准（真实灾备演练、故障变更管理、Vault 凭据零落盘、DNS 边缘平滑切流、SLO 告警等）。
+> - 📦 **上游引用与镜像生态**：其余分类（多模态内容生产链路、Marketplace 市场技能、Workspace Core 运行时镜像、开源 Vendored 技能）均为引用或镜像自上游社区与运行时的生态包。
 
-Source-owned 内容生产技能和 runtime 同步技能使用目录边界隔离，不再使用并列顶层 `workspace-core-skills/`。
+| Category | 性质归属 | 用途说明 |
+|---|---|---|
+| ⭐ `engineering-standards/` | **作者实战验证核心** | 研发交付规范、发布治理、多环境隔离、代际升级与合规标准（13 项规约） |
+| ⭐ `operations-management/` | **作者实战验证核心** | 容灾备份、变更管理、Vault 凭据与 OIDC 治理、网络边缘与 SLO（8 项标准） |
+| `content-planning/` | 上游引用（HyperFrames） | 选题拆解、图文连载、内容排期 |
+| `video-production/` | 上游引用（HyperFrames） | AI 新闻快报、长图讲解视频、产品介绍视频与爆款视频逐镜理解 |
+| `image-production/` | 上游引用（HyperFrames） | 连续风格科技长图 PNG / 信息图素材生成 |
+| `audio-production/` | 上游引用（Web Audio / SFX） | 视频音效（SFX）、Web Audio API 合成、BGM 与时间线集成 |
+| `animation/` | 上游引用（GSAP / Anime.js） | HyperFrames 动效、简笔画手绘动画、Anime.js 适配 |
+| `workflows/` | 上游引用（HyperFrames） | 跨技能编排工作流、阶段验收、交付合同 |
+| `marketplace/` | 上游引用（市场与社区） | Agent 市场精选技能（Office 文档处理、安全审查、搜索与 Wan 多模态） |
+| `workspace-core/` | 上游镜像（运行时归档） | OpenClaw / Codex runtime 核心辅助技能（详见 `workspace-core/README.md`） |
 
-另有两个外部标准来源 Skill 以整仓 vendored 形式直接放在本目录下（来源与同步 commit 见仓库根 README「外部标准来源 Skills」）：
+另有两个外部标准来源 Skill 以整仓 vendored 形式直接放在本目录下（锁定 commit 引入）：
 
-- `image-svg-pptx-pro-skill/` — 图片 -> SVG -> 可编辑 PPTX（来源：kongzhecn/image-svg-pptx-pro-skill）
-- `xiaobei-skill-image-to-vba/` — 图片 -> VBA Office Shapes 重建（来源：xiao24bei/xiaobei-skill-image-to-vba）
+- `image-svg-pptx-pro-skill/` — 图片 -> SVG -> 可编辑 PPTX（来源：`kongzhecn/image-svg-pptx-pro-skill`）
+- `xiaobei-skill-image-to-vba/` — 图片 -> VBA Office Shapes 重建（来源：`xiao24bei/xiaobei-skill-image-to-vba`）
 
 ## Artifact Sync
 
