@@ -1,0 +1,44 @@
+# 概念模板：适配并验证后使用；不是 Kubernetes CRD。
+feature: billing-refund
+owner: feature-owner
+revision: 3
+stage: sit
+candidateFingerprint: REPLACE_WITH_MANIFEST_CONTENT_HASH
+members:
+  - repository: example/frontend
+    pr: 123
+    required: true
+    headSha: REPLACE_WITH_FULL_SHA
+    targetBranch: main
+    targetBaseSha: REPLACE_WITH_FULL_SHA
+  - repository: example/api
+    pr: 456
+    required: true
+    headSha: REPLACE_WITH_FULL_SHA
+    targetBranch: main
+    targetBaseSha: REPLACE_WITH_FULL_SHA
+artifacts:
+  frontend: REPLACE_WITH_IMAGE_AT_SHA256_DIGEST
+  api: REPLACE_WITH_IMAGE_AT_SHA256_DIGEST
+  # 补齐未改动依赖的固定构件；不能使用浮动 latest。
+deployment:
+  target: nonproduction
+  namespace: feature-billing-refund
+  hostname: billing-refund.preview.example.com
+  chartVersion: REPLACE_WITH_IMMUTABLE_CHART_VERSION
+  configSha: REPLACE_WITH_FULL_SHA
+data:
+  profile: isolated-test
+  baseline: REPLACE_WITH_SANITIZED_SEED_VERSION
+  schemaVersion: REPLACE_WITH_SCHEMA_VERSION
+  database: feature_billing_refund
+  credentialRef: REPLACE_WITH_NONSECRET_REFERENCE
+externalEffects: sandbox
+release:
+  strategy: rolling
+  uatFrozen: false
+lifecycle:
+  expiresAt: REPLACE_WITH_APPROVED_EXPIRY
+  cleanupPolicy: REPLACE_WITH_APPROVED_POLICY_REFERENCE
+  evidenceLocation: REPLACE_WITH_DURABLE_LOCATION_OUTSIDE_NAMESPACE
+# 真实批准由可审计授权来源证明，不接受清单里的布尔值自我授权。

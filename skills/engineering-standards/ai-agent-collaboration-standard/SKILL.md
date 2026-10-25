@@ -21,11 +21,12 @@ description: AI Workspace Infra 人机协作与安全执行纪律。用于维护
 
 1. **绝对遵循前置规则**：Agent 必须在每次执行前读取并遵守该仓库的 `AGENTS.md`。如果发现自身行为即将违反 `AGENTS.md` 中的红线，必须立即中止并向人类报告。
 2. **禁止规避门禁**：严禁使用 `--admin`、`--force` 等参数绕过受保护的分支（如 `main` 或 `release/*`）的代码审查 (Code Review) 与 CI 门禁。
-3. **环境路由刚性锁定**：
-   - 部署动作只能由**硬性 Git 事件**触发，禁止根据上下文随意变更部署环境。
+3. **环境路由按已审查配置锁定**：
+   - 默认路径由**硬性 Git 事件**触发，禁止根据上下文随意变更部署环境。
    - `pull_request` -> SIT 环境
    - `代码合并入 main / release/* (Merged PR)` -> UAT 环境
    - `Tag v*` -> Prod 环境
+   - 经单独评审并实施的[功能泳道模式](../feature-lane-release-workflow/SKILL.md)允许固定 PR 候选在合并前执行 SIT/UAT；必须同步核对 workflow、ref、审批、目标与 OIDC/Vault 边界。技能文字不直接启用运行例外，PR 不获生产权限。
 4. **禁止硬编码凭证**：任何环境的敏感凭证必须通过 CI/CD 平台（如 Vault 配合 OIDC）动态获取，严禁落盘入库。
 5. **保留用户现场**：先运行 `git status --short --branch`。未追踪或无关修改默认归用户所有；不得为切换分支、清理测试或方便提交而 reset、checkout、stage、删除它们。
 6. **先验证作用域再破坏**：删除 VPS、快照、DNS、Terraform state、Vault metadata 或发布制品前，先只读列出精确目标、影响和回滚点；获得明确授权后才执行。授权删除实例不自动等于授权删除快照、DNS 或 state。

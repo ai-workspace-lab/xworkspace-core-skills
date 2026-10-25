@@ -33,3 +33,7 @@
 ## 系统与数据库共同补充规范
 
 涉及系统或数据库的部署、巡检、权限、安全加固与迁移时，必须结合[三权分立规范](../skills/operations-management/system-db-three-role-security/SKILL.md)，并按[渐进阶段及允许/拒绝验收](../skills/operations-management/system-db-three-role-security/references/acceptance.md)执行。新规范来自实际权限审查；规范已建立不代表生产账户、业务 rootless 或审计隔离已经实施验收。先盘点和最小收敛，再分服务验证与切换，保留恢复路径。
+
+## 功能泳道运行生命周期
+
+功能级资源隔离、UAT 租约、保留锁、GitOps 退出与外部资源清理由[容量与生命周期附属契约](../skills/operations-management/capacity-cost-and-resource-lifecycle/references/feature-lane-lifecycle.md)统一定义；候选验收与合并由[工程技能](../skills/engineering-standards/feature-lane-release-workflow/SKILL.md)定义。本文档建立规范，不宣称泳道自动化已经部署。
