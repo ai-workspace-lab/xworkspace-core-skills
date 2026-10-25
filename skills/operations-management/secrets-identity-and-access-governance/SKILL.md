@@ -7,6 +7,8 @@ description: Govern Vault policies and roles, OIDC workload identity, least priv
 
 Treat identity policy as production code. Authentication, authorization, secret paths, and audit evidence must be reviewable, environment-scoped, and revocable.
 
+涉及系统、容器或数据库身份与权限的运维时，必须同时遵循[系统与 DB 三权分立补充规范](../system-db-three-role-security/SKILL.md)：管理不运行业务，业务独立读写并渐进 rootless，审计独立且强制只读；采用最小化渐进改造，不扩大既有操作授权。
+
 ## 1. Identity model
 
 - Prefer workload identity: GitHub Actions or GitLab CI OIDC → Vault → short-lived provider/service credential.

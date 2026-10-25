@@ -1,0 +1,4 @@
+interface:
+  display_name: "系统与数据库三权分立"
+  short_description: "统一约束系统管理、业务读写与只读审计身份，覆盖系统、K3s和数据库运维"
+  default_prompt: "使用 $system-db-three-role-security 按三权分立检查系统、容器和数据库权限，并给出可验证的整改与验收方案。"
