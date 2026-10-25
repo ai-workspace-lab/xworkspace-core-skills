@@ -86,7 +86,7 @@ flowchart TD
 - **关联标准**：
   - [`multi-environment-delivery-and-release`](../multi-environment-delivery-and-release/)：环境路由与发布鉴权。
   - [`issue-pr-traceability-standard`](../issue-pr-traceability-standard/)：**闭环的收尾是回写需求**——带着证据（PR 编号 + CI 结论 + 部署记录）关闭 Issue；证据不全或只完成一部分，就不关，拆剩余项到新 Issue。
-- **动作**：遵循环境路由刚性锁定（如 PR 对应 SIT，主干合并对应 UAT，打 Tag 对应 Prod）。通过 Git 语义化操作触发 CD 部署，完成本次闭环。
+- **动作**：默认遵循事件环境路由（PR 对应 SIT，主干合并对应 UAT，打 Tag 对应 Prod）；已审查并实施的功能泳道配置可按本文“合并前功能泳道闭环”执行。通过 Git 语义化操作触发 CD 部署，完成本次闭环。
 
 - **部署后 post-check**：品牌域名所在边界（边缘路由、SSR 公共/内容边界、Pages）部署后，流水线必须运行
   [`store-and-startup-homepage-spec`](../store-and-startup-homepage-spec/) §9 的审核就绪清单；公开页跳出品牌域名、法人名/同域邮箱缺失都视为部署失败，而不是"页面能打开就算成功"。
@@ -130,3 +130,7 @@ flowchart TD
 **“这件事的权威需求写在哪？验收标准能证伪吗？我是不是在等人喂我本来该自己去读的东西？”**
 
 严格实践，这就是 Agent Harness。
+
+## 合并前功能泳道闭环
+
+需要在合并 main 前完成多仓库功能验收时，转入[功能泳道发布工作流](../feature-lane-release-workflow/SKILL.md)：关联 PR → 固定构件 → 独立泳道 → SIT → 冻结候选做 UAT → 组合验证 → 授权合并 → 结果复核 → 归档回收。该模式须经现行环境与身份门禁评审后启用，不能从下文或既有默认“先合并再 UAT”推导出旁路授权。资源生命周期由[运维契约](../../operations-management/capacity-cost-and-resource-lifecycle/references/feature-lane-lifecycle.md)接管。

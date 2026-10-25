@@ -1,0 +1,4 @@
+interface:
+  display_name: "功能泳道发布工作流"
+  short_description: "关联多仓库 PR，在独立泳道完成 SIT/UAT 后合并并回收环境"
+  default_prompt: "使用 $feature-lane-release-workflow 为当前功能关联 PR，制定合并前部署、验收、发布和回收流程。"

@@ -119,3 +119,7 @@ Issue ──▶ branch ──▶ commit ──▶ PR ──▶ CI run ──▶ 
 - PR 范围超出 Issue 而不回写。
 - 拿"CI 绿了"当验收依据却拿不出对应的证据条目。
 - 父 Issue 在子 PR 尚未全部落地时提前关闭。
+
+## 功能级候选关联
+
+同一需求涉及多个仓库时，以权威任务单关联 feature ID、必需/可选 PR 集合、各 head SHA、组合基线、候选指纹与验收回执。实现细节遵循[功能泳道发布](../feature-lane-release-workflow/SKILL.md)。不要把单个 PR 关闭当成功能完成，也不要把跨仓库分批合并描述为原子提交。

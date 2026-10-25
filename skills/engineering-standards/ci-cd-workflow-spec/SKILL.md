@@ -647,3 +647,7 @@ ${{ github.event_name == 'pull_request' && 'sit'
 4. **`workflow_dispatch` input takes precedence over branch.** When an operator
    dispatches from `main` with `vault_env_path=sit`, the input wins (it appears
    before the `'uat'` fallback). This is intentional — dispatch is explicit.
+
+## Feature-scoped pre-merge acceptance
+
+Use [feature-lane-release-workflow](../feature-lane-release-workflow/SKILL.md) for multi-repository PR candidates tested before main. Keep PR builds separate from credentialed deployment; validate the immutable manifest through a trusted non-production orchestrator. Serialize mutations by feature/target, reject stale revision promotions, and do not cancel a partially mutating operation without a recovery receipt. UAT freezes the deployed candidate; new revisions invalidate affected acceptance evidence. Environment routing changes remain subject to the multi-environment standard.

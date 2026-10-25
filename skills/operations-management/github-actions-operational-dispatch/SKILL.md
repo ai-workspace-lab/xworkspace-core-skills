@@ -55,3 +55,7 @@ and lease state to `capacity-cost-and-resource-lifecycle`, DNS/TLS state to
 `observability-slo-and-alerting`, and material failures to
 `incident-response-and-change-management`. The action is closed only when the
 declared observation/rollback window and its evidence are complete.
+
+## Feature lane operations
+
+For feature deployment, freeze/promotion or retirement, resolve feature ID, revision/fingerprint, cluster/namespace and operation against the actual workflow catalog. Reject stale candidate or cross-feature targets before credentials are read. Follow [feature lifecycle](../capacity-cost-and-resource-lifecycle/references/feature-lane-lifecycle.md) for leases, retained evidence and cleanup authority; a successful cleanup job alone is not proof that external databases, volumes or DNS were removed.

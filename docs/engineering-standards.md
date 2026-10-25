@@ -2,19 +2,20 @@
 
 > **作者亲身实践·深度总结·实战验证的核心工程资产**
 
-本目录收录的 **13 项工程研发与交付规约**，是面向真实生产环境、多云架构与 AI Agent 团队研发协作的**强制性事实源与纪律红线**。
+本目录收录的 **14 项工程研发与交付规约**，是面向真实生产环境、多云架构与 AI Agent 团队研发协作的**强制性事实源与纪律红线**。
 
 所有标准以 [`harness-workflow`](../skills/engineering-standards/harness-workflow/SKILL.md) 为研发主控总线，实现「工程闭环 × 小步快跑」。
 
 ---
 
-## 13 项工程规范全景表
+## 14 项工程规范全景表
 
 | 规范名称 | 解决的实战痛点与核心机制 | 规范入口 |
 |---|---|---|
 | **Agent Harness 工作流** | **研发主控总线**：定义「工程闭环 × 小步快跑」核心循环，统一驱动自测、代码审查、CI/CD 与多环境发布，是串联各项工程标准的唯一入口 | [`skills/engineering-standards/harness-workflow/SKILL.md`](../skills/engineering-standards/harness-workflow/SKILL.md) |
 | **Issue/PR 溯源与需求事实源** | **根治口头派活**：需求以 Issue 为唯一事实源，建立 `Issue → 分支 → commit → PR → CI → 部署 → Tag` 完整且可证伪的追溯链，禁止脱离 Issue 自主开工 | [`skills/engineering-standards/issue-pr-traceability-standard/SKILL.md`](../skills/engineering-standards/issue-pr-traceability-standard/SKILL.md) |
 | **工程开发规范** | **代码分支纪律**：分支命名矩阵、主干保护、PR 合并策略、不可变 Release Tag 规则，以及代码中不慎误提密钥时的标准化紧急撤回流程 | [`skills/engineering-standards/project-development-standard/SKILL.md`](../skills/engineering-standards/project-development-standard/SKILL.md) |
+| **功能泳道发布工作流** | 功能关联多仓库 PR，固定候选完成合并前 SIT/UAT、组合验证及授权合并；新增设计尚无运行验收 | [`feature-lane-release-workflow`](../skills/engineering-standards/feature-lane-release-workflow/SKILL.md) |
 | **CI/CD 工作流规约** | **消灭流水线假绿**：CI 构建与 CD 部署严格解耦、流水线脚本外置可复用、最小权限 GitHub OIDC 互信、不可变制品签名与假绿防治门禁 | [`skills/engineering-standards/ci-cd-workflow-spec/SKILL.md`](../skills/engineering-standards/ci-cd-workflow-spec/SKILL.md) |
 | **四边界执行归属迁移** | **消灭跨仓代码乱窜**：清晰划定 Toolkit、GitOps、IaC 与 Playbooks 四大代码仓的职责红线，提供「新增实现→切换调用→双向验证→清理旧副本」的安全迁移方法 | [`skills/engineering-standards/execution-ownership-migration/SKILL.md`](../skills/engineering-standards/execution-ownership-migration/SKILL.md) |
 | **多环境交付与发布** | **杜绝环境混淆与越权**：严格定义 SIT / UAT / Prod 多环境渐进交付路由规则，通过 GitHub OIDC → HashiCorp Vault 实现凭证与权限物理隔离 | [`skills/engineering-standards/multi-environment-delivery-and-release/SKILL.md`](../skills/engineering-standards/multi-environment-delivery-and-release/SKILL.md) |

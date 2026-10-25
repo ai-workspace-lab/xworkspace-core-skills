@@ -13,6 +13,11 @@ For AI Workspace Infra, read [AI Workspace Infra Repository Map](../references/a
 
 ## 1. Environment Routing Rules
 
+### Delivery modes: default and reviewed feature lanes
+
+The Git-event routing below remains the compatibility default. An explicitly reviewed feature-lane profile may instead run SIT then frozen-candidate UAT before merging application PRs; use [feature-lane-release-workflow](../feature-lane-release-workflow/SKILL.md). Adoption must declare trusted triggers, approval, exact workflow/ref/OIDC bindings, target tuple and non-production secret scope together. No PR receives production credentials, and stable production gates remain unchanged. Until the profile is implemented and verified, use the existing routing; this text does not activate an exception at runtime.
+
+
 For cross-generation database reconciliation, also follow
 [Target-side generation reconciliation](references/target-side-generation-reconciliation.md).
 This applies to manual SSH/Playbooks/GitOps delivery as well as pipelines.
@@ -22,7 +27,7 @@ acceptance, use [Generation upgrade acceptance](../generation-upgrade-acceptance
 It defines stages 0–7 and links the operations-owned restore/regression contract;
 do not treat a successful migration or build as authorization to cut traffic.
 
-A single delivery workflow (e.g. `<delivery-workflow>.yaml`) should route traffic to specific environments based on Git events. Never hardcode environments outside of these bounds:
+A single delivery workflow (e.g. `<delivery-workflow>.yaml`) should route traffic to specific environments based on Git events. For the default profile, enforce these bounds:
 - **`pull_request`** -> routes to **`sit`** environment.
 - **`main` or `release/*` push** -> routes to **`uat`** environment.
 - **`vMAJOR.MINOR.PATCH` tag** -> routes to **`prod`** environment.

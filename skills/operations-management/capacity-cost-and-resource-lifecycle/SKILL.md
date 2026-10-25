@@ -28,3 +28,7 @@ Set budgets and anomaly thresholds by account/environment/service. Review orphan
 ## 4. Retirement
 
 Retire in stages: remove traffic, verify no consumers, retain recovery point for the approved window, export final audit metadata, then delete the exact resource IDs. Terraform state removal, provider deletion, DNS release, snapshot cleanup, and credential revocation are separate checklist entries; authorization for one does not imply authorization for the others.
+
+## 5. Feature environment leases and retirement
+
+For feature-scoped preview environments, read [Feature lane lifecycle](references/feature-lane-lifecycle.md). Track feature-level ownership, active UAT leases, isolated data and billable resources. One PR closing is not a retirement signal for the entire feature. Engineering candidate and acceptance gates belong to [feature-lane-release-workflow](../../engineering-standards/feature-lane-release-workflow/SKILL.md).
