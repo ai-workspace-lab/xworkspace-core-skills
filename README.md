@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/license-MIT-2ea44f.svg)](./LICENSE) [![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/) [![Author Verified](https://img.shields.io/badge/Author%20Verified-21%20Core%20Standards-critical.svg)](docs/engineering-standards.md) [![Agent Workflows](https://img.shields.io/badge/focus-Agent%20Workflows-7c3aed.svg)](docs/upstream-skills-catalog.md) [![Total Skills](https://img.shields.io/badge/skills-78%20total-blueviolet.svg)](skills)
+[![License](https://img.shields.io/badge/license-MIT-2ea44f.svg)](./LICENSE) [![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/) [![Author Verified](https://img.shields.io/badge/Author%20Verified-22%20Core%20Standards-critical.svg)](docs/engineering-standards.md) [![Agent Workflows](https://img.shields.io/badge/focus-Agent%20Workflows-7c3aed.svg)](docs/upstream-skills-catalog.md) [![Total Skills](https://img.shields.io/badge/skills-79%20total-blueviolet.svg)](skills)
 
 # XWorkspace Core Skills
 
@@ -7,12 +7,13 @@
 > [!IMPORTANT]
 > ### 🎯 核心定位与架构原则
 > 
-> 本仓库的核心价值，在于沉淀作者在真实生产环境、多云架构与 AI Agent 团队协同中**亲身实践、深度总结、实战验证**的 **两大核心治理体系（共 21 项自研核心规范）**：
+> 本仓库的核心价值，在于沉淀作者在真实生产环境、多云架构与 AI Agent 团队协同中**亲身实践、深度总结、实战验证**的 **两大核心治理体系（共 22 项自研核心规范）**：
 > 
 > 1. ⭐ **[工程规范与交付标准 (`skills/engineering-standards/`)](docs/engineering-standards.md)**（13 项自研核心工程规约）
-> 2. ⭐ **[运维管理与基础设施治理 (`skills/operations-management/`)](docs/operations-management.md)**（8 项自研生产级运维标准）
+> 2. ⭐ **[运维管理与基础设施治理 (`skills/operations-management/`)](docs/operations-management.md)**（9 项自研运维标准）
+> 新增三权分立规范来自实际权限审查；规范建立与校验通过，不代表生产业务降权、rootless 迁移和审计身份隔离已完成。
 > 
-> 配套自研了 **[版本化全局规范绑定引擎 (`scripts/bind_global_standards.py`)](docs/global-agent-standards.md)**，通过 Git Detached Worktree 技术将上述 21 项验证标准以不可变快照锁定并注入本机 `~/.agents/skills`，彻底杜绝环境与分支切换漂移。
+> 配套自研了 **[版本化全局规范绑定引擎 (`scripts/bind_global_standards.py`)](docs/global-agent-standards.md)**，通过 Git Detached Worktree 技术将上述 22 项规范以不可变快照锁定并注入本机 `~/.agents/skills`，彻底杜绝环境与分支切换漂移。
 > 
 > **除上述作者实践验证的两大核心规范体系外，仓库内的其余能力域（内容生产工作流、Marketplace 市场生态、OpenClaw/Codex 运行时包等）均为引用或镜像自上游开源社区与官方运行时的技能包**，作为统一 Workspace 的分发与使用聚合层。
 
@@ -25,7 +26,7 @@ flowchart TD
     subgraph Core["⭐ 作者亲身实践·总结·验证的核心体系 (First-Party Verified Core)"]
         direction TB
         ENG["<b>工程规范与交付标准</b><br/>skills/engineering-standards/<br/><i>13 项自研规约 · Harness 闭环 · 四仓边界 · GitOps</i>"]
-        OPS["<b>运维管理与生产治理</b><br/>skills/operations-management/<br/><i>8 项自研标准 · 真实灾备 · 凭据零落盘 · SLO 闭环</i>"]
+        OPS["<b>运维管理与生产治理</b><br/>skills/operations-management/<br/><i>9 项自研标准 · 真实灾备 · 凭据零落盘 · SLO 闭环</i>"]
         TOOL["<b>全局规范绑定引擎</b><br/>scripts/bind_global_standards.py<br/><i>不可变 Git 快照绑定至 ~/.agents/skills</i>"]
         ENG --- TOOL
         OPS --- TOOL
@@ -48,10 +49,10 @@ flowchart TD
 
 | 维度 | 扫描前（旧 README） | 扫描后（更新后） | 变动说明 |
 |---|---|---|---|
-| **纳管 Skill 总数** | 31 个 | **78 个** | 补全 47 个未在主索引体现的 Skill，建立 100% 完整覆盖清册 |
+| **纳管 Skill 总数** | 31 个 | **79 个** | 原索引整理补全 47 项，本次新增系统与 DB 三权分立规范 1 项 |
 | **能力域分类** | 8 个（缺漏 marketplace） | **10 大能力域** | 补全 Marketplace 扩展与分类边界，确立自研核心与上游引用分层 |
 | **工程规范 (Engineering)** | 12 个 | **13 个** | 重点突出：补全并置顶作者实战总结的 `zero-trust-overlay-delivery` 等 13 项规约 |
-| **运维管理 (Operations)** | 仅文字提及 2 个，无表格 | **8 个完整导航表** | 重点突出：完整呈现作者生产验证的 8 项运维、灾备、凭据治理与 SLO 标准 |
+| **运维管理 (Operations)** | 仅文字提及 2 个，无表格 | **9 个完整导航表** | 重点突出：呈现 8 项已有运维标准与新增三权分立规范，覆盖系统/DB 身份隔离、灾备、凭据治理与 SLO 标准 |
 | **市场扩展 (Marketplace)** | 0 个（完全缺失） | **15 个完整导航表** | 上游引用：补全 Office 文档处理、安全审查、Wan 多模态模型、实时翻译等 |
 | **运行时核心 (Workspace Core)** | 仅简要文字说明，无清单 | **24 个（19 OpenClaw + 5 Codex）** | 上游镜像：建立完整的双层来源清册、导航索引与刷新机制 |
 | **文档与媒体解耦** | 耦合媒体动图与个人账号 | **全面剥离解耦** | 彻底剥离独立演进的动图预览与个人账号信息，保持规范库纯粹专注 |
@@ -66,7 +67,7 @@ flowchart TD
 | 文档分类 | 覆盖范围与内容要点 | 快速入口 |
 |---|---|---|
 | 🌟 **工程规范与交付标准** | 详细展示作者实践总结的 13 项硬核研发规约全景表、解决的痛点及落地执行原则 | [📖 `docs/engineering-standards.md`](docs/engineering-standards.md) |
-| 🌟 **运维管理与基础设施治理** | 详细展示作者深度验证的 8 项生产级运维标准全景表、灾备恢复演练与故障闭环原则 | [📖 `docs/operations-management.md`](docs/operations-management.md) |
+| 🌟 **运维管理与基础设施治理** | 详细展示作者总结的 9 项运维标准全景表、灾备恢复演练与故障闭环原则 | [📖 `docs/operations-management.md`](docs/operations-management.md) |
 | 🔗 **全局规范绑定引擎** | 详解如何使用 `scripts/bind_global_standards.py` 将核心标准以不可变 Git 快照绑定至本机 `~/.agents/skills` | [📖 `docs/global-agent-standards.md`](docs/global-agent-standards.md) |
 | 📦 **上游引用生态技能包** | 涵盖内容生产（18）、Marketplace 市场精选（15）与 Workspace Core 运行时镜像（24）的完整分类表格 | [📖 `docs/upstream-skills-catalog.md`](docs/upstream-skills-catalog.md) |
 | 🛡️ **质量验证与工程支持** | 单元测试运行方法（`unittest`）、Release 分支门禁规范、产物隔离契约（`artifact-ignore.md`）与示例工程模板 | [📖 `docs/quality-and-engineering.md`](docs/quality-and-engineering.md) |

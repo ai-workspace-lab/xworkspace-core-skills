@@ -16,6 +16,8 @@ description: |
 
 先阅读 [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md)，再确认改动属于 playbooks 的执行层、platform-ops-toolkit 的编排层，还是 observability.svc.plus 的独立部署层。不得把主机配置塞进 Terraform、GitOps 或 artifacts 仓库。
 
+涉及系统、容器或数据库身份与权限的运维时，必须同时遵循[系统与 DB 三权分立补充规范](../../operations-management/system-db-three-role-security/SKILL.md)：管理不运行业务，业务独立读写并渐进 rootless，审计独立且强制只读；采用最小化渐进改造，不扩大既有操作授权。
+
 ## 1. Repository organization and style
 
 - 新增或修改入口剧本 MUST 遵循其所属仓库和领域的既有命名约定。不得仅为统一风格进行跨目录或仓库级重命名；如确需迁移命名，必须作为独立兼容性变更，提供引用更新、验证与回滚方案。
