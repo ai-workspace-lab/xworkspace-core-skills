@@ -36,4 +36,4 @@
 
 ## 功能泳道运行生命周期
 
-功能级资源隔离、UAT 租约、保留锁、GitOps 退出与外部资源清理由[容量与生命周期附属契约](../skills/operations-management/capacity-cost-and-resource-lifecycle/references/feature-lane-lifecycle.md)统一定义；候选验收与合并由[工程技能](../skills/engineering-standards/feature-lane-release-workflow/SKILL.md)定义。本文档建立规范，不宣称泳道自动化已经部署。
+按所选发布模型分别管理同一非生产集群中的临时 SIT 与独立 UAT namespace；动态地址由资源 ID 与当前 CMDB/云事实解析。功能级资源隔离、UAT 租约、保留锁、GitOps 退出与外部资源清理由[容量与生命周期附属契约](../skills/operations-management/capacity-cost-and-resource-lifecycle/references/feature-lane-lifecycle.md)统一定义；候选验收与合并由[工程技能](../skills/engineering-standards/feature-lane-release-workflow/SKILL.md)定义。本文档建立规范，不宣称泳道自动化已经部署。
