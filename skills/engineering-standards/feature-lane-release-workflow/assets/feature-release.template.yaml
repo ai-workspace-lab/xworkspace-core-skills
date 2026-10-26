@@ -2,6 +2,7 @@
 feature: billing-refund
 owner: feature-owner
 revision: 3
+releaseModel: postmerge-uat # 或用户明确选择的 premerge-uat
 stage: sit
 candidateFingerprint: REPLACE_WITH_MANIFEST_CONTENT_HASH
 members:
@@ -23,20 +24,28 @@ artifacts:
   # 补齐未改动依赖的固定构件；不能使用浮动 latest。
 deployment:
   target: nonproduction
-  namespace: feature-billing-refund
-  hostname: billing-refund.preview.example.com
+  resourceIdentityRef: REPLACE_WITH_RESOURCE_ID_AND_CURRENT_CMDB_REFERENCE
+  # 连接地址在执行时解析，不把动态 IP 固定为目标身份。
+  sitNamespace: feature-billing-refund-sit
+  uatNamespace: billing-refund-uat
+  # 同一非生产集群可承载两个 namespace；独立数据、身份与生命周期。
+  sitHostname: billing-refund.preview.example.com
+  uatHostname: billing-refund.uat.example.com
   chartVersion: REPLACE_WITH_IMMUTABLE_CHART_VERSION
   configSha: REPLACE_WITH_FULL_SHA
 data:
   profile: isolated-test
   baseline: REPLACE_WITH_SANITIZED_SEED_VERSION
   schemaVersion: REPLACE_WITH_SCHEMA_VERSION
-  database: feature_billing_refund
+  sitDatabase: feature_billing_refund_sit
+  uatDatabase: feature_billing_refund_uat
   credentialRef: REPLACE_WITH_NONSECRET_REFERENCE
 externalEffects: sandbox
 release:
   strategy: rolling
   uatFrozen: false
+  mergeSha: REPLACE_WHEN_MERGED
+  # merge 后构件变化生成新 revision/fingerprint 并重验，不能复制旧 PASS。
 lifecycle:
   expiresAt: REPLACE_WITH_APPROVED_EXPIRY
   cleanupPolicy: REPLACE_WITH_APPROVED_POLICY_REFERENCE
