@@ -21,8 +21,8 @@ members:
     targetBranch: main
     targetBaseSha: null
 artifacts:
-  frontend: null256_DIGEST
-  api: null256_DIGEST
+  frontend: null
+  api: null
   # 补齐未改动依赖的固定构件；不能使用浮动 latest。
 deployment:
   target: nonproduction
@@ -46,7 +46,9 @@ externalEffects: sandbox
 release:
   strategy: rolling
   uatFrozen: false
-  mergeSha: null
+  mergedRepositories: {}
+  # 合并后按 repository 键记录 mergeSha 与实际 artifacts（完整 digest）的映射；
+  # 尚未合并的仓库不伪填，完整性按 members 中 required 仓库核对。
   # merge 后构件变化生成新 revision/fingerprint 并重验，不能复制旧 PASS。
 lifecycle:
   expiresAt: null
