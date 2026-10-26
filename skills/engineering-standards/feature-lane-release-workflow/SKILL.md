@@ -30,6 +30,8 @@ description: >-
 
 轻量 Next.js/Go/PG 可采用 Helm＋既有 GitOps 控制器＋Service DNS，非生产 PG 每泳道 database/角色。泳道内复用未改动镜像，写入服务及必要依赖独立运行。仅有明确收益时才增加共享基线染色或网格；独立调用链不能宣称已经实现逐跳 Header 染色。
 
+用户选择“完整栈泳道”时，SIT 与 UAT 各部署完整应用栈，不能只创建 Namespace 或只部署本次改动的服务。跨仓库 PR 决定变更组件的构件，未改组件也从可追溯基线固定构件；分别核对入口、内部服务地址、数据库、会话、任务与外部回调，避免跨环境调用。临时 SIT 跟随明确的 feature/PR 候选修订；稳定 UAT 可持续 watch main，经构建验证后更新不可变构件，逐次记录完整组合，不能用浮动镜像标签代替 main 到 digest 的映射。一次 UAT 验收绑定一个固定组合；后续更新须记录旧验收失效范围，冻结验收时暂缓自动晋级，不能静默换版。
+
 规划时使用 [功能候选模板](assets/feature-release.template.yaml)；它是待适配契约，不是已有 CRD 或可直接部署的清单。运行阶段与变更失效规则见 [阶段与证据](references/stages-and-evidence.md)。实际创建和回收前阅读 [执行与回收](../../operations-management/capacity-cost-and-resource-lifecycle/references/feature-lane-lifecycle.md)。
 
 ## 必须保持的发布语义
