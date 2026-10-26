@@ -25,16 +25,22 @@ artifacts:
   api: null
   # 补齐未改动依赖的固定构件；不能使用浮动 latest。
 deployment:
+  topology: complete-stack # 本例 SIT/UAT 各一套完整栈；按实际选择适配。
   target: nonproduction
   resourceIdentityRef: null
   # 连接地址在执行时解析，不把动态 IP 固定为目标身份。
   sitNamespace: feature-billing-refund-sit
-  uatNamespace: billing-refund-uat
+  uatNamespace: web-saas-uat
   # 同一非生产集群可承载两个 namespace；独立数据、身份与生命周期。
   sitHostname: billing-refund.preview.example.com
   uatHostname: billing-refund.uat.example.com
   chartVersion: null
   configSha: null
+  uatTracking:
+    mode: continuous-main
+    branch: main
+    # 各应用仓构建成功后，由受信任发布链更新组合中的不可变 digest。
+    # 每次验收仍固定一组构件；验收冻结期间暂缓自动晋级。
 data:
   profile: isolated-test
   baseline: null
