@@ -1,65 +1,185 @@
-# 概念模板：适配并验证后使用；不是 Kubernetes CRD。
-feature: billing-refund
-owner: feature-owner
-revision: 3
-releaseModel: postmerge-uat # 或用户明确选择的 premerge-uat
-stage: sit
-candidateFingerprint: null
-candidateStatus: BLOCKED # 必需 SHA/digest/chart/config/data/身份引用未齐时不得冻结或部署。
-# null 表示 unknown，必须在相应阶段门禁补齐并验证；不能由声明 hash 自动补齐。
-members:
-  - repository: example/frontend
-    pr: 123
-    required: true
-    headSha: null
-    targetBranch: main
-    targetBaseSha: null
-  - repository: example/api
-    pr: 456
-    required: true
-    headSha: null
-    targetBranch: main
-    targetBaseSha: null
-artifacts:
-  frontend: null
-  api: null
-  # 补齐未改动依赖的固定构件；不能使用浮动 latest。
-deployment:
-  topology: complete-stack # 本例 SIT/UAT 各一套完整栈；按实际选择适配。
-  target: nonproduction
-  resourceIdentityRef: null
-  # 连接地址在执行时解析，不把动态 IP 固定为目标身份。
-  sitNamespace: feature-billing-refund-sit
-  uatRuntime: null # kubernetes 或 serverless；按用户选择填写并核验。
-  uatNamespace: null # 仅 Kubernetes UAT 适用；Serverless 标为 null。
-  uatTargetRef: null # Serverless 服务/环境引用，禁止用动态地址代替身份。
-  # SIT 与 UAT 可在不同平台；独立数据、身份与生命周期。
-  sitHostname: billing-refund.preview.example.com
-  uatHostname: billing-refund.uat.example.com
-  chartVersion: null
-  configSha: null
-  uatTracking:
-    mode: continuous-main
-    branch: main
-    # 各应用仓构建成功后，由受信任发布链更新组合中的不可变 digest。
-    # 每次验收仍固定一组构件；验收冻结期间暂缓自动晋级。
-data:
-  profile: isolated-test
-  baseline: null
-  schemaVersion: null
-  sitDatabase: feature_billing_refund_sit
-  uatDatabase: feature_billing_refund_uat
-  credentialRef: null
-externalEffects: sandbox
-release:
-  strategy: rolling
-  uatFrozen: false
-  mergedRepositories: {}
-  # 合并后按 repository 键记录 mergeSha 与实际 artifacts（完整 digest）的映射；
-  # 尚未合并的仓库不伪填，完整性按 members 中 required 仓库核对。
-  # merge 后构件变化生成新 revision/fingerprint 并重验，不能复制旧 PASS。
+# 概念模板：功能泳道多环境发布契约；不是单一 Kubernetes CRD。
+# 分离四类核心记录：功能定义 (Feature)、候选身份 (Candidate)、部署事实 (Deployment)、验收证据 (Verification)。
+
+---
+# 一、功能定义 (Feature Specification)
+feature:
+  featureId: billing-refund
+  owner: feature-owner
+  releaseModel: postmerge-uat # 默认 postmerge-uat；仅在用户明确指定时填 premerge-uat
+  targetBranch: main
+  requiredMembers:
+    - repository: example/frontend
+      pr: 123
+      required: true
+      headSha: null
+      targetBranch: main
+      targetBaseSha: null # 组合验证启动时锁定的目标基线 SHA
+    - repository: example/api
+      pr: 456
+      required: true
+      headSha: null
+      targetBranch: main
+      targetBaseSha: null
+  optionalMembers: []
+  dependencies:
+    - auth-service-v2
+  completionConditions:
+    - sit-integration-pass
+    - postmerge-uat-business-pass
+    - no-security-regression
+
+---
+# 二、候选身份 (Candidate Specification & Fingerprints)
+candidate:
+  candidateId: billing-refund-rev3
+  revision: 3
+  candidateStatus: BLOCKED # DRAFT | FROZEN | BLOCKED | INVALIDATED (必需项齐备前不得冻结或部署)
+  sourceLineage:
+    sourceCommits:
+      example/frontend: null # PR head commit SHA
+      example/api: null
+    simulatedMergeBaseSha: null # 目标分支基线与 PR heads 的合成测试 commit
+    mergedRepositories: {} # 合并后记录各仓实际 merge commit SHA
+  immutableArtifacts:
+    frontend: null # 如: image-repo/frontend@sha256:... (禁止使用 latest 等浮动标签)
+    api: null # 如: image-repo/api@sha256:...
+    chartVersion: null
+    configSha: null
+  schemaBaseline:
+    migrationTool: goose
+    schemaVersion: 20261027_01
+    migrationChecksum: null
+    compatibilityMode: expand-contract # 必须遵循向前兼容
+  dataBaseline:
+    profile: isolated-test
+    seedChecksum: null
+  fingerprints:
+    # 明确区分三层不同用途的摘要与指纹：
+    specDigest: null # 本 YAML/GitOps 声明文件的 SHA-256
+    candidateFingerprint: null # 聚合所有源码 commit、不可变镜像 digest、Chart 及配置的不可变指纹
+    compositeFingerprint: null # 若为多功能组合发版，填入组合候选的全局唯一指纹
+
+---
+# 三、部署事实 (Deployment Bindings & Runtime Facts)
+deployments:
+  # 临时 SIT 部署环境 (随 PR 动态创建与回收)
+  - deploymentId: dep-sit-001
+    targetEnvironment: sit
+    runtimePlatform: kubernetes # kubernetes 或 serverless
+    topologyMode: isolated-per-feature # SIT 默认单功能独占临时 namespace
+    namespace: feature-billing-refund-sit
+    targetRef: null # 静态集群/平台资源引用标识，禁止以动态 IP 代替资源身份
+    hostname: billing-refund.preview.example.com
+    serviceIdentities:
+      appRole: feature-billing-sit-app # 仅有 DML，严禁 DDL
+      migratorRole: feature-billing-sit-migrator # 仅限迁移执行期
+      auditReaderRole: feature-billing-sit-audit # 独立只读
+    database:
+      instanceRef: nonprod-pg-instance
+      databaseName: feature_billing_refund_sit
+      credentialRef: vault:secret/nonprod/billing-refund-sit
+    deploymentRunId: null
+    deployedAt: null
+    runtimeReconciliation:
+      status: UNCHECKED # MATCHED | DRIFTED | UNCHECKED
+      actualRunningDigests: {} # 节点实际运行容器 imageID
+      multiArchMappingVerified: false # 是否经过 OCI Index -> Platform Manifest 的多架构核验
+
+  # 独立 UAT 部署环境 (持久运行环境，支持三种拓扑模式)
+  - deploymentId: dep-uat-001
+    targetEnvironment: uat
+    runtimePlatform: kubernetes # 或 serverless (Serverless 持久 UAT 标明其稳定服务引用)
+    topologyMode: shared-slot-queue # isolated-per-feature | shared-slot-queue | composite-release-candidate
+    namespace: web-saas-uat # Serverless 场景标为 null
+    targetRef: k8s:cluster-alpha:web-saas-uat # Serverless 时填服务 ARN/ResourceID
+    hostname: billing-refund.uat.example.com
+    # 共享 UAT 槽位租约、候选锁与排队控制
+    sharedSlotLease:
+      leaseHolder: billing-refund # 当前持有该槽位的 feature ID 或 release run ID
+      leaseToken: null # 编排器下发的原子租约 Token
+      leaseVersion: 1 # 并发保护与 CAS 乐观锁版本
+      leaseExpiresAt: null # 租约截止时间
+      candidateLock: UNLOCKED # UNLOCKED | LOCKED_VERIFYING
+      promotionQueuePending: [] # 正在排队等待此 UAT 槽位部署的后续 main 候选列表
+    serviceIdentities:
+      appRole: uat-billing-app
+      migratorRole: uat-billing-migrator
+      auditReaderRole: uat-billing-audit
+    database:
+      instanceRef: nonprod-pg-instance
+      databaseName: feature_billing_refund_uat
+      credentialRef: vault:secret/nonprod/billing-refund-uat
+    deploymentRunId: null
+    deployedAt: null
+    runtimeReconciliation:
+      status: UNCHECKED
+      actualRunningDigests: {}
+      multiArchMappingVerified: false
+
+---
+# 四、验收证据与阶段结果 (Verification & Evidence Records)
+verifications:
+  # 记录 1：SIT 集成测试回执
+  - verificationRunId: null
+    stage: sit
+    candidateId: billing-refund-rev3
+    deploymentId: dep-sit-001
+    status: NOT_RUN # PASS | FAIL | BLOCKED | NOT_RUN
+    scope:
+      - contract-testing
+      - rpc-integration
+      - schema-expand-contract
+      - baseline-regression
+    evidenceReuse:
+      isReused: false
+      reusedFromRunId: null
+      reuseJustification: null
+    evidenceLocation: null
+    operator: null
+    completedAt: null
+    invalidatedAt: null
+    invalidationReason: null
+
+  # 记录 2：组合验证回执
+  - verificationRunId: null
+    stage: composite-verification
+    candidateId: billing-refund-rev3
+    status: NOT_RUN
+    scope:
+      - base-merge-simulation
+      - cross-repo-compatibility
+    evidenceLocation: null
+    completedAt: null
+
+  # 记录 3：UAT 业务验收回执
+  - verificationRunId: null
+    stage: postmerge-uat # 或 premerge-uat
+    candidateId: billing-refund-rev3
+    deploymentId: dep-uat-001
+    status: NOT_RUN
+    scope:
+      - e2e-business-flow
+      - web-login-session
+      - third-party-sandbox-reconciliation
+    evidenceReuse:
+      isReused: false
+      reusedFromRunId: null
+      # 证据复用必须在候选内容、环境配置、依赖版本、数据前提、用例适用边界及 TTL 六维严格满足时方可复用；
+      # 严禁将旧 SIT 的运行对账证据或网络身份鉴权测试冒充为 UAT 证据。
+      reuseJustification: null
+    evidenceLocation: null
+    operator: null
+    completedAt: null
+    invalidatedAt: null
+    invalidationReason: null
+
+---
+# 五、生命周期与回收控制 (Lifecycle & Retirement Contract)
 lifecycle:
-  expiresAt: null
-  cleanupPolicy: null
-  evidenceLocation: null
-# 真实批准由可审计授权来源证明，不接受清单里的布尔值自我授权。
+  investigationLock: false # 发生故障或 UAT 失败时置为 true，阻止定时回收
+  retireSITOnMergeComplete: true # 合并复核完成且无排查锁时，按策略回收临时 SIT
+  uatRetentionPolicy: release-slot-on-verification # 共享 UAT 验收完成后释放候选锁；独占环境按 TTL 归档
+  expiresAt: null # 租约截止时间戳
+  leaseVersion: 1 # 用于防止 TTL 清理与续约/部署并发冲突的 CAS 版本号
+  cleanupAuthorizationRef: null # 经过审计的资源清理授权工单号或策略引用
