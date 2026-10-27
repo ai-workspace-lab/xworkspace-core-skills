@@ -30,8 +30,10 @@ deployment:
   resourceIdentityRef: null
   # 连接地址在执行时解析，不把动态 IP 固定为目标身份。
   sitNamespace: feature-billing-refund-sit
-  uatNamespace: web-saas-uat
-  # 同一非生产集群可承载两个 namespace；独立数据、身份与生命周期。
+  uatRuntime: null # kubernetes 或 serverless；按用户选择填写并核验。
+  uatNamespace: null # 仅 Kubernetes UAT 适用；Serverless 标为 null。
+  uatTargetRef: null # Serverless 服务/环境引用，禁止用动态地址代替身份。
+  # SIT 与 UAT 可在不同平台；独立数据、身份与生命周期。
   sitHostname: billing-refund.preview.example.com
   uatHostname: billing-refund.uat.example.com
   chartVersion: null
