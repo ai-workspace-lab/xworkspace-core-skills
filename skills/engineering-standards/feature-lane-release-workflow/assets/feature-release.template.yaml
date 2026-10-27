@@ -79,6 +79,9 @@ deployments:
       instanceRef: nonprod-pg-instance
       databaseName: feature_billing_refund_sit
       credentialRef: vault:secret/nonprod/billing-refund-sit
+      # SIT 临时特性泳道专属数据库能力：允许重建最新 Schema 与初始化全新 DB
+      allowRebuildLatestSchema: true # 允许按分支最新 SQL 脚本重建全部表结构
+      allowInitFreshDatabase: true # 允许从零初始化全新独立测试数据库与种子数据
     deploymentRunId: null
     deployedAt: null
     runtimeReconciliation:
@@ -86,22 +89,37 @@ deployments:
       actualRunningDigests: {} # 节点实际运行容器 imageID
       multiArchMappingVerified: false # 是否经过 OCI Index -> Platform Manifest 的多架构核验
 
-  # 独立 UAT 部署环境 (持久运行环境，支持三种拓扑模式)
+  # 独立 UAT 部署环境 (持久保存环境，由 serverless-orchestrator 编排发布)
   - deploymentId: dep-uat-001
     targetEnvironment: uat
-    runtimePlatform: kubernetes # 或 serverless (Serverless 持久 UAT 标明其稳定服务引用)
+    runtimePlatform: serverless # kubernetes 或 serverless (当前选择：Serverless 持久保存)
+    orchestration:
+      repository: ai-workspace-infra/platform-ops-toolkit
+      workflow: .github/workflows/serverless-orchestrator.yml
+      operation: deploy # deploy | upgrade | deploy+migrate | plan
+      cloudProvider: gcp-cloud # gcp-cloud (Cloud Run) + cloudflare (Edge/SSR)
+      vaultEnvPath: uat
+      dnsMode: uat-records # 更新 UAT canonical DNS 记录
+      concurrencyGroup: serverless-uat # 编排器级别并发互斥锁
     topologyMode: shared-slot-queue # isolated-per-feature | shared-slot-queue | composite-release-candidate
-    namespace: web-saas-uat # Serverless 场景标为 null
-    targetRef: k8s:cluster-alpha:web-saas-uat # Serverless 时填服务 ARN/ResourceID
-    hostname: billing-refund.uat.example.com
+    persistencePolicy: persistent # 持久保存：环境、域名与数据基线稳定留存，不随 feature 生命周期销毁
+    namespace: null # Serverless 场景无 Kubernetes namespace
+    targetRef: gcp:cloud-run:uat:web-saas # Serverless 服务/运行时引用，禁止用动态 IP 代替
+    hostname: web-saas.uat.example.com
     # 共享 UAT 槽位租约、候选锁与排队控制
     sharedSlotLease:
       leaseHolder: billing-refund # 当前持有该槽位的 feature ID 或 release run ID
       leaseToken: null # 编排器下发的原子租约 Token
       leaseVersion: 1 # 并发保护与 CAS 乐观锁版本
       leaseExpiresAt: null # 租约截止时间
-      candidateLock: UNLOCKED # UNLOCKED | LOCKED_VERIFYING
+      candidateLock: UNLOCKED # UNLOCKED | LOCKED_VERIFYING (验收期间加锁阻止后续 main 自动覆盖)
       promotionQueuePending: [] # 正在排队等待此 UAT 槽位部署的后续 main 候选列表
+    schemaMigration:
+      applyAccountsSchemaMigration: false # 是否在部署前应用 Accounts .up.sql
+      adoptAccountsBaseline: true # 是否采纳经评审的 expand-only baseline
+      accountsSchemaExpectedVersion: null
+      accountsSchemaTargetVersion: null
+      accountsSchemaSha256: null
     serviceIdentities:
       appRole: uat-billing-app
       migratorRole: uat-billing-migrator
@@ -109,7 +127,7 @@ deployments:
     database:
       instanceRef: nonprod-pg-instance
       databaseName: feature_billing_refund_uat
-      credentialRef: vault:secret/nonprod/billing-refund-uat
+      credentialRef: vault:secret/uat/billing-refund
     deploymentRunId: null
     deployedAt: null
     runtimeReconciliation:
@@ -177,9 +195,11 @@ verifications:
 ---
 # 五、生命周期与回收控制 (Lifecycle & Retirement Contract)
 lifecycle:
+  featureArchivalPolicy: archive-permanent # feature ID、关联 PR、构建指纹与测试回执永久归档保存
+  hostEnvironmentPolicy: preserve-default # K3S - Dev V5 主机环境默认保存，除非显式关停
   investigationLock: false # 发生故障或 UAT 失败时置为 true，阻止定时回收
-  retireSITOnMergeComplete: true # 合并复核完成且无排查锁时，按策略回收临时 SIT
-  uatRetentionPolicy: release-slot-on-verification # 共享 UAT 验收完成后释放候选锁；独占环境按 TTL 归档
+  retireSITOnMergeComplete: true # 合并复核完成且无排查锁时，按策略释放临时 SIT Namespace 与特性域名
+  uatRetentionPolicy: release-slot-on-verification # Serverless 持久 UAT 验收完成后仅释放候选锁，环境持续运行
   expiresAt: null # 租约截止时间戳
   leaseVersion: 1 # 用于防止 TTL 清理与续约/部署并发冲突的 CAS 版本号
   cleanupAuthorizationRef: null # 经过审计的资源清理授权工单号或策略引用
