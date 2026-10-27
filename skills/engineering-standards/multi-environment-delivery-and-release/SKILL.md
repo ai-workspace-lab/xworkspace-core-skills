@@ -36,6 +36,8 @@ For `platform-ops-toolkit/platform-ops.yaml`, preserve the mapped resource file,
 workspace, backend key, domain base, and Vault role as one atomic profile. Changing
 only one of them can make Terraform manage one host while Ansible deploys another.
 
+主干 UAT 的多特性集成、公共基线、验收与回归，以及 Feature/Release Manifest、Current/Verified 状态和证据失效规则，统一遵循 [feature-lane-release-workflow](../feature-lane-release-workflow/SKILL.md)。Shared SIT 只提供公共基础设施；Main 是触发与来源，实际部署固定构件。自动发布规则的设计不代表当前仓库已经实现。
+
 ### 1.0 GitOps declaration and promotion contract
 
 - The desired-state file is selected by the explicit tuple

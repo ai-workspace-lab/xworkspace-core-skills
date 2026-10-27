@@ -36,3 +36,9 @@ Every page needs an owner, escalation path, symptom, impact threshold, dashboard
 Before a production rollout, define the baseline and success/error signals. During rollout, compare the promoted revision with baseline SLI, logs/traces, and dependency health. After rollout, record the observation window and rollback threshold. A deployment is not successful because the workflow exited zero; it must meet the declared service health criteria.
 
 Review noisy, missing, and stale alerts after incidents. Link material incidents to SLO/error-budget impact and corrective work.
+
+## 5. Feature and release evidence
+
+Correlate test receipts, deployment events and relevant logs/traces with feature ID, release ID, candidate fingerprint and deployed revision. Keep unbounded identifiers in events or evidence indexes rather than metric labels; use bounded environment/service/namespace labels where appropriate. Bind acceptance queries to the actual revision and observation window. Missing telemetry or insufficient samples means verification is incomplete, never zero errors by inference.
+
+Reuse the collectors and central observation plane defined by [Unified observability architecture](../unified-observability-architecture/SKILL.md): Kubernetes metrics via vmagent, logs via Vector, tracing via OTel only when needed. Preserve sanitized acceptance evidence outside temporary SIT resources so cleanup does not destroy release traceability.
