@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unified Observability Architecture"
+  short_description: "Architectural rules and collector governance for metrics, logs, and traces."
+  default_prompt: "Use $unified-observability-architecture to evaluate collector responsibilities, central telemetry routing, and edge-to-cluster observability standards."

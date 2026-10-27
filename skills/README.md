@@ -1,18 +1,18 @@
 # Skills
 
-本目录是仓库唯一的 Skill 入口，共收录 **79 个 Skill**，按 10 大能力域分类管理。
+本目录是仓库唯一的 Skill 入口，共收录 **80 个 Skill**，按 10 大能力域分类管理。
 
 > [!IMPORTANT]
 > ### 核心自研验证资产 vs 上游引用技能包
 > - ⭐ **核心自研资产（实践·总结·验证）**：
 >   - `engineering-standards/`：包含 14 项自研工程研发与交付规范（Harness 工作流、Issue/PR 溯源、四仓执行归属、多环境发布、GitOps 等）。
->   - `operations-management/`：包含 9 项自研运维标准（真实灾备演练、故障变更管理、Vault 凭据零落盘、DNS 边缘平滑切流、SLO 告警等）。
+>   - `operations-management/`：包含 10 项自研运维标准（真实灾备演练、统一可观测性架构、故障变更管理、Vault 凭据零落盘、DNS 边缘平滑切流、SLO 告警等）。
 > - 📦 **上游引用与镜像生态**：其余分类（多模态内容生产链路、Marketplace 市场技能、Workspace Core 运行时镜像、开源 Vendored 技能）均为引用或镜像自上游社区与运行时的生态包。
 
 | Category | 性质归属 | 用途说明 |
 |---|---|---|
 | ⭐ `engineering-standards/` | **作者实战验证核心** | 研发交付规范、发布治理、多环境隔离、代际升级与合规标准（14 项规约） |
-| ⭐ `operations-management/` | **作者实战验证核心** | 容灾备份、变更管理、Vault 凭据与 OIDC 治理、网络边缘与 SLO（9 项标准，含系统/DB 三权分立） |
+| ⭐ `operations-management/` | **作者实战验证核心** | 容灾备份、变更管理、Vault 凭据与 OIDC 治理、网络边缘与 SLO（10 项标准，含系统/DB 三权分立、统一可观测性架构） |
 | `content-planning/` | 上游引用（HyperFrames） | 选题拆解、图文连载、内容排期 |
 | `video-production/` | 上游引用（HyperFrames） | AI 新闻快报、长图讲解视频、产品介绍视频与爆款视频逐镜理解 |
 | `image-production/` | 上游引用（HyperFrames） | 连续风格科技长图 PNG / 信息图素材生成 |

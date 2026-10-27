@@ -4,11 +4,11 @@
 
 👉 **目录直达**：[`skills/operations-management/`](../skills/operations-management/)
 
-这是作者针对生产环境基础设施运维、灾备容灾与日常故障处理**深度总结的 9 项运维标准**，让线上运维从被动救火走向确定性保障：
+这是作者针对生产环境基础设施运维、灾备容灾与日常故障处理**深度总结的 10 项运维标准**，让线上运维从被动救火走向确定性保障：
 
 ---
 
-## 9 项运维标准全景表
+## 10 项运维标准全景表
 
 | 规范名称 | 解决的实战痛点与核心机制 | 规范入口 |
 |---|---|---|
@@ -17,6 +17,7 @@
 | **系统与数据库三权分立** | 管理用户不运行业务；业务独立读写、渐进 rootless；审计身份强制只读。系统、K3s 和 DB 权限按最小增量验证与迁移，不捆绑全量改造 | [`system-db-three-role-security/SKILL.md`](../skills/operations-management/system-db-three-role-security/SKILL.md) |
 | **密钥、身份与访问治理** | **凭据彻底零落盘**：HashiCorp Vault policies/roles 治理、GitHub Actions OIDC 身份互信、最小权限原则、动态凭据定期轮转与一键紧急吊销 | [`skills/operations-management/secrets-identity-and-access-governance/SKILL.md`](../skills/operations-management/secrets-identity-and-access-governance/SKILL.md) |
 | **网络、DNS、TLS 与边缘管理** | **线上切流不中断**：权威 DNS 记录管理与 TTL 递减规划、ACME 证书自动化续期、Caddy/Ingress 反代配置与秒级流量回滚方案 | [`skills/operations-management/network-dns-tls-edge-management/SKILL.md`](../skills/operations-management/network-dns-tls-edge-management/SKILL.md) |
+| **统一可观测性架构规范** | **拒绝监控孤岛与组件冗余**：边缘 Vector All-in-One 与 K8s 专业化分工（vmagent 指标/Vector 日志）、中央持久化 Remote Write 汇聚、本地磁盘抗断网缓冲、严禁边缘滥建私有存储与零落盘凭据治理 | [`skills/operations-management/unified-observability-architecture/SKILL.md`](../skills/operations-management/unified-observability-architecture/SKILL.md) |
 | **可观测性、SLO 与告警规范** | **告别告警风暴**：SLI/SLO 核心指标度量、错误预算（Error Budget）、Grafana 监控看板标准、告警分级收敛降噪与部署后健康检查 | [`skills/operations-management/observability-slo-and-alerting/SKILL.md`](../skills/operations-management/observability-slo-and-alerting/SKILL.md) |
 | **容量、成本与资源生命周期** | **算清多云账单**：多云资源成本核算、VPS 升降配与平滑置换流程、快照留存策略、闲置保留公网 IP 清理与孤儿资源回收 | [`skills/operations-management/capacity-cost-and-resource-lifecycle/SKILL.md`](../skills/operations-management/capacity-cost-and-resource-lifecycle/SKILL.md) |
 | **服务目录与 Runbook 标准** | **消除信息孤岛**：服务元数据归档、上下游依赖拓扑图谱、应急运维标准化操作手册（Runbook）与下线退役契约 | [`skills/operations-management/service-catalog-and-runbook-standard/SKILL.md`](../skills/operations-management/service-catalog-and-runbook-standard/SKILL.md) |
