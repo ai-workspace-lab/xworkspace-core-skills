@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vault & ESO TLS Governance"
+  short_description: "Govern Vault, External Secrets Operator, and gateway TLS certificate automation."
+  default_prompt: "Use $vault-eso-tls-certificate-governance to review or configure Vault-backed TLS certificate delivery, SecretStores, ExternalSecrets, and edge gateway bindings."
