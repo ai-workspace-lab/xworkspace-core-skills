@@ -1,6 +1,6 @@
 ---
 name: multi-environment-delivery-and-release
-description: AI Workspace Infra multi-environment delivery, Vault OIDC, release and secret-isolation rules. Use when changing GitHub Actions environment routing, Vault roles/policies, CI secret reads, workflow_dispatch inputs, release tags, or deployment paths in platform-ops-toolkit and related delivery repositories. Covers exact workflow allowlists, KV tiers, transition-safe routing, and no token escape hatches.
+description: AI Workspace Infra UI/API/DB upgrade classification, multi-environment delivery, Vault OIDC, release and secret-isolation rules. Use when choosing in-place versus fresh-cluster upgrades or changing GitHub Actions environment routing, Vault roles/policies, CI secret reads, workflow_dispatch inputs, release tags, or deployment paths. Covers workflow allowlists, KV tiers, transition-safe routing, and no token escape hatches.
 ---
 
 # Multi-Environment Delivery and Release Standard
@@ -10,6 +10,22 @@ to Vault via OIDC. Replace the placeholder workflow/role names below with the ta
 actual ones; keep the routing shape and secret-handling rules.
 
 For AI Workspace Infra, read [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md) first. Treat the checked-in workflow plus its external scripts as execution truth; reconcile conflicting README prose rather than routing a deployment from documentation alone.
+
+## 按变更类别选择发布方式
+
+按实际变更及其持久状态影响分类，不以仓库名称、改动行数或“补丁版本”代替判断。发布计划列出类别、SQL schema/数据格式影响、固定构件、发布单元、验收及恢复路径；一项发布涉及多类变更时采用其中最严格的规则。
+
+| 类别 | 发布规则 | 验证与恢复边界 |
+| --- | --- | --- |
+| 前端 UI | 纯展示、无状态改动可在现有环境滚动发布。 | 保留上一不可变制品，验证页面加载、关键流程及错误率；若同时涉及 API 契约、SQL schema 或持久状态变化，按对应类别执行。 |
+| API | 小型、向后兼容且不改 SQL schema/持久数据格式的代码修复可在现有环境发布。 | 验证接口、认证授权、相关回归及错误率；保留上一固定构件。应用代码回退不能撤销已写入的数据。 |
+| DB | 数据库版本、SQL schema 版本转换或升级所需的数据迁移，必须使用新集群和空目标库，禁止在原业务库原地升级。 | 先备份并验证隔离恢复，在新目标应用审查后的 schema，再使用业务 owner 已验证的迁移工具复制/对齐数据；保留源库及原写入方，最终追齐、写入权和流量切换另行评审授权。 |
+
+DB 规则同样覆盖 Vault Raft 及其他持久卷工作负载的版本或状态格式转换：使用新集群和独立存储，通过审查后的迁移、恢复或明确重初始化路径验证。快照、兼容性声明、仅新增字段或可执行 down migration 均不构成业务有状态原地升级的例外。
+
+独立监控服务是明确例外：在不承载业务/账单状态、不参与业务记账且不共用其持久存储的情况下，可按自身发布单元原地升级；保留监控健康、采集/查询回归及其数据的备份恢复证据。该例外不扩展到业务数据库、SQL schema 或账单链路。
+
+每个发布单元独立固定版本及调谐范围，可继续共用 Git 仓库；更新某个 UI/API/监控单元不能连带升级 DB、Vault 或其他有状态单元。分类只决定发布方式，不自动授权部署、迁移或切换。DB/有状态替换使用[代际升级验收](../generation-upgrade-acceptance/SKILL.md)，数据保护遵循[备份与迁移规范](../../operations-management/backup-disaster-recovery-and-data-migration/SKILL.md)。
 
 ## 1. Environment Routing Rules
 
