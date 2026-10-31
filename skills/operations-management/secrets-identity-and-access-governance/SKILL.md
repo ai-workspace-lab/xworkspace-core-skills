@@ -7,6 +7,8 @@ description: Govern Vault policies and roles, OIDC workload identity, least priv
 
 Treat identity policy as production code. Authentication, authorization, secret paths, and audit evidence must be reviewable, environment-scoped, and revocable.
 
+Agent 团队的任务/run/会话索引与归档边界遵循[Agent Team Harness](../../engineering-standards/agent-team-harness/SKILL.md)；不得将凭据、令牌或秘密环境值写入任务评论、handoff、Drive 归档或 QMD 索引。
+
 涉及系统、容器或数据库身份与权限的运维时，必须同时遵循[系统与 DB 三权分立补充规范](../system-db-three-role-security/SKILL.md)：管理不运行业务，业务独立读写并渐进 rootless，审计独立且强制只读；采用最小化渐进改造，不扩大既有操作授权。
 
 ## 1. Identity model

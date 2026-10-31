@@ -9,6 +9,8 @@ description: Agent Harness 工作流核心技能。定义了“工程闭环 × �
 
 本技能是将所有工程标准有机串联的**核心工作流大脑**。所有 Agent 在执行复杂工程任务时，必须将该 Harness 循环作为默认心智模型，严禁脱离此工作流进行“大跨步、无验证、无回滚机制”的莽撞操作。
 
+需要协调多个 Agent/主机/运行时、执行尝试、会话绑定、租约、交接或归档时，同时遵循[Agent Team Harness](../agent-team-harness/SKILL.md)。本技能继续负责工程闭环；Agent Team Harness 负责团队执行事实与交接契约，并按需路由到运维标准。
+
 ## 核心工作流图 (Harness Loop)
 
 ```mermaid
