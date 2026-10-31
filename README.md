@@ -49,10 +49,10 @@ flowchart TD
 
 | 维度 | 扫描前（旧 README） | 扫描后（更新后） | 变动说明 |
 |---|---|---|---|
-| **纳管 Skill 总数** | 31 个 | **79 个** | 原索引整理补全 47 项，本次新增系统与 DB 三权分立规范 1 项 |
+| **纳管 Skill 总数** | 31 个 | **80 个** | 原索引整理补全 47 项，新增系统与 DB 三权分立规范及统一可观测性架构规范 2 项 |
 | **能力域分类** | 8 个（缺漏 marketplace） | **10 大能力域** | 补全 Marketplace 扩展与分类边界，确立自研核心与上游引用分层 |
 | **工程规范 (Engineering)** | 12 个 | **13 个** | 重点突出：补全并置顶作者实战总结的 `zero-trust-overlay-delivery` 等 14 项规约 |
-| **运维管理 (Operations)** | 仅文字提及 2 个，无表格 | **9 个完整导航表** | 重点突出：呈现 8 项已有运维标准与新增三权分立规范，覆盖系统/DB 身份隔离、灾备、凭据治理与 SLO 标准 |
+| **运维管理 (Operations)** | 仅文字提及 2 个，无表格 | **10 个完整导航表** | 重点突出：呈现 9 项已有运维标准与新增统一可观测性架构规范，覆盖系统/DB 身份隔离、灾备、统一 Observability 架构、凭据治理与 SLO 标准 |
 | **市场扩展 (Marketplace)** | 0 个（完全缺失） | **15 个完整导航表** | 上游引用：补全 Office 文档处理、安全审查、Wan 多模态模型、实时翻译等 |
 | **运行时核心 (Workspace Core)** | 仅简要文字说明，无清单 | **24 个（19 OpenClaw + 5 Codex）** | 上游镜像：建立完整的双层来源清册、导航索引与刷新机制 |
 | **文档与媒体解耦** | 耦合媒体动图与个人账号 | **全面剥离解耦** | 彻底剥离独立演进的动图预览与个人账号信息，保持规范库纯粹专注 |
@@ -67,7 +67,7 @@ flowchart TD
 | 文档分类 | 覆盖范围与内容要点 | 快速入口 |
 |---|---|---|
 | 🌟 **工程规范与交付标准** | 详细展示作者实践总结的 14 项硬核研发规约全景表、解决的痛点及落地执行原则 | [📖 `docs/engineering-standards.md`](docs/engineering-standards.md) |
-| 🌟 **运维管理与基础设施治理** | 详细展示作者总结的 9 项运维标准全景表、灾备恢复演练与故障闭环原则 | [📖 `docs/operations-management.md`](docs/operations-management.md) |
+| 🌟 **运维管理与基础设施治理** | 详细展示作者总结的 10 项运维标准全景表、灾备恢复演练与故障闭环原则 | [📖 `docs/operations-management.md`](docs/operations-management.md) |
 | 🔗 **全局规范绑定引擎** | 详解如何使用 `scripts/bind_global_standards.py` 将核心标准以不可变 Git 快照绑定至本机 `~/.agents/skills` | [📖 `docs/global-agent-standards.md`](docs/global-agent-standards.md) |
 | 📦 **上游引用生态技能包** | 涵盖内容生产（18）、Marketplace 市场精选（15）与 Workspace Core 运行时镜像（24）的完整分类表格 | [📖 `docs/upstream-skills-catalog.md`](docs/upstream-skills-catalog.md) |
 | 🛡️ **质量验证与工程支持** | 单元测试运行方法（`unittest`）、Release 分支门禁规范、产物隔离契约（`artifact-ignore.md`）与示例工程模板 | [📖 `docs/quality-and-engineering.md`](docs/quality-and-engineering.md) |
