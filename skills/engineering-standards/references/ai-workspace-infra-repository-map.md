@@ -15,9 +15,15 @@ independent repositories, not one monorepo. Discover the target's own
 | `playbooks` | Ansible entry playbooks, reusable parameterized roles, dynamic CMDB inventory, host configuration, backup/restore and migration execution, business acceptance probes | Terraform resource ownership, GitOps desired state, generated infrastructure declarations, committed credentials | Run `ansible-playbook --syntax-check` for touched entrypoints; validate the exact generated inventory and use check mode where the role supports it. |
 | `iac_modules` | Reusable Terraform modules, renderers, provider abstractions, generated CMDB contract | Credentials, hand-maintained inventory, service deployment | Apply `terraform-hcl-standard/AGENTS.md`; run `terraform fmt`/`validate` and renderer/inventory checks where available. |
 | `observability` (or its current owner repo) | Telemetry-specific collection, pipelines, dashboards and observability service implementation | General platform topology or unrelated app charts | Validate touched telemetry config and service tests; use Playbooks role checks for generic host operations. |
-| `platform-ops-toolkit` | Control-plane workflows, Vault OIDC integration, GitOps reader/validator, release gates/dispatch, immutable artifact and sanitized receipt validation, Terraform orchestration | Reusable host/database backup, restore, SQL migration, provider resource or observability execution; persistent secrets, hand-written inventory | Validate touched scripts and workflow YAML; verify each executable phase delegates to its owner and fails closed on missing evidence. |
+| `Platform-Orchestrator` (historical alias: `platform-ops-toolkit`) | Inputs, authorization, DAG, dispatch/wait, GitOps reader/validator, source and receipt integrity, result aggregation | Provider/host/database execution, Vault management writes, build/publish implementation, persistent secrets, hand-written inventory | Validate touched scripts and workflow YAML; verify each executable phase delegates to its owner and fails closed on missing evidence. |
 
 ## Cross-repository contracts
+
+For the five-repository ownership rules and declaration/CMDB/credential handoff,
+read [execution-ownership-migration](../execution-ownership-migration/SKILL.md).
+Application artifacts use immutable versions/digests; infrastructure repository
+refs default to `main` through dispatch and resolve once to commits for each run.
+
 
 1. **Artifact flow:** `artifacts` publishes build outputs; `gitops` selects desired
    Kubernetes state; `iac_modules` provisions resources and produces CMDB facts;
