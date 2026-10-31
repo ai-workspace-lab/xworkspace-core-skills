@@ -1,98 +1,69 @@
 ---
 name: execution-ownership-migration
-description: Enforce the four-repository execution boundary and safe cutover among platform-ops-toolkit, gitops, iac_modules, and playbooks. Use for new workflows, scripts, roles, provider changes, migration work, or moving execution logic.
+description: Enforce execution ownership across Platform-Orchestrator, IaC, GitOps, Artifacts and Playbooks. Use when adding or moving workflows, bootstrap scripts, roles, provider actions, environment configuration or cross-repository delivery contracts.
 ---
 
-# 四边界执行归属规范（强制）
+# 五仓职责、声明消费与执行迁移规范
 
-先读取[仓库地图](../references/ai-workspace-infra-repository-map.md)，并检查当前 caller graph。判定代码归属必须按实际副作用，而不是按目录名、workflow 名称或“bootstrap/validator/diagnostic”命名。已有混合脚本可能需要拆分；原样移动文件不等于形成可复用 owner。
+先读取[仓库地图](../references/ai-workspace-infra-repository-map.md)、目标仓库当前 `AGENTS.md` 和实际 caller graph。仓库按副作用划分，目录相邻、文件名叫 bootstrap/validator 或已有 workflow 依赖均不改变 owner。规则不自动授权合并、部署、迁移或资源删除。
 
-这份 skill 是四个基础设施仓库的共同判定源。每个受管仓库根目录的 `AGENTS.md` 必须引用它；如果 skill 未被当前 Agent 加载，根 `AGENTS.md` 仍然有效，不能以“没有加载 skill”为例外。
+## 1. 唯一执行 owner
 
-## 五层模型：控制面、Pipeline 与四个资源边界
-
-为避免把 Pipeline 误认为新的资源 owner，统一使用以下五层模型：
-
-| 层 | 职责 | 禁止事项 |
+| 仓库 | 允许的职责与副作用 | 不得承载 |
 | --- | --- | --- |
-| **Toolkit** | 共享控制面能力：GitOps reader、输入/契约校验、证据校验、状态判断、放行规则 | 直接执行云资源、主机、服务、数据库或业务数据操作 |
-| **Pipeline** | GitHub Actions 入口、审批、环境/目标选择、阶段顺序、固定 SHA 派发、运行关联；重复控制逻辑可封装为 Toolkit 的 `.github/actions` | 成为新的执行实现、复制 IaC/Playbooks 逻辑、绕过 owner workflow |
-| **GitOps** | 声明式目标状态：拓扑、provider/environment、版本、域名和非敏感配置引用 | 执行脚本、运行时 CMDB、provider API、主机/服务/数据库操作 |
-| **IaC Modules** | 云资源、DNS、Registry、OS Login、临时防火墙、State、云事实和 CMDB 产出 | 主机/服务/数据库执行、证书、迁移、备份恢复和健康检查 |
-| **Playbooks Roles** | 主机与服务部署、证书恢复、Caddy/Xray/Observability、数据迁移、备份恢复、诊断和健康检查 | 云资源/DNS/Registry/State 变更、权威 CMDB 生成 |
+| Platform-Orchestrator | 输入、授权、DAG、固定运行候选、派发、等待、回执来源及完整性校验、结果汇总 | Provider、SSH、Ansible、容器、systemd、数据库及 Vault 管理配置的执行实现；第二套环境配置 |
+| IaC / iac_modules | 云资源、DNS、State、云资源事实与 CMDB；Registry 基础设施、云端网络与身份资源 | 主机基线、服务配置、SQL、备份恢复、迁移、业务健康检查 |
+| GitOps | 环境与资源声明、Flux 资源图、版本引用、RBAC、非敏感 Vault role/policy 和配置引用 | 执行脚本、秘密值、运行时 CMDB 和云事实回写 |
+| Artifacts | 构建、镜像、Chart、离线包、制品发布、校验和、digest 与构建来源 | 环境部署、Flux 调谐、实际 DNS/云资源/State 操作；通用制品中的环境专属配置 |
+| Playbooks | 主机、服务、身份、数据库、备份恢复、迁移及健康检查执行；受控 Vault 管理配置应用 | 云资源、DNS、State 变更、权威 CMDB 生成；环境选择与全局发布审批 |
 
-Pipeline 是 Toolkit 控制面的交付与编排层，不是第六个资源执行层。Toolkit 和 Pipeline 可以位于同一控制面仓库；
-`.github/actions` 只承载可复用的控制面胶水，不能改变下方四个资源边界。
+`platform-ops-toolkit` 是同类控制面的历史仓库名，适用 Platform-Orchestrator 边界。Pipeline 是控制面的交付层，不增加执行 owner。
 
-## 1. 四边界资源归属判定
+云防火墙归 IaC；节点内防火墙归 Playbooks。Registry 创建及云 IAM 归 IaC；镜像/Chart 推送、签名及制品元数据归 Artifacts。OIDC 登录与短期身份选择属于控制面授权；Vault auth mount/role/policy 的管理变更属于 Playbooks 执行，声明归 GitOps。权限范围和环境隔离仍须遵循秘密治理规范。
 
-按以下顺序询问，第一项为“是”即确定 owner：
-
-1. 是否创建、修改、查询或删除云资源、DNS、Registry、OS Login、临时防火墙、Terraform state，或产出云资源事实/CMDB？→ **IaC Modules**。
-2. 是否通过 SSH、Ansible、Docker、systemd、包管理器、主机文件、Caddy/Xray，或 PostgreSQL/备份/恢复/服务健康检查操作主机和服务？→ **Playbooks Roles**。
-3. 是否只是声明目标拓扑、资源参数、版本、域名、非敏感配置引用？→ **GitOps**。
-4. 是否只做入口、审批、环境/目标选择、Vault/OIDC 授权、阶段编排、固定 SHA 派发、证据校验和最终放行？→ **Toolkit**。
-
-| Boundary | Must own | Must not own |
-| --- | --- | --- |
-| `platform-ops-toolkit` | Workflow entrypoints, environment/ref selection, approval, Vault/OIDC boundary, fixed-SHA dispatch, evidence/checksum/digest validation, final promotion gate, GitOps reader/validator | SSH/Ansible/Docker/systemd/package/database/backup/restore/service execution; cloud/DNS/Registry/state mutation |
-| `gitops` | Declarative topology, provider/environment resources, versions/tags/digests, domains, and non-secret configuration references | Executable scripts, provider API calls, host/service/database actions, runtime IPs, CMDB, secret values |
-| `iac_modules` | Terraform/provider modules, cloud resources, DNS, Registry, OS Login, temporary firewall, state, and cloud facts/CMDB rendering | Host/service/database execution, certificates, health checks, migrations, backups/restores, business data |
-| `playbooks` Roles | Parameterized host/service roles and reusable workflows, host baseline, Caddy/certificates, Xray/proxy, Observability, database migration/backup/restore, diagnostics and health checks | Cloud/DNS/Registry/OS Login/firewall/state mutation, authoritative CMDB generation, environment topology ownership |
-| Observability owner | Domain-specific telemetry pipeline, collector, dashboard and service implementation | A reason to place host/service execution in Toolkit; generic host configuration remains a Playbooks role |
-
-Playbooks may consume IaC-generated CMDB but must not generate or modify authoritative cloud facts. Toolkit may validate CMDB evidence but must not execute cloud or host actions. A change matching two rows must be split into an owner implementation and a thin caller.
-
-## 2.1 Repeated logic and `.github/actions`
-
-Repeated **control-plane** logic in Toolkit—input normalization, environment/target validation, Vault/OIDC preflight,
-fixed-SHA dispatch, child-run correlation, evidence/checksum/digest validation, redaction, and final status mapping—must
-prefer a parameterized, versioned reusable action under `.github/actions/<name>/`. The action must be deterministic,
-side-effect-limited to control-plane orchestration, expose explicit inputs/outputs, and include its own contract tests.
-
-`.github/actions` is not an escape hatch for execution ownership. A repeated cloud/provider operation belongs in an IaC
-Module; a repeated host/service/database/backup/restore/health operation belongs in a Playbooks Role or reusable workflow;
-a repeated desired-state fragment belongs in GitOps. Toolkit actions may call those reviewed owner workflows, but must not
-copy their implementation or invoke SSH, provider APIs, Terraform, Ansible, Docker, systemd, database clients, or service
-commands. Before adding an action, search existing actions and prove that the abstraction removes duplicate control-plane
-code without creating a second execution path.
-
-## 3. Standard data flow
+## 2. 配置、事实、秘密和制品各有来源
 
 ```text
-GitOps declaration
-  → Toolkit/Pipeline selection/approval/authorization/fixed version
-  → IaC Modules cloud action and CMDB output
-  → Toolkit/Pipeline CMDB/evidence check
-  → Playbooks Roles host/service/database action
-  → Toolkit/Pipeline evidence aggregation and final gate
+workflow_dispatch 输入 / 已审查事件
+  → Orchestrator 解析 GitOps、IaC、Playbooks、Orchestrator 来源，记录 commit
+  → GitOps 声明提供期望状态和非敏感引用
+  → IaC 执行并输出 CMDB / 云资源回执
+  → Playbooks 消费同一次运行的声明、CMDB 和受控 Vault 身份
+  → Flux 按 GitOps 依赖调谐并消费 Artifacts 的固定制品
+  → owner 输出脱敏回执，Orchestrator 校验并汇总
 ```
 
-## 4. Required cutover order
+基础仓库由参数选择 ref，默认 `main`；每次运行解析一次 commit，后续所有阶段消费该候选。无需为基础仓库额外发布 tag，也不得在运行中反复拉取 main 导致候选漂移。业务制品按发布规则使用不可变版本/digest。记录 commit 或固定 reusable workflow 的来源不属于环境硬编码。
 
-1. **Inventory the contract.** Find every workflow, wrapper, test, runbook and external caller, plus inputs, outputs, credentials, permissions, target selection and failure behavior. Record the legacy path and intended owner in an inventory or PR. Resolve ambiguous ownership before moving code.
-2. **Add the owner implementation.** Create or extend a reusable Role/Workflow/provider executor, with explicit environment and target inputs, idempotence or safe retry semantics, and owner-local tests. Keep secrets runtime-only. Merge or otherwise make an immutable reviewed owner ref available before the consumer uses it.
-3. **Switch Toolkit callers.** Pin the reviewed owner ref, pass the same target and release identity, preserve output/evidence contracts and failure gates, and update all callers and contract tests. If a workflow filename or Vault-using job changes, migrate the exact `job_workflow_ref` allowlist and required permissions before dispatch. A local adapter may remain only when it is a thin, current-workflow control-plane shim.
-4. **Verify the new route.** Run owner tests and renderer/Ansible/workflow checks as applicable; check every caller, output, negative path and environment boundary. Use UAT or a non-mutating rehearsal when runtime behavior changes. A green PR or dispatch receipt alone is not live acceptance; record the exact owner SHA, Toolkit SHA, environment and evidence.
-5. **Delete the old copy last.** Only after the new caller route is verified, remove the legacy executor and obsolete tests, update ownership inventory/docs, and search for stale references. If verification fails, retain the old copy and restore the previous pinned caller ref; do not silently fall back or report completion.
+涉及 bootstrap、配置迁移或交接字段时，读取[声明消费与五仓交接细则](references/declaration-and-handoff.md)。该细则同时定义硬编码判定、动态身份生成、回执和验收范围。
 
-The dependency chain is **owner implementation → Toolkit caller cutover → verified execution → legacy deletion**. Never delete a called script merely to reduce the file count. Do not run a mutating environment workflow solely to validate a documentation or ownership refactor.
+## 3. 编码规则
 
-## 5. Mandatory merge gates
+- 目标及云事实来自 IaC CMDB；期望配置来自本次解析并记录 commit 的 GitOps 声明；秘密仅从受控 Vault 身份读取。运行时生成的集群 UID、证书及数据库身份事实由对应 owner 产生和验证。
+- 禁止在通用执行代码、role 默认值或 workflow 默认值中固定环境批次、节点、云账号、业务域名、根对象、部署专属 namespace、state 路径和成套环境配置；禁止通过名称、后缀或日期推断特殊执行分支。
+- 不复制 GitOps YAML、维护影子 inventory 或把声明翻译为另一套长期配置。允许从本次声明生成临时、可追溯的 owner 输入；不能把渲染产物当新权威来源。
+- 重复控制面胶水优先使用已有参数化 action；执行代码仍归 owner。一个脚本有两个资源边界的副作用时必须拆分，移动文件或改名不能代替拆分。
+- 简单拼接和调用优先 Shell + YAML，主机状态变更优先 Ansible 模块。确有复杂解析、协议或校验需求才保留对应语言的 owner 实现；不按扩展名机械删除脚本。
+- 必填输入缺失、声明/事实不一致或越权时明确失败；不回退到旧批次、管理员、另一套配置、放宽权限或假造回执。
 
-- New files must declare `owner`, `caller`, side-effect resources, and input/output evidence in the PR description.
-- A read-only schema/CMDB/manifest check does not automatically change ownership; inspect the command's final side effect.
-- Toolkit legacy execution candidates remain frozen; migration must establish the owner implementation first. The Toolkit scanner is a guard, not owner approval or UAT evidence.
-- Executable scripts/runtime CMDB in GitOps, host/database actions in IaC, provider/DNS/state actions in Playbooks, or execution commands in Toolkit are blocking violations.
-- Cross-boundary work must provide four evidence sections: owner implementation, caller diff, verification result, and legacy-copy deletion result.
-- Unclear ownership, stale callers, local-only verification, missing UAT evidence, or two executable implementations stop merge and release.
+## 4. 清理顺序与无兼容路径要求
 
-## 6. Agent loading contract
+1. 盘点 workflow、action、脚本、role、测试、文档和外部调用，记录输入、输出、凭据、owner 与副作用。
+2. 在正确 owner 中完成通用入口及参数契约，保留幂等性、真实身份检查和失败传播；配置补入 GitOps，制品补入 Artifacts。
+3. 更新调用方、声明、Vault workflow allowlist 和回执消费者，先让已审查 owner 可用，再切换 caller。
+4. 运行对应的离线校验、拒绝用例及授权范围内的实际验证，记录目标、SHA、运行 ID 和结果。
+5. 同批清理旧实现、旧常量、旧测试期待和旧文档；搜索所有间接引用。验证未完成时如实记录尚未切换，不能声称清理完成。
 
-For one-way recovery-generation data merges, load
-[Target-side generation reconciliation](../multi-environment-delivery-and-release/references/target-side-generation-reconciliation.md).
-Keep the serving source host immutable and all execution on the explicit target.
+迁移期间只保留尚未切换的旧入口以维持现有运行，不得新建兼容适配层、版本别名、静默 fallback 或双重执行路径。新入口不接受旧版特殊行为作为隐式默认。删除代码不等于删除账户、DNS、数据盘、Vault 记录或 Terraform state；资源退役单独评估已有授权和恢复证据。
 
-Each governed repository must have a root `AGENTS.md` linking this skill and restating its local allowlist/denylist. Agents must read it before editing. If the root file is missing, the skill link is broken, or the worktree contains unrelated unapproved changes, stop and report the boundary problem before implementation changes.
+## 5. PR 与检查要求
 
-For stateful data operations, retain release-specific backup, restore-test, checksum, schema-version and rollback gates from [CI/CD workflow standards](../ci-cd-workflow-spec/SKILL.md); this skill governs ownership and cutover, not permission to migrate or restore a database.
+每仓独立 worktree/PR，保护无关改动。PR 记录 owner 实现、caller 切换、验证结果和旧副本删除结果，关联跨仓 PR 及顺序。历史资源身份、运行证据与测试样例可以保留；不能把它们作为执行分支或永久豁免。
+
+检查覆盖新增和修改路径及其调用链，区分执行代码、声明、文档和 fixture。已有扫描规则的基线不可作为新增越界行为的许可；新增检查应验证副作用和契约，不能只匹配目录名、Python 扩展名或字符串。规则文档不是已实现的自动 CI：PR 必须说明实际已运行的检查和未完成的迁移。
+
+完成、失败、跳过和未运行必须分别记录。构建通过、PR 合并、IaC 成功或 Flux 接管均不能替代服务、数据或身份验收；缺少必需证据不得输出对应 PASS。
+
+有状态升级、备份恢复、写者切换及三身份授权继续读取相应运维规范。本技能不扩大生产授权，也不因清理代码自动触发 apply。
+
+每个受管仓库根 `AGENTS.md` 必须引用本技能并列出本仓边界；链接缺失或相互矛盾时先修正规则来源，不以旧实现作为豁免。
