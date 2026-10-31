@@ -4,11 +4,11 @@
 
 👉 **目录直达**：[`skills/operations-management/`](../skills/operations-management/)
 
-这是作者针对生产环境基础设施运维、灾备容灾与日常故障处理**深度总结的 10 项运维标准**，让线上运维从被动救火走向确定性保障：
+这是作者针对生产环境基础设施运维、灾备容灾与日常故障处理的 **11 项运维标准**，让线上运维从被动救火走向确定性保障：
 
 ---
 
-## 10 项运维标准全景表
+## 11 项运维标准全景表
 
 | 规范名称 | 解决的实战痛点与核心机制 | 规范入口 |
 |---|---|---|
@@ -16,6 +16,7 @@
 | **事件响应与变更管理** | **从事故中沉淀免疫力**：生产故障分级响应、紧急变更通道、发布冻结期、无指责复盘（Blameless Postmortem）与必须落地可自动回归脚本 | [`skills/operations-management/incident-response-and-change-management/SKILL.md`](../skills/operations-management/incident-response-and-change-management/SKILL.md) |
 | **系统与数据库三权分立** | 管理用户不运行业务；业务独立读写、渐进 rootless；审计身份强制只读。系统、K3s 和 DB 权限按最小增量验证与迁移，不捆绑全量改造 | [`system-db-three-role-security/SKILL.md`](../skills/operations-management/system-db-three-role-security/SKILL.md) |
 | **密钥、身份与访问治理** | **凭据彻底零落盘**：HashiCorp Vault policies/roles 治理、GitHub Actions OIDC 身份互信、最小权限原则、动态凭据定期轮转与一键紧急吊销 | [`skills/operations-management/secrets-identity-and-access-governance/SKILL.md`](../skills/operations-management/secrets-identity-and-access-governance/SKILL.md) |
+| **Vault ESO TLS 证书治理** | Vault 与 External Secrets Operator 的证书同步、TLS 生命周期、网关接入与轮换故障边界 | [`skills/operations-management/vault-eso-tls-certificate-governance/SKILL.md`](../skills/operations-management/vault-eso-tls-certificate-governance/SKILL.md) |
 | **网络、DNS、TLS 与边缘管理** | **线上切流不中断**：权威 DNS 记录管理与 TTL 递减规划、ACME 证书自动化续期、Caddy/Ingress 反代配置与秒级流量回滚方案 | [`skills/operations-management/network-dns-tls-edge-management/SKILL.md`](../skills/operations-management/network-dns-tls-edge-management/SKILL.md) |
 | **统一可观测性架构规范** | **拒绝监控孤岛与组件冗余**：边缘 Vector All-in-One 与 K8s 专业化分工（vmagent 指标/Vector 日志）、中央持久化 Remote Write 汇聚、本地磁盘抗断网缓冲、严禁边缘滥建私有存储与零落盘凭据治理 | [`skills/operations-management/unified-observability-architecture/SKILL.md`](../skills/operations-management/unified-observability-architecture/SKILL.md) |
 | **可观测性、SLO 与告警规范** | **告别告警风暴**：SLI/SLO 核心指标度量、错误预算（Error Budget）、Grafana 监控看板标准、告警分级收敛降噪与部署后健康检查 | [`skills/operations-management/observability-slo-and-alerting/SKILL.md`](../skills/operations-management/observability-slo-and-alerting/SKILL.md) |
@@ -26,6 +27,8 @@
 ---
 
 ## 运维执行与实战演练原则
+
+Agent Team Harness 负责跨 Agent 的 run、handoff 与验收证据；运维效果和门禁由对应的本目录规范拥有。按[Agent Team Harness 风险路由](../skills/engineering-standards/agent-team-harness/SKILL.md#7-operations-skill-routing)加载适用标准，不把团队协调记录当作生产授权或运行验收。
 
 1. **灾备恢复真实性**：严禁“只备份不测试恢复”，必须定期通过沙箱隔离环境验证冷备与快照的恢复可行性。
 2. **凭据零落盘**：所有运维自动化剧本与流水线严格禁止硬编码凭证或生成静态密钥，强制通过 Vault 获取有时效的动态凭据。

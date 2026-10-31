@@ -7,6 +7,8 @@ description: AI Workspace Infra 人机协作与安全执行纪律。用于维护
 
 本规范定义了 AI 代理团队（Agents）在研发过程中的绝对行为边界与协作规则。所有参与开发的 Agent 必须将其作为最高行为准则。
 
+多 Agent/多主机执行记录、单写入者、fencing、交接和归档按[Agent Team Harness](../agent-team-harness/SKILL.md)落地；该技能不得放宽本规范的人类授权与安全边界。
+
 先阅读 [AI Workspace Infra Repository Map](../references/ai-workspace-infra-repository-map.md)。该工作区是多个独立仓库；不得把目录相邻误判为同一个提交、CI 或发布单元。
 
 ## 1. 角色边界与权限规则

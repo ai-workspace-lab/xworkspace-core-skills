@@ -2,17 +2,18 @@
 
 > **作者亲身实践·深度总结·实战验证的核心工程资产**
 
-本目录收录的 **14 项工程研发与交付规约**，是面向真实生产环境、多云架构与 AI Agent 团队研发协作的**强制性事实源与纪律红线**。
+本目录当前收录 **15 项工程规范**。其中既有规范按各自证据状态维护；新增的 Agent Team Harness 是待运行验收的协作设计，不因纳入目录而宣称生产验证通过。
 
 所有标准以 [`harness-workflow`](../skills/engineering-standards/harness-workflow/SKILL.md) 为研发主控总线，实现「工程闭环 × 小步快跑」。
 
 ---
 
-## 14 项工程规范全景表
+## 15 项工程规范全景表
 
 | 规范名称 | 解决的实战痛点与核心机制 | 规范入口 |
 |---|---|---|
 | **Agent Harness 工作流** | **研发主控总线**：定义「工程闭环 × 小步快跑」核心循环，统一驱动自测、代码审查、CI/CD 与多环境发布，是串联各项工程标准的唯一入口 | [`skills/engineering-standards/harness-workflow/SKILL.md`](../skills/engineering-standards/harness-workflow/SKILL.md) |
+| **Agent Team Harness** | **团队协作控制契约（待运行验收）**：把权威任务源、工程闭环、单写入者/租约/交接、运维门禁与脱敏归档串联；不替代既有工程或运维规范 | [`skills/engineering-standards/agent-team-harness/SKILL.md`](../skills/engineering-standards/agent-team-harness/SKILL.md) |
 | **Issue/PR 溯源与需求事实源** | **根治口头派活**：需求以 Issue 为唯一事实源，建立 `Issue → 分支 → commit → PR → CI → 部署 → Tag` 完整且可证伪的追溯链，禁止脱离 Issue 自主开工 | [`skills/engineering-standards/issue-pr-traceability-standard/SKILL.md`](../skills/engineering-standards/issue-pr-traceability-standard/SKILL.md) |
 | **工程开发规范** | **代码分支纪律**：分支命名矩阵、主干保护、PR 合并策略、不可变 Release Tag 规则，以及代码中不慎误提密钥时的标准化紧急撤回流程 | [`skills/engineering-standards/project-development-standard/SKILL.md`](../skills/engineering-standards/project-development-standard/SKILL.md) |
 | **功能泳道发布工作流** | 功能关联多仓库 PR，按所选模型完成 PR→SIT→门禁合并→独立 UAT，或明确要求的合并前 UAT；固定候选与组合验证；新增设计尚无运行验收 | [`feature-lane-release-workflow`](../skills/engineering-standards/feature-lane-release-workflow/SKILL.md) |

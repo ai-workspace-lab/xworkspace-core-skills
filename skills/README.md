@@ -1,17 +1,17 @@
 # Skills
 
-本目录是仓库唯一的 Skill 入口，共收录 **81 个 Skill**，按 10 大能力域分类管理。
+本目录是仓库唯一的 Skill 入口，递归收录 **86 个 Skill 文件**，按 10 大能力域分类管理。
 
 > [!IMPORTANT]
 > ### 核心自研验证资产 vs 上游引用技能包
 > - ⭐ **核心自研资产（实践·总结·验证）**：
->   - `engineering-standards/`：包含 14 项自研工程研发与交付规范（Harness 工作流、Issue/PR 溯源、四仓执行归属、多环境发布、GitOps 等）。
+>   - `engineering-standards/`：包含 14 项现有工程研发与交付规范，以及 1 项待运行验收的 Agent Team Harness 协作设计（Harness 工作流、Issue/PR 溯源、四仓执行归属、多环境发布、GitOps 等）。
 >   - `operations-management/`：包含 11 项自研运维标准（真实灾备演练、统一可观测性架构、故障变更管理、Vault 凭据零落盘、Vault ESO TLS 证书同步与网关治理、DNS 边缘平滑切流、SLO 告警等）。
 > - 📦 **上游引用与镜像生态**：其余分类（多模态内容生产链路、Marketplace 市场技能、Workspace Core 运行时镜像、开源 Vendored 技能）均为引用或镜像自上游社区与运行时的生态包。
 
 | Category | 性质归属 | 用途说明 |
 |---|---|---|
-| ⭐ `engineering-standards/` | **作者实战验证核心** | 研发交付规范、发布治理、多环境隔离、代际升级与合规标准（14 项规约） |
+| ⭐ `engineering-standards/` | **自研核心；新 Harness 待运行验收** | 研发交付规范、发布治理、多环境隔离、代际升级与合规标准（14 项现有规约 + 1 项协作设计） |
 | ⭐ `operations-management/` | **作者实战验证核心** | 容灾备份、变更管理、Vault 凭据与 OIDC 治理、Vault ESO TLS 证书对账、网络边缘与 SLO（11 项标准，含系统/DB 三权分立、统一可观测性架构、Vault ESO TLS 证书治理） |
 | `content-planning/` | 上游引用（HyperFrames） | 选题拆解、图文连载、内容排期 |
 | `video-production/` | 上游引用（HyperFrames） | AI 新闻快报、长图讲解视频、产品介绍视频与爆款视频逐镜理解 |
@@ -32,6 +32,14 @@
 - [`artifact-ignore.md`](artifact-ignore.md) 定义当前任务 artifact scope 中哪些中间产物可以不进入同步/导出结果。
 - 该规则只用于跳过 scratch/build/cache/log 等中间文件；最终交付物、manifest、`DELIVERY.md` 不能通过 ignore 规避缺失或失败。
 - 长任务完成后清理软件会话缓存和临时目录时，只清理 `.cache/`、`tmp/`、`scratch/`、浏览器截图缓存、模型下载缓存索引和渲染中间目录；不要删除当前 task scope 内的 `reports/`、`exports/`、`renders/`、`assets/images/`、manifest 或 `DELIVERY.md`。
+
+## Agent Team Harness（新增协作设计）
+
+- 团队协调入口：[Agent Team Harness](engineering-standards/agent-team-harness/SKILL.md)，定义通用能力合同与单写入者、handoff、验收、归档规则。
+- 工程回路：[harness-workflow](engineering-standards/harness-workflow/SKILL.md) 继续负责研发交付；运维副作用按风险路由加载 `operations-management/` 对应技能。
+- XWorkspace 配置：[profile](engineering-standards/agent-team-harness/references/xworkspace-profile.md)、[样例](engineering-standards/agent-team-harness/references/xworkspace-profile.example.json)、[schema](engineering-standards/agent-team-harness/references/xworkspace-profile.schema.json)。
+
+该技能与 profile 是设计契约，尚未完成运行时验收；不计入已验证规范数。
 
 ## 功能泳道发布（新增规范）
 

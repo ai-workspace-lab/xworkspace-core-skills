@@ -1,0 +1,218 @@
+{
+  "$comment": "Illustrative configuration only. Replace every MUST_CONFIGURE value from an authorized inventory; never add credential values.",
+  "task_source": {
+    "provider": "github_projects",
+    "organizations": [
+      {
+        "login": "ai-desktop-lab",
+        "projects": [
+          {
+            "id": "MUST_CONFIGURE_AI_DESKTOP_LAB_PROJECT_NODE_ID",
+            "repository_scope": [
+              "MUST_CONFIGURE_ai-desktop-lab/REPO_SCOPE"
+            ],
+            "field_mapping": {
+              "title": "Title",
+              "owner": "MUST_CONFIGURE_OWNER_FIELD",
+              "priority": "MUST_CONFIGURE_PRIORITY_FIELD",
+              "business_status": "MUST_CONFIGURE_STATUS_FIELD",
+              "acceptance_criteria": "MUST_CONFIGURE_ACCEPTANCE_FIELD"
+            },
+            "status_mapping": {
+              "todo": "MUST_CONFIGURE_EXISTING_TODO_VALUE",
+              "in_progress": "MUST_CONFIGURE_EXISTING_IN_PROGRESS_VALUE",
+              "done": "MUST_CONFIGURE_EXISTING_DONE_VALUE"
+            }
+          }
+        ]
+      },
+      {
+        "login": "ai-workspace-infra",
+        "projects": [
+          {
+            "id": "MUST_CONFIGURE_AI_WORKSPACE_INFRA_PROJECT_NODE_ID",
+            "repository_scope": [
+              "MUST_CONFIGURE_ai-workspace-infra/REPO_SCOPE"
+            ],
+            "field_mapping": {
+              "title": "Title",
+              "owner": "MUST_CONFIGURE_OWNER_FIELD",
+              "priority": "MUST_CONFIGURE_PRIORITY_FIELD",
+              "business_status": "MUST_CONFIGURE_STATUS_FIELD",
+              "acceptance_criteria": "MUST_CONFIGURE_ACCEPTANCE_FIELD"
+            },
+            "status_mapping": {
+              "todo": "MUST_CONFIGURE_EXISTING_TODO_VALUE",
+              "in_progress": "MUST_CONFIGURE_EXISTING_IN_PROGRESS_VALUE",
+              "done": "MUST_CONFIGURE_EXISTING_DONE_VALUE"
+            }
+          }
+        ]
+      },
+      {
+        "login": "ai-workspace-lab",
+        "projects": [
+          {
+            "id": "MUST_CONFIGURE_AI_WORKSPACE_LAB_PROJECT_NODE_ID",
+            "repository_scope": [
+              "MUST_CONFIGURE_ai-workspace-lab/REPO_SCOPE"
+            ],
+            "field_mapping": {
+              "title": "Title",
+              "owner": "MUST_CONFIGURE_OWNER_FIELD",
+              "priority": "MUST_CONFIGURE_PRIORITY_FIELD",
+              "business_status": "MUST_CONFIGURE_STATUS_FIELD",
+              "acceptance_criteria": "MUST_CONFIGURE_ACCEPTANCE_FIELD"
+            },
+            "status_mapping": {
+              "todo": "MUST_CONFIGURE_EXISTING_TODO_VALUE",
+              "in_progress": "MUST_CONFIGURE_EXISTING_IN_PROGRESS_VALUE",
+              "done": "MUST_CONFIGURE_EXISTING_DONE_VALUE"
+            }
+          }
+        ]
+      },
+      {
+        "login": "ai-workspace-services",
+        "projects": [
+          {
+            "id": "MUST_CONFIGURE_AI_WORKSPACE_SERVICES_PROJECT_NODE_ID",
+            "repository_scope": [
+              "MUST_CONFIGURE_ai-workspace-services/REPO_SCOPE"
+            ],
+            "field_mapping": {
+              "title": "Title",
+              "owner": "MUST_CONFIGURE_OWNER_FIELD",
+              "priority": "MUST_CONFIGURE_PRIORITY_FIELD",
+              "business_status": "MUST_CONFIGURE_STATUS_FIELD",
+              "acceptance_criteria": "MUST_CONFIGURE_ACCEPTANCE_FIELD"
+            },
+            "status_mapping": {
+              "todo": "MUST_CONFIGURE_EXISTING_TODO_VALUE",
+              "in_progress": "MUST_CONFIGURE_EXISTING_IN_PROGRESS_VALUE",
+              "done": "MUST_CONFIGURE_EXISTING_DONE_VALUE"
+            }
+          }
+        ]
+      },
+      {
+        "login": "ai-workspace-xstream",
+        "projects": [
+          {
+            "id": "MUST_CONFIGURE_AI_WORKSPACE_XSTREAM_PROJECT_NODE_ID",
+            "repository_scope": [
+              "MUST_CONFIGURE_ai-workspace-xstream/REPO_SCOPE"
+            ],
+            "field_mapping": {
+              "title": "Title",
+              "owner": "MUST_CONFIGURE_OWNER_FIELD",
+              "priority": "MUST_CONFIGURE_PRIORITY_FIELD",
+              "business_status": "MUST_CONFIGURE_STATUS_FIELD",
+              "acceptance_criteria": "MUST_CONFIGURE_ACCEPTANCE_FIELD"
+            },
+            "status_mapping": {
+              "todo": "MUST_CONFIGURE_EXISTING_TODO_VALUE",
+              "in_progress": "MUST_CONFIGURE_EXISTING_IN_PROGRESS_VALUE",
+              "done": "MUST_CONFIGURE_EXISTING_DONE_VALUE"
+            }
+          }
+        ]
+      }
+    ],
+    "issue_identity": {
+      "canonical_key": "github_issue_node_id",
+      "draft_key_strategy": "opaque_local_id_with_project_item_mapping",
+      "preserve_draft_to_issue_mapping": true
+    },
+    "record_identity_fields": [
+      "task_id",
+      "source_project_node_id",
+      "source_item_node_id",
+      "source_issue_node_id",
+      "run_id"
+    ],
+    "writes": {
+      "create_issue_requires_user_approval": true,
+      "business_status_updates_require_authorized_owner": true
+    },
+    "credential_ref": "secret://MUST_CONFIGURE/GITHUB_APP_OR_OIDC_REFERENCE",
+    "writeback_fields": [
+      "archive_artifact_id",
+      "artifact_version",
+      "artifact_sha256",
+      "drive_file_id",
+      "drive_url",
+      "qmd_index_reference"
+    ]
+  },
+  "executor": {
+    "provider": "MUST_CONFIGURE_AGENT_RUNTIME_ADAPTER",
+    "allowed_hosts": [
+      "MUST_CONFIGURE_HOST_LABEL"
+    ],
+    "allowed_environments": [
+      "nonprod"
+    ],
+    "session_binding": "manual_approved_reference",
+    "isolated_workspace_required": true
+  },
+  "coordination_store": {
+    "provider": "MUST_CONFIGURE_COORDINATION_STORE_ADAPTER",
+    "connection_secret_ref": "secret://MUST_CONFIGURE/COORDINATION_STORE_REFERENCE",
+    "atomic_claim_required_for_parallel_runs": true,
+    "heartbeat_seconds": "MUST_CONFIGURE",
+    "lease_seconds": "MUST_CONFIGURE",
+    "fencing_enforced_at_side_effects": true,
+    "timeout_takeover_requires_fencing": true,
+    "manual_serialization_when_unverified": true,
+    "idempotency_keys": {
+      "run_creation": "{task_id}:{request_id}:run",
+      "archive_write": "{task_id}:{acl_domain}:{artifact_id}:{version}:{sha256}",
+      "knowledge_index_write": "{task_id}:{artifact_id}:{archive_version}"
+    }
+  },
+  "knowledge_index": {
+    "provider": "MUST_CONFIGURE_KNOWLEDGE_INDEX_ADAPTER",
+    "connection_secret_ref": "secret://MUST_CONFIGURE/KNOWLEDGE_INDEX_REFERENCE",
+    "index_fields": [
+      "task_id",
+      "source_sha_or_archive_id",
+      "archive_version",
+      "date"
+    ],
+    "index_raw_chat": false,
+    "index_secrets": false,
+    "rebuildable": true,
+    "authoritative_for_task_state": false,
+    "index_reference_field": "MUST_CONFIGURE_INDEX_REFERENCE_FIELD",
+    "revocation_behavior": "MUST_CONFIGURE_MARK_AND_AUTHORIZED_CLEAR"
+  },
+  "archive": {
+    "provider": "google_drive",
+    "folder_id": "MUST_CONFIGURE_APPROVED_DRIVE_FOLDER_ID",
+    "versioning": "new_version_or_suffix",
+    "naming_template": "{safe_task_id}-{date}-v{version}",
+    "dedupe_scope": "task_id_and_acl_domain_and_artifact_identity_and_sha256",
+    "artifact_id_required": true,
+    "artifact_version_required": true,
+    "selected_content_only": true,
+    "raw_chat_allowed": false,
+    "acl_check": {
+      "required": true,
+      "source_acl_reference": "MUST_CONFIGURE_SOURCE_ACCESS_POLICY_REFERENCE",
+      "inherit_source_acl": true,
+      "must_not_broaden_task_or_tenant_scope": true,
+      "fail_closed_on_unknown": true
+    },
+    "credential_ref": "secret://MUST_CONFIGURE/GOOGLE_DRIVE_WORKLOAD_IDENTITY_REFERENCE",
+    "allow_share_changes": false,
+    "allow_delete": false,
+    "allow_bulk_migration": false,
+    "allow_raw_chat": false,
+    "revocation_behavior": "MUST_CONFIGURE_MARK_AND_AUTHORIZED_CLEAR"
+  },
+  "transport": {
+    "provider": "MUST_CONFIGURE_TRANSPORT_ADAPTER",
+    "identity_and_authorization_are_separate": true
+  }
+}

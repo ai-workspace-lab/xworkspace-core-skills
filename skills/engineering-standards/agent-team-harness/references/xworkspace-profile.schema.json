@@ -1,0 +1,453 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Team Harness XWorkspace profile",
+  "description": "Local profile contract. Placeholder values intentionally fail validation until replaced with values from an authorized inventory. Never store credential values here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_source",
+    "executor",
+    "coordination_store",
+    "knowledge_index",
+    "archive",
+    "transport"
+  ],
+  "properties": {
+    "$comment": {
+      "type": "string"
+    },
+    "task_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "organizations",
+        "issue_identity",
+        "writes",
+        "credential_ref",
+        "record_identity_fields",
+        "writeback_fields"
+      ],
+      "properties": {
+        "provider": {
+          "const": "github_projects"
+        },
+        "organizations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/organization"
+          }
+        },
+        "issue_identity": {
+          "type": "object",
+          "required": [
+            "canonical_key",
+            "draft_key_strategy",
+            "preserve_draft_to_issue_mapping"
+          ],
+          "properties": {
+            "canonical_key": {
+              "const": "github_issue_node_id"
+            },
+            "draft_key_strategy": {
+              "const": "opaque_local_id_with_project_item_mapping"
+            },
+            "preserve_draft_to_issue_mapping": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "writes": {
+          "type": "object",
+          "required": [
+            "create_issue_requires_user_approval",
+            "business_status_updates_require_authorized_owner"
+          ],
+          "properties": {
+            "create_issue_requires_user_approval": {
+              "const": true
+            },
+            "business_status_updates_require_authorized_owner": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "credential_ref": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "record_identity_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "task_id",
+              "source_project_node_id",
+              "source_item_node_id",
+              "source_issue_node_id",
+              "run_id"
+            ]
+          },
+          "minItems": 5
+        },
+        "writeback_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "archive_artifact_id",
+              "artifact_version",
+              "artifact_sha256",
+              "drive_file_id",
+              "drive_url",
+              "qmd_index_reference"
+            ]
+          },
+          "minItems": 6
+        }
+      }
+    },
+    "executor": {
+      "type": "object",
+      "required": [
+        "provider",
+        "allowed_hosts",
+        "allowed_environments",
+        "session_binding",
+        "isolated_workspace_required"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/configured"
+        },
+        "allowed_hosts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/configured"
+          }
+        },
+        "allowed_environments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/configured"
+          }
+        },
+        "session_binding": {
+          "type": "string"
+        },
+        "isolated_workspace_required": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "coordination_store": {
+      "type": "object",
+      "required": [
+        "provider",
+        "connection_secret_ref",
+        "atomic_claim_required_for_parallel_runs",
+        "heartbeat_seconds",
+        "lease_seconds",
+        "fencing_enforced_at_side_effects",
+        "manual_serialization_when_unverified",
+        "idempotency_keys",
+        "timeout_takeover_requires_fencing"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/configured"
+        },
+        "connection_secret_ref": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "atomic_claim_required_for_parallel_runs": {
+          "const": true
+        },
+        "heartbeat_seconds": {
+          "$ref": "#/$defs/configured"
+        },
+        "lease_seconds": {
+          "$ref": "#/$defs/configured"
+        },
+        "fencing_enforced_at_side_effects": {
+          "const": true
+        },
+        "manual_serialization_when_unverified": {
+          "const": true
+        },
+        "idempotency_keys": {
+          "type": "object",
+          "required": [
+            "run_creation",
+            "archive_write",
+            "knowledge_index_write"
+          ],
+          "properties": {
+            "run_creation": {
+              "$ref": "#/$defs/configured"
+            },
+            "archive_write": {
+              "$ref": "#/$defs/configured"
+            },
+            "knowledge_index_write": {
+              "$ref": "#/$defs/configured"
+            }
+          },
+          "additionalProperties": false
+        },
+        "timeout_takeover_requires_fencing": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "knowledge_index": {
+      "type": "object",
+      "required": [
+        "provider",
+        "connection_secret_ref",
+        "index_fields",
+        "index_raw_chat",
+        "index_secrets",
+        "revocation_behavior",
+        "rebuildable",
+        "authoritative_for_task_state",
+        "index_reference_field"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/configured"
+        },
+        "connection_secret_ref": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "index_fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "index_raw_chat": {
+          "const": false
+        },
+        "index_secrets": {
+          "const": false
+        },
+        "revocation_behavior": {
+          "$ref": "#/$defs/configured"
+        },
+        "rebuildable": {
+          "const": true
+        },
+        "authoritative_for_task_state": {
+          "const": false
+        },
+        "index_reference_field": {
+          "$ref": "#/$defs/configured"
+        }
+      },
+      "additionalProperties": false
+    },
+    "archive": {
+      "type": "object",
+      "required": [
+        "provider",
+        "folder_id",
+        "versioning",
+        "naming_template",
+        "dedupe_scope",
+        "acl_check",
+        "credential_ref",
+        "allow_share_changes",
+        "allow_delete",
+        "allow_bulk_migration",
+        "allow_raw_chat",
+        "artifact_id_required",
+        "artifact_version_required",
+        "selected_content_only",
+        "raw_chat_allowed",
+        "revocation_behavior"
+      ],
+      "properties": {
+        "provider": {
+          "const": "google_drive"
+        },
+        "folder_id": {
+          "$ref": "#/$defs/configured"
+        },
+        "versioning": {
+          "enum": [
+            "new_version_or_suffix"
+          ]
+        },
+        "naming_template": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dedupe_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acl_check": {
+          "type": "object",
+          "required": [
+            "required",
+            "source_acl_reference",
+            "fail_closed_on_unknown",
+            "inherit_source_acl",
+            "must_not_broaden_task_or_tenant_scope"
+          ],
+          "properties": {
+            "required": {
+              "const": true
+            },
+            "source_acl_reference": {
+              "$ref": "#/$defs/configured"
+            },
+            "fail_closed_on_unknown": {
+              "const": true
+            },
+            "inherit_source_acl": {
+              "const": true
+            },
+            "must_not_broaden_task_or_tenant_scope": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "credential_ref": {
+          "$ref": "#/$defs/secretRef"
+        },
+        "allow_share_changes": {
+          "const": false
+        },
+        "allow_delete": {
+          "const": false
+        },
+        "allow_bulk_migration": {
+          "const": false
+        },
+        "allow_raw_chat": {
+          "const": false
+        },
+        "artifact_id_required": {
+          "const": true
+        },
+        "artifact_version_required": {
+          "const": true
+        },
+        "selected_content_only": {
+          "const": true
+        },
+        "raw_chat_allowed": {
+          "const": false
+        },
+        "revocation_behavior": {
+          "$ref": "#/$defs/configured"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transport": {
+      "type": "object",
+      "required": [
+        "provider",
+        "identity_and_authorization_are_separate"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/configured"
+        },
+        "identity_and_authorization_are_separate": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "configured": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "^(MUST_CONFIGURE|secret://MUST_CONFIGURE)"
+      }
+    },
+    "secretRef": {
+      "type": "string",
+      "pattern": "^secret://(?!MUST_CONFIGURE)[A-Za-z0-9._/-]+$"
+    },
+    "organization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "login",
+        "projects"
+      ],
+      "properties": {
+        "login": {
+          "$ref": "#/$defs/configured"
+        },
+        "projects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "repository_scope",
+              "field_mapping",
+              "status_mapping"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/configured"
+              },
+              "repository_scope": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/configured"
+                }
+              },
+              "field_mapping": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "owner",
+                  "priority",
+                  "business_status",
+                  "acceptance_criteria"
+                ],
+                "additionalProperties": {
+                  "$ref": "#/$defs/configured"
+                }
+              },
+              "status_mapping": {
+                "type": "object",
+                "required": [
+                  "todo",
+                  "in_progress",
+                  "done"
+                ],
+                "additionalProperties": {
+                  "$ref": "#/$defs/configured"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

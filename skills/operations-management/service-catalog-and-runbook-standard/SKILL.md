@@ -5,6 +5,8 @@ description: Create or review service catalog records, ownership metadata, depen
 
 # Service Catalog and Runbook Standard
 
+涉及 Agent 团队执行记录、handoff 或归档引用时，按[Agent Team Harness](../../engineering-standards/agent-team-harness/SKILL.md)维护稳定 service/task/run 关联；本技能仍拥有服务元数据、依赖与 Runbook 的权威定义。
+
 Every production service must have an operational record that lets a qualified responder identify ownership, impact, deployment path, dependencies, health, recovery, and safe escalation without tribal knowledge.
 
 ## 1. Minimum service record

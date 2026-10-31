@@ -7,6 +7,8 @@ description: Manage production incidents, emergency changes, rollout freezes, re
 
 Treat customer impact, data loss, security exposure, and uncontrolled blast radius as incidents. Stabilize first; diagnose second; improve last. Never use an incident as authority to bypass access controls, erase evidence, or make an unreviewed destructive change.
 
+多 Agent 参与事故或恢复任务时，使用[Agent Team Harness](../../engineering-standards/agent-team-harness/SKILL.md)记录 run、唯一写入负责人、交接和证据；本技能仍拥有事件分级、变更批准、恢复验证与行动关闭规则。
+
 Reference basis: [Google SRE error-budget policy](https://sre.google/workbook/error-budget-policy/) for balancing reliability work, release decisions, and post-incident follow-up.
 
 ## 1. Declare and control
