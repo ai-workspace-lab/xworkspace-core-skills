@@ -83,8 +83,9 @@ title = cfg["title"]; ft, fs = F(54), F(50)
 nfr = int(TOTAL * FPS)
 def static_layer(sub):
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-    tw = ft.getlength(title); d.rounded_rectangle(((W-tw)/2-36, 110, (W+tw)/2+36, 200), 45, fill=(17, 24, 39, 235))
-    d.text((W/2, 155), title, font=ft, fill="white", anchor="mm")
+    if title:
+        tw = ft.getlength(title); d.rounded_rectangle(((W-tw)/2-36, 110, (W+tw)/2+36, 200), 45, fill=(17, 24, 39, 235))
+        d.text((W/2, 155), title, font=ft, fill="white", anchor="mm")
     if sub:
         f, lh = fs, 72; ls = wrap(sub, f, 900); y0 = 1390
         if len(ls) > 2: f, lh = F(40), 58; ls = wrap(sub, f, 920)  # 长字幕缩字号，保证不压到头像
