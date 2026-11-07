@@ -36,6 +36,10 @@ Each resource row must make these decisions explicit:
 Sensitive values never belong in GitOps. Store tokens, passwords, private keys, and connection
 strings in the environment-scoped Vault contract.
 
+## Kubernetes release units
+
+For Flux-managed ingress, group resources by lifecycle, readiness and rollback scope. Keep the active ingress and the retired ingress in separate reconciliation units. Declare each unit's source, path, dependencies and timeout. Prefer unit-level readiness via `spec.wait: true` for the active unit and `dependsOn` for prerequisites. Avoid growing the environment's `ingress-kustomization.yaml` into a list of individual HelmReleases, certificates, routes and metrics resources. A temporary `healthChecks` list needs an owner and a removal condition. See [Kubernetes progressive delivery](../multi-environment-delivery-and-release/references/kubernetes-progressive-delivery.md) for release ownership and verification.
+
 ## Routing and state rules
 
 1. Checkout GitOps before validating or dispatching the matrix; pin the ref/SHA in the run summary.

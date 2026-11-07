@@ -1,6 +1,6 @@
 ---
 name: multi-environment-delivery-and-release
-description: AI Workspace Infra UI/API/DB upgrade classification, multi-environment delivery, Vault OIDC, release and secret-isolation rules. Use when choosing in-place versus fresh-cluster upgrades or changing GitHub Actions environment routing, Vault roles/policies, CI secret reads, workflow_dispatch inputs, release tags, or deployment paths. Covers workflow allowlists, KV tiers, transition-safe routing, and no token escape hatches.
+description: AI Workspace Infra UI/API/DB upgrade classification, multi-environment delivery, Vault OIDC, and release isolation. Use when choosing an upgrade strategy, promoting a Flux/Helm release, planning a Flagger/Traefik canary, or changing GitHub Actions environment routing, Vault bindings, release tags, or deployment paths.
 ---
 
 # Multi-Environment Delivery and Release Standard
@@ -66,6 +66,8 @@ only one of them can make Terraform manage one host while Ansible deploys anothe
   environment-specific Vault references available until the observation window
   closes. A rollback in one environment does not mutate another environment's
   declaration or state.
+
+For Kubernetes services delivered through Flux and Helm, use [Kubernetes progressive delivery](references/kubernetes-progressive-delivery.md) to define chart and image pins, ingress ownership, traffic and metric gates, promotion order, and rollback evidence. Apply the same environment promotion rules to these releases.
 
 ### 1.1 Cross-repository snapshot and deployment boundary
 
