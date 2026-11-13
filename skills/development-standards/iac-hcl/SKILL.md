@@ -11,4 +11,6 @@ description: 开发或评审 Terraform 或 OpenTofu HCL 模块、根模块组装
 - HCL 表达目标状态，环境选择由权威声明驱动。复杂输入校验和渲染按现有工具归属，宿主机操作交给 Playbooks。复用应减少环境配置副本，避免让根模块变成多 Provider、多生命周期的开关集合。
 - 使用仓库实际工具执行格式检查、validate 和代表性 plan，核对正确的环境和 state。记录仅静态验证或 plan 的范围。资源变更的授权和执行沿用工程与运维流程。
 
+命名与可读性按[清单](../programming-paradigms/references/naming-and-clarity.md)执行：块名使用稳定、合法的 HCL 标识符。可批量编排的 env 保持扁平显式块，不在 `.tf` 中使用 `for_each`、`count`、`dynamic` 或模板控制结构；循环放在既有 Python + Jinja2 渲染器。优先复用现有模块，不另起渲染入口。
+
 参考 [Terraform 模块组合](https://developer.hashicorp.com/terraform/language/modules/develop/composition)及[范式与模式选择](../programming-paradigms/SKILL.md)。

@@ -14,4 +14,6 @@ description: 开发或评审 Go 服务与 Gin HTTP API。用于路由、鉴权�
 
 遇到行为回归时，先核对用例名称、业务契约和断言方向。重启、重复同步和重放测试应直接验证副作用次数。测试断言错误时优先修复断言，并用确实产生多余副作用的反例验证它会失败。
 
+命名与可读性按[清单](../programming-paradigms/references/naming-and-clarity.md)执行：包名短小全小写，文件名 snake_case，导出符号 PascalCase，未导出 camelCase。方法用业务动词命名。只在真实替换或测试隔离时才加接口，不提前拆层。通过 `gofmt`。
+
 参考 [Gin 请求绑定](https://gin-gonic.com/en/docs/binding/binding-and-validation/)及 [Go 事务](https://go.dev/doc/database/execute-transactions)。涉及模块分层或复用设计时，读取[范式与模式选择](../programming-paradigms/SKILL.md)。
