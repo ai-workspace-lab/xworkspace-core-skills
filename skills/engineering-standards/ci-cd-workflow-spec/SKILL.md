@@ -417,6 +417,8 @@ A job that reports `skipped` looks identical whether it was deliberately not req
 - **Distinguish "not requested" from "cannot run".** If a job is gated on an input, check the history: a job that is `skipped` on *every* run, including ones where the input was set, is not being skipped for the reason you think.
 - **Conditions that coincide with the intent are still bugs.** A gate that evaluates false for the wrong reason can match the desired behaviour on the common path and diverge on every other one — e.g. a data-migration job whose `needs.provision.outputs.*` silently resolve to empty still skips correctly on deploy runs, and never runs at all on migrate runs.
 
+发布门禁应能追溯所需检查实际执行的命令、候选 SHA 和结果。发现失败时记录首个失败阶段与下游跳过原因。构建、单测、隔离集成测试和部署验收按各自证据判定。
+
 ## 11. Trigger scope
 
 Triggers decide what a workflow costs and what it can damage. Both are easy to get wrong in the direction of "more".

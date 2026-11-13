@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/license-MIT-2ea44f.svg)](./LICENSE) [![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/) [![Author Verified](https://img.shields.io/badge/Author%20Verified-23%20Core%20Standards-critical.svg)](docs/engineering-standards.md) [![Agent Workflows](https://img.shields.io/badge/focus-Agent%20Workflows-7c3aed.svg)](docs/upstream-skills-catalog.md) [![Total Skills](https://img.shields.io/badge/skills-86%20total-blueviolet.svg)](skills)
+[![License](https://img.shields.io/badge/license-MIT-2ea44f.svg)](./LICENSE) [![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/) [![Author Verified](https://img.shields.io/badge/Author%20Verified-23%20Core%20Standards-critical.svg)](docs/engineering-standards.md) [![Agent Workflows](https://img.shields.io/badge/focus-Agent%20Workflows-7c3aed.svg)](docs/upstream-skills-catalog.md) [![Total Skills](https://img.shields.io/badge/skills-94%20total-blueviolet.svg)](skills)
 
 # XWorkspace Core Skills
 
@@ -7,15 +7,16 @@
 > [!IMPORTANT]
 > ### 🎯 核心定位与架构原则
 > 
-> 本仓库的核心价值，在于沉淀两大自研治理体系：现有 25 项一方规范条目，其中 23 项由仓库徽标列为 Author Verified；Agent Team Harness 是新增的协作设计契约，尚待运行验收，不计入已验证数量：
+> 本仓库的核心价值，在于沉淀工程、运维与开发规范。既有工程与运维规范中有 23 项由仓库徽标列为 Author Verified。Agent Team Harness 是待运行验收的协作设计契约。
 > 
 > 1. ⭐ **[工程规范与交付标准 (`skills/engineering-standards/`)](docs/engineering-standards.md)**（14 项自研核心工程规约）
 > 2. ⭐ **[运维管理与基础设施治理 (`skills/operations-management/`)](docs/operations-management.md)**（11 项自研运维标准）
+> 3. **[开发规范 (`skills/development-standards/`)](skills/README.md#开发规范)**（7 类技术开发规范与编程范式、经典设计模式、云原生十二要素）
 > 新增功能泳道规范为设计契约，尚无实际部署验收。三权分立规范来自实际权限审查；规范建立与校验通过，不代表生产业务降权、rootless 迁移和审计身份隔离已完成。
 > 
 > 配套自研了 **[版本化全局规范绑定引擎 (`scripts/bind_global_standards.py`)](docs/global-agent-standards.md)**，通过 Git Detached Worktree 技术将已纳入绑定清单的核心规范以不可变快照锁定并注入本机 `~/.agents/skills`，彻底杜绝环境与分支切换漂移。
 > 
-> **除上述作者实践验证的两大核心规范体系外，仓库内的其余能力域（内容生产工作流、Marketplace 市场生态、OpenClaw/Codex 运行时包等）均为引用或镜像自上游开源社区与官方运行时的技能包**，作为统一 Workspace 的分发与使用聚合层。
+> **除上述三类自研规范外，仓库内的其余能力域（内容生产工作流、Marketplace 市场生态、OpenClaw/Codex 运行时包等）均为引用或镜像自上游开源社区与官方运行时的技能包**，作为统一 Workspace 的分发与使用聚合层。
 
 ---
 
@@ -49,8 +50,8 @@ flowchart TD
 
 | 维度 | 扫描前（旧 README） | 扫描后（更新后） | 变动说明 |
 |---|---|---|---|
-| **纳管 Skill 文件总数** | 31 个 | **86 个** | 按仓库 `skills/` 下的 `SKILL.md` 文件递归计数；本次新增 Agent Team Harness 1 项 |
-| **能力域分类** | 8 个（缺漏 marketplace） | **10 大能力域** | 补全 Marketplace 扩展与分类边界，确立自研核心与上游引用分层 |
+| **纳管 Skill 文件总数** | 31 个 | **94 个** | 按仓库 `skills/` 下的 `SKILL.md` 文件递归计数；包含 8 项开发规范技能 |
+| **能力域分类** | 8 个（缺漏 marketplace） | **11 大能力域** | 包含独立的开发规范分类 |
 | **工程规范 (Engineering)** | 12 个 | **14 项现有规范 + 1 项待验收 Harness 设计** | 置顶并串联 `agent-team-harness`、`harness-workflow` 与工程研发交付规范 |
 | **运维管理 (Operations)** | 仅文字提及 2 个，无表格 | **11 项完整导航表** | 呈现自研运维标准，覆盖系统/DB 身份隔离、灾备、统一 Observability 架构、凭据治理与 SLO 标准 |
 | **市场扩展 (Marketplace)** | 0 个（完全缺失） | **15 个完整导航表** | 上游引用：补全 Office 文档处理、安全审查、Wan 多模态模型、实时翻译等 |
@@ -68,6 +69,7 @@ flowchart TD
 |---|---|---|
 | 🌟 **工程规范与交付标准** | 详细展示作者实践总结的 14 项硬核研发规约全景表、解决的痛点及落地执行原则 | [📖 `docs/engineering-standards.md`](docs/engineering-standards.md) |
 | 🌟 **运维管理与基础设施治理** | 详细展示展示 11 项运维标准、灾备恢复演练与故障闭环原则 | [📖 `docs/operations-management.md`](docs/operations-management.md) |
+| **开发规范** | 代码设计、语义复用、技术边界与行为验证 | [`skills/development-standards/`](skills/README.md#开发规范) |
 | 🔗 **全局规范绑定引擎** | 详解如何使用 `scripts/bind_global_standards.py` 将核心标准以不可变 Git 快照绑定至本机 `~/.agents/skills` | [📖 `docs/global-agent-standards.md`](docs/global-agent-standards.md) |
 | 📦 **上游引用生态技能包** | 涵盖内容生产（18）、Marketplace 市场精选（15）与 Workspace Core 运行时镜像（24）的完整分类表格 | [📖 `docs/upstream-skills-catalog.md`](docs/upstream-skills-catalog.md) |
 | 🛡️ **质量验证与工程支持** | 单元测试运行方法（`unittest`）、Release 分支门禁规范、产物隔离契约（`artifact-ignore.md`）与示例工程模板 | [📖 `docs/quality-and-engineering.md`](docs/quality-and-engineering.md) |
