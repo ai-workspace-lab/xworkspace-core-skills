@@ -17,4 +17,6 @@ description: 开发或评审 Python CLI、Shell 脚本及 YAML 配置与渲染�
 - 对部署拓扑、访问策略等会影响实际目标的声明，在消费边界拒绝重复键和无效引用。用合成样本验证解析器行为，覆盖最后一个值覆盖前值的情形。跨文件的唯一性按资源类型和作用域验证，允许契约明确的覆盖。
 - 验证解析后的数据和下游渲染结果。生成的 JSON、HCL 或 inventory 由权威声明派生。临时产物不承担环境事实源职责。
 
+命名与可读性按[清单](../programming-paradigms/references/naming-and-clarity.md)执行：Python 与 Shell 函数用 snake_case，常量 UPPER_SNAKE_CASE，YAML 键与 Ansible 变量用下划线。脚本文件名跟随所在目录已有的下划线或连字符风格，不引入第三种写法。避免晦涩的一行条件和 `eval`；复杂逻辑写成可测试的小函数。
+
 工作流或 Playbook 调用分别参考 [GitHub Actions](../github-actions/SKILL.md)及 [Ansible Playbook](../ansible-playbook/SKILL.md)。涉及语言选择或复用边界时，读取[范式与模式选择](../programming-paradigms/SKILL.md)。

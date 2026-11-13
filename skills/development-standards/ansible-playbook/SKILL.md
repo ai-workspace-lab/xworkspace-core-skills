@@ -11,4 +11,6 @@ description: 开发或评审 Ansible Playbook、Role、任务、变量、模板�
 - 对步骤明确先决条件、变更顺序和失败后的可恢复状态。涉及多个入口时确认同一资源只有一个日常声明负责人，按[执行归属规范](../../engineering-standards/execution-ownership-migration/SKILL.md)划分宿主机、Compose 与 Kubernetes 的职责。
 - 执行已有 syntax-check、lint 和受影响的 inventory 校验。check mode 按模块支持范围解读。需要证明收敛时，在授权的隔离目标执行两次，核对第二次实际变化和服务状态。按本次变更覆盖失败、重复执行及 handler 行为。角色契约、模板渲染和 syntax-check 可先验证局部行为。报告另行记录目标机收敛、进程状态及业务探测证据。
 
+Role、变量和 YAML 键的命名按[清单](../programming-paradigms/references/naming-and-clarity.md)执行：新 Role 默认 snake_case，并跟随所在目录已有风格。变量名用下划线且表达用途。Playbook 保持可读的声明顺序，复杂判断放到所属 Role 内可测试的脚本，不堆进难以阅读的 Jinja 一行表达式。
+
 参考 [Ansible 检查模式](https://docs.ansible.com/projects/ansible/latest/playbooks_checkmode.html)及[范式与模式选择](../programming-paradigms/SKILL.md)。

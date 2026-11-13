@@ -12,4 +12,6 @@ description: 开发或评审 PostgreSQL schema、查询、索引、约束、事�
 - 在目标主版本或等价 PostgreSQL 上验证空库初始化、从代表性旧版本升级、关键查询和兼容窗口。涉及锁、执行计划或并发的变更，使用代表性数据量和隔离环境验证。分别记录应用回退、schema 修复和数据恢复路径。依赖真实数据库的测试被跳过时，记录缺少的 fixture 与未覆盖的行为。测试和本地启动可保留既有自动建表模式，受管环境需核对实际模式、独立迁移入口和应用身份的有效权限。
 - 涉及迁移执行、授权或数据库安全审查时，先读[系统与数据库三权分立](../../operations-management/system-db-three-role-security/SKILL.md)。涉及有状态恢复时按[备份与恢复规范](../../operations-management/backup-disaster-recovery-and-data-migration/SKILL.md)执行。
 
+Schema、表、列和约束名使用稳定的 snake_case，并与所属服务的代码符号可互相对上。避免用难以阅读的动态 SQL 拼接列名或排序项；标识符来自允许列表。更完整的命名原则见[清单](../programming-paradigms/references/naming-and-clarity.md)。
+
 参考 [PostgreSQL ALTER TABLE](https://www.postgresql.org/docs/current/sql-altertable.html)及[范式与模式选择](../programming-paradigms/SKILL.md)。

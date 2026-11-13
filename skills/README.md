@@ -42,7 +42,7 @@
 | IaC / HCL | [Terraform / OpenTofu 模块开发](development-standards/iac-hcl/SKILL.md) |
 | Ansible Playbook / Role | [Playbook 与 Role 开发](development-standards/ansible-playbook/SKILL.md) |
 | GitHub Actions | [工作流、Action 与复用边界](development-standards/github-actions/SKILL.md) |
-| 范式和模式选型 | [编程范式](development-standards/programming-paradigms/SKILL.md) · [设计模式选择表](development-standards/programming-paradigms/references/design-pattern-map.md) · [云原生十二要素](development-standards/programming-paradigms/references/twelve-factor.md) |
+| 范式和模式选型 | [编程范式](development-standards/programming-paradigms/SKILL.md) · [设计模式选择表](development-standards/programming-paradigms/references/design-pattern-map.md) · [云原生十二要素](development-standards/programming-paradigms/references/twelve-factor.md) · [命名、可读性与轻量扩展](development-standards/programming-paradigms/references/naming-and-clarity.md) |
 
 ## Artifact Sync
 

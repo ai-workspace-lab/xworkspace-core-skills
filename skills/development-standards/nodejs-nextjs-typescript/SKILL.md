@@ -12,4 +12,6 @@ description: 开发或评审 Node.js、Next.js 和 TypeScript 应用。用于页
 - 明确每份数据的缓存范围、失效时机与身份边界。用户或租户数据只有在隔离键与失效机制明确时才共享缓存。提交后按实际读取路径验证刷新、错误与空状态。
 - 通过仓库已有 lint、类型检查及相关测试验证。变更跨服务器与浏览器边界、缓存或运行目标时，覆盖对应构建与用户路径。涉及环境路由时，测试注入固定的合成上游地址，并验证路径、参数和转发行为。涉及框架配置时验证语义，避免用引号、缩进等源码拼写替代行为断言。发现两个 UI 实现时先追踪真实路由、动态加载和消费者，再决定合并或移除。构建流程参见[工程规范](../../engineering-standards/project-development-standard/SKILL.md)。
 
+命名与可读性按[清单](../programming-paradigms/references/naming-and-clarity.md)执行：组件文件 PascalCase，工具文件默认 kebab-case 并跟随所在目录，符号 camelCase，常量 UPPER_SNAKE_CASE，泛型参数以 `T` 为前缀。函数写清楚、保持短小，不在 JSX 中堆大型内联对象，不新引入状态库。扩展时把功能放到 `src/modules` 既有模块附近。
+
 参考 [Next.js 服务端与客户端组件](https://nextjs.org/docs/app/getting-started/server-and-client-components)及 [BFF 指南](https://nextjs.org/docs/app/guides/backend-for-frontend)。涉及模块分层或复用设计时，读取[范式与模式选择](../programming-paradigms/SKILL.md)。
