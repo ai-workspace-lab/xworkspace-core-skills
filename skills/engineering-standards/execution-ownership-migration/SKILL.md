@@ -7,6 +7,8 @@ description: Enforce execution ownership across Platform-Orchestrator, IaC, GitO
 
 先读取[仓库地图](../references/ai-workspace-infra-repository-map.md)、目标仓库当前 `AGENTS.md` 和实际 caller graph。仓库按副作用划分，目录相邻、文件名叫 bootstrap/validator 或已有 workflow 依赖均不改变 owner。规则不自动授权合并、部署、迁移或资源删除。
 
+涉及 Linux、Compose 或 Kubernetes 的 GitOps 执行器选型与交接时，读取[多执行器治理](references/unified-gitops.md)。
+
 ## 1. 唯一执行 owner
 
 | 仓库 | 允许的职责与副作用 | 不得承载 |

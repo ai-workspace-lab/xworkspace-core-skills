@@ -1,18 +1,20 @@
 # Skills
 
-本目录是仓库唯一的 Skill 入口，递归收录 **86 个 Skill 文件**，按 10 大能力域分类管理。
+本目录是仓库唯一的 Skill 入口，递归收录 **94 个 Skill 文件**，按 11 大能力域分类管理。
 
 > [!IMPORTANT]
 > ### 核心自研验证资产 vs 上游引用技能包
 > - ⭐ **核心自研资产（实践·总结·验证）**：
 >   - `engineering-standards/`：包含 14 项现有工程研发与交付规范，以及 1 项待运行验收的 Agent Team Harness 协作设计（Harness 工作流、Issue/PR 溯源、四仓执行归属、多环境发布、GitOps 等）。
 >   - `operations-management/`：包含 11 项自研运维标准（真实灾备演练、统一可观测性架构、故障变更管理、Vault 凭据零落盘、Vault ESO TLS 证书同步与网关治理、DNS 边缘平滑切流、SLO 告警等）。
+> - **自研开发规范**：`development-standards/` 收录 7 类技术开发规范，以及编程范式、经典设计模式和云原生十二要素。
 > - 📦 **上游引用与镜像生态**：其余分类（多模态内容生产链路、Marketplace 市场技能、Workspace Core 运行时镜像、开源 Vendored 技能）均为引用或镜像自上游社区与运行时的生态包。
 
 | Category | 性质归属 | 用途说明 |
 |---|---|---|
 | ⭐ `engineering-standards/` | **自研核心；新 Harness 待运行验收** | 研发交付规范、发布治理、多环境隔离、代际升级与合规标准（14 项现有规约 + 1 项协作设计） |
 | ⭐ `operations-management/` | **作者实战验证核心** | 容灾备份、变更管理、Vault 凭据与 OIDC 治理、Vault ESO TLS 证书对账、网络边缘与 SLO（11 项标准，含系统/DB 三权分立、统一可观测性架构、Vault ESO TLS 证书治理） |
+| `development-standards/` | **自研开发规范** | 代码结构、语义复用、技术边界与行为验证，详见下方开发规范入口 |
 | `content-planning/` | 上游引用（HyperFrames） | 选题拆解、图文连载、内容排期 |
 | `video-production/` | 上游引用（HyperFrames） | AI 新闻快报、长图讲解视频、产品介绍视频与爆款视频逐镜理解 |
 | `image-production/` | 上游引用（HyperFrames） | 连续风格科技长图 PNG / 信息图素材生成 |
@@ -26,6 +28,21 @@
 
 - `image-svg-pptx-pro-skill/` — 图片 -> SVG -> 可编辑 PPTX（来源：`kongzhecn/image-svg-pptx-pro-skill`）
 - `xiaobei-skill-image-to-vba/` — 图片 -> VBA Office Shapes 重建（来源：`xiao24bei/xiaobei-skill-image-to-vba`）
+
+## 开发规范
+
+`development-standards/` 负责代码设计、实现和行为验证。`engineering-standards/` 负责构建、编译、工程约束与交付流程。`operations-management/` 负责运行、权限、变更和恢复。
+
+| 开发场景 | 技能入口 |
+|---|---|
+| Node.js / Next.js / TypeScript | [前端与 Node.js 应用开发](development-standards/nodejs-nextjs-typescript/SKILL.md) |
+| Gin / Go | [Go 服务与 API 开发](development-standards/gin-go/SKILL.md) |
+| PostgreSQL | [Schema、查询、事务与迁移开发](development-standards/postgresql-development/SKILL.md) |
+| Python / Shell / YAML | [脚本、配置与 CLI 开发](development-standards/python-shell/SKILL.md) |
+| IaC / HCL | [Terraform / OpenTofu 模块开发](development-standards/iac-hcl/SKILL.md) |
+| Ansible Playbook / Role | [Playbook 与 Role 开发](development-standards/ansible-playbook/SKILL.md) |
+| GitHub Actions | [工作流、Action 与复用边界](development-standards/github-actions/SKILL.md) |
+| 范式和模式选型 | [编程范式](development-standards/programming-paradigms/SKILL.md) · [设计模式选择表](development-standards/programming-paradigms/references/design-pattern-map.md) · [云原生十二要素](development-standards/programming-paradigms/references/twelve-factor.md) |
 
 ## Artifact Sync
 
